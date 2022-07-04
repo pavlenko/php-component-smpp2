@@ -2,6 +2,8 @@
 
 namespace PE\SMPP\PDU;
 
+use PE\SMPP\Builder;
+
 class SubmitSmResp extends PDU
 {
     private string $messageID;

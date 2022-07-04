@@ -1,6 +1,8 @@
 <?php
 
-namespace PE\SMPP\PDU;
+namespace PE\SMPP;
+
+use PE\SMPP\PDU\Address;
 
 final class Builder
 {
@@ -28,7 +30,7 @@ final class Builder
 
     public function addString(string $value): void
     {
-        $this->buffer .= pack('C', trim($value) . "\0");
+        $this->buffer .= trim($value) . "\0";
     }
 
     public function addDateTime(?\DateTimeInterface $dateTime): void

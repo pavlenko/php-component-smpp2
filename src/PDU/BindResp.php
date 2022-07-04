@@ -2,6 +2,8 @@
 
 namespace PE\SMPP\PDU;
 
+use PE\SMPP\Decoder;
+
 abstract class BindResp extends PDU
 {
     private string $systemID;
@@ -13,11 +15,9 @@ abstract class BindResp extends PDU
             return;
         }
 
-        return;//TODO parser/decoder
-        $wrapper = new DataWrapper($body);
-        $this->setSystemID(
-            $wrapper->readNullTerminatedString(16)
-        );
+        $decoder = new Decoder($body);
+        $this->setSystemID($decoder->readString(16));
+
         /**
          * optional
          *

@@ -2,6 +2,8 @@
 
 namespace PE\SMPP\PDU;
 
+use PE\SMPP\Builder;
+
 class SubmitSm extends PDU
 {
     private string $serviceType = '';

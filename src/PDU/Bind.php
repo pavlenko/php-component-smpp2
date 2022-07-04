@@ -3,6 +3,8 @@
 namespace PE\SMPP\PDU;
 
 use alexeevdv\React\Smpp\Utils\DataWrapper;
+use PE\SMPP\Builder;
+use PE\SMPP\Decoder;
 
 abstract class Bind extends PDU
 {
@@ -19,22 +21,12 @@ abstract class Bind extends PDU
             return;
         }
 
-        $wrapper = new DataWrapper($body);
-        $this->setSystemId(
-            $wrapper->readNullTerminatedString(16)
-        );
-        $this->setPassword(
-            $wrapper->readNullTerminatedString(9)
-        );
-        $this->setSystemType(
-            $wrapper->readNullTerminatedString(13)
-        );
-        $this->setInterfaceVersion(
-            $wrapper->readInt8()
-        );
-        $this->setAddress(
-            $wrapper->readAddress(41)
-        );
+        $decoder = new Decoder($body);
+        $this->setSystemID($decoder->readString(16));
+        $this->setPassword($decoder->readString(9));
+        $this->setSystemType($decoder->readString(13));
+        $this->setInterfaceVersion($decoder->readInt8());
+        $this->setAddress($decoder->readAddress(41));
     }
 
     public function getSystemType(): string

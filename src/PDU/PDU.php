@@ -2,6 +2,8 @@
 
 namespace PE\SMPP\PDU;
 
+use PE\SMPP\Builder;
+
 abstract class PDU
 {
     private int $commandStatus = 0;
