@@ -44,7 +44,7 @@ class Connection
 
     public function isAlive(): bool
     {
-        return null !== $this->socket;
+        return null !== $this->socket && !feof($this->socket);
     }
 
     public function connect(): void
@@ -104,6 +104,8 @@ class Connection
         if ($timeout !== null) {
             stream_set_timeout($this->socket, $timeout);
         }
+
+        //TODO
 
         $response = [];
 

@@ -207,7 +207,26 @@ class SMPPClass {
 			$this -> _sended_sms[$this->_sequence_number]['status'] = 'error';
 			$this -> _sended_sms[$this->_sequence_number]['message_id'] = '';
 
-			$status = $this->SendSubmitSM($service_type, $source_addr_ton, $source_addr_npi, $source_addr, $dest_addr_ton, $dest_addr_npi, $destination_addr, $esm_class, $protocol_id, $priority_flag, $schedule_delivery_time, $validity_period, $registered_delivery_flag, $replace_if_present_flag, $data_coding, $sm_default_msg_id, $sm_length, $short_message);
+			$status = $this->SendSubmitSM(
+                $service_type,
+                $source_addr_ton,
+                $source_addr_npi,
+                $source_addr,
+                $dest_addr_ton,
+                $dest_addr_npi,
+                $destination_addr,
+                $esm_class,
+                $protocol_id,
+                $priority_flag,
+                $schedule_delivery_time,
+                $validity_period,
+                $registered_delivery_flag,
+                $replace_if_present_flag,
+                $data_coding,
+                $sm_default_msg_id,
+                $sm_length,
+                $short_message
+            );
 			if ($status != 0) {
 				$this->debug("SMPP server returned error $status.<br/>");
 				$result = false;
@@ -322,7 +341,26 @@ class SMPPClass {
 
 		$short_message = $udh_packed . $binary_packed;
 		$sm_length = strlen($short_message);
-		$status = $this->SendSubmitSM($service_type, $source_addr_ton, $source_addr_npi, $source_addr, $dest_addr_ton, $dest_addr_npi, $destination_addr, $esm_class, $protocol_id, $priority_flag, $schedule_delivery_time, $validity_period, $registered_delivery_flag, $replace_if_present_flag, $data_coding, $sm_default_msg_id, $sm_length, $short_message);
+		$status = $this->SendSubmitSM(
+            $service_type,
+            $source_addr_ton,
+            $source_addr_npi,
+            $source_addr,
+            $dest_addr_ton,
+            $dest_addr_npi,
+            $destination_addr,
+            $esm_class,
+            $protocol_id,
+            $priority_flag,
+            $schedule_delivery_time,
+            $validity_period,
+            $registered_delivery_flag,
+            $replace_if_present_flag,
+            $data_coding,
+            $sm_default_msg_id,
+            $sm_length,
+            $short_message
+        );
 		if ($status != 0) {
 			$this->debug("SMPP server returned error $status.<br/>");
 			$result = false;
@@ -432,7 +470,26 @@ class SMPPClass {
 		while (list(, $part) = each($multi)) {
 			$short_message = $part;
 			$sm_length = strlen($short_message);
-			$status = $this->SendSubmitMulti($service_type, $source_addr_ton, $source_addr_npi, $source_addr, $dest_addr_ton, $dest_addr_npi, $destination_arr, $esm_class, $protocol_id, $priority_flag, $schedule_delivery_time, $validity_period, $registered_delivery_flag, $replace_if_present_flag, $data_coding, $sm_default_msg_id, $sm_length, $short_message);
+			$status = $this->SendSubmitMulti(
+                $service_type,
+                $source_addr_ton,
+                $source_addr_npi,
+                $source_addr,
+                $dest_addr_ton,
+                $dest_addr_npi,
+                $destination_arr,
+                $esm_class,
+                $protocol_id,
+                $priority_flag,
+                $schedule_delivery_time,
+                $validity_period,
+                $registered_delivery_flag,
+                $replace_if_present_flag,
+                $data_coding,
+                $sm_default_msg_id,
+                $sm_length,
+                $short_message
+            );
 			if ($status != 0) {
 				$this->debug("SMPP server returned error $status.<br/>");
 				$result = false;
@@ -682,8 +739,26 @@ class SMPPClass {
 		return $status;
 	}
 
-	function SendSubmitSM($service_type, $source_addr_ton, $source_addr_npi, $source_addr, $dest_addr_ton, $dest_addr_npi, $destination_addr, $esm_class, $protocol_id, $priority_flag, $schedule_delivery_time, $validity_period, $registered_delivery_flag, $replace_if_present_flag, $data_coding, $sm_default_msg_id, $sm_length, $short_message)
-	{
+	function SendSubmitSM(
+        $service_type,
+        $source_addr_ton,
+        $source_addr_npi,
+        $source_addr,
+        $dest_addr_ton,
+        $dest_addr_npi,
+        $destination_addr,
+        $esm_class,
+        $protocol_id,
+        $priority_flag,
+        $schedule_delivery_time,
+        $validity_period,
+        $registered_delivery_flag,
+        $replace_if_present_flag,
+        $data_coding,
+        $sm_default_msg_id,
+        $sm_length,
+        $short_message
+    ) {
 
 		// Если $data_coding = 1111xxxx, то это GSM 03.38
 		if((240 & $data_coding) == 240)
@@ -746,18 +821,35 @@ class SMPPClass {
 		$source_addr_len = strlen($source_addr);
 
 		$spec = "a{$message_id_len}cca{$source_addr_len}";
-		
+
 		$pdu = pack($spec,$message_id,$source_addr_ton,$source_addr_npi,$source_addr);
 
 		$status = $this->SendPDU(CM_QUERY_SM, $pdu);
-		
+
 		return $status;
 
 	}
 
-	function SendSubmitMulti($service_type, $source_addr_ton, $source_addr_npi, $source_addr, $dest_addr_ton, $dest_addr_npi, $destination_arr, $esm_class, $protocol_id, $priority_flag, $schedule_delivery_time, $validity_period, $registered_delivery_flag, $replace_if_present_flag, $data_coding, $sm_default_msg_id, $sm_length, $short_message)
-	{
-
+	function SendSubmitMulti(
+        $service_type,
+        $source_addr_ton,
+        $source_addr_npi,
+        $source_addr,
+        $dest_addr_ton,
+        $dest_addr_npi,
+        $destination_arr,
+        $esm_class,
+        $protocol_id,
+        $priority_flag,
+        $schedule_delivery_time,
+        $validity_period,
+        $registered_delivery_flag,
+        $replace_if_present_flag,
+        $data_coding,
+        $sm_default_msg_id,
+        $sm_length,
+        $short_message
+    ) {
 		// Если $data_coding = 1111xxxx, то это GSM 03.38
 		if((240 & $data_coding) == 240)
 		{
@@ -912,10 +1004,24 @@ class SMPPClass {
 
 	function convert_to_7bit($string)
 	{
+		$replace_chr = array(
+            '@','?','$','?','?','?','?','?','?','?',"\n",'?','?',"\r",'?','?',null,'_',null,null,null,null,null,null,
+            null,null,null,'?','?','?','?','!','"','#','?','%','&',"'",'(',')','*','+',',','-','.','/','?','?','?','?',
+            '?','?','?','?','?','?','?'
+        );
 
-		$replace_chr = array('@','?','$','?','?','?','?','?','?','?',"\n",'?','?',"\r",'?','?',null,'_',null,null,null,null,null,null,null,null,null,'?','?','?','?','!','"','#','?','%','&',"'",'(',')','*','+',',','-','.','/','?','?','?','?','?','?','?','?','?','?','?');
-
-		$replace_by = array(chr(0),chr(1),chr(2),chr(3),chr(4),chr(5),chr(6),chr(7),chr(8),chr(9),chr(10),chr(11),chr(12),chr(13),chr(14),chr(15),chr(16),chr(17),chr(18),chr(19),chr(20),chr(21),chr(22),chr(23),chr(24),chr(25),chr(26),chr(28),chr(29),chr(30),chr(31),chr(33),chr(34),chr(35),chr(36),chr(37),chr(38),chr(39),chr(40),chr(41),chr(42),chr(43),chr(44),chr(45),chr(46),chr(47),chr(91),chr(92),chr(93),chr(94),chr(95),chr(96),chr(123),chr(124),chr(125),chr(126),chr(127));
+        $replace_by = array(
+            chr(0), chr(1), chr(2), chr(3), chr(4), chr(5),
+            chr(6), chr(7), chr(8), chr(9), chr(10), chr(11),
+            chr(12), chr(13), chr(14), chr(15), chr(16), chr(17),
+            chr(18), chr(19), chr(20), chr(21), chr(22), chr(23),
+            chr(24), chr(25), chr(26), chr(28), chr(29), chr(30),
+            chr(31), chr(33), chr(34), chr(35), chr(36), chr(37),
+            chr(38), chr(39), chr(40), chr(41), chr(42), chr(43),
+            chr(44), chr(45), chr(46), chr(47), chr(91), chr(92),
+            chr(93), chr(94), chr(95), chr(96), chr(123), chr(124),
+            chr(125), chr(126), chr(127)
+        );
 
 		return str_replace($replace_chr,$replace_by,$string);
 	}
