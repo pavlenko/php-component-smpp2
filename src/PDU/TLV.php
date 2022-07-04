@@ -18,6 +18,11 @@ final class TLV
         return $this->tag;
     }
 
+    public function getLength(): int
+    {
+        return strlen($this->value);
+    }
+
     public function getValue(): string
     {
         return $this->value;
