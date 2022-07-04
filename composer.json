@@ -1,0 +1,30 @@
+{
+  "name": "pe/php-component-smpp",
+  "type": "library",
+  "description": "SMPP protocol implementation",
+  "minimum-stability": "stable",
+  "config": {
+    "sort-packages": true
+  },
+  "require": {
+    "php": "^7.4",
+    "ext-json": "*",
+    "psr/log": "^1.1"
+  },
+  "autoload": {
+    "psr-4": {
+      "PE\\SMPP\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "PE\\SMPP\\Tests\\": "tests/"
+    }
+  },
+  "require-dev": {
+    "alexeevdv/react-smpp": "1.0.x-dev",
+    "edomato/net-smpp": "v0.0.1",
+    "edomato/net-smpp-reactphp-client": "0.1.0",
+    "phpunit/phpunit": "~9.0"
+  }
+}
