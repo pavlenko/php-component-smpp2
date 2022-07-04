@@ -21,8 +21,8 @@ abstract class BindResp extends PDU
 
         if (!$decoder->isEOF()) {
             $tlv = $decoder->readTLV();
-            if (0x0210 === $tlv->getTag()) {
-                $this->setInterfaceVersion($tlv->getValue());
+            if (0x0210 === $tlv->getTag()) {// <-- sc_interface_version
+                $this->setInterfaceVersion($tlv->getValue());//TODO decode value...
             }
         }
     }
