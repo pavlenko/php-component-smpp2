@@ -10,6 +10,11 @@ final class Decoder
     private string $buffer;
     private int $position = 0;
 
+    public function isEOF(): bool
+    {
+        return $this->position >= strlen($this->buffer);
+    }
+
     public function __construct(string $buffer)
     {
         $this->buffer = $buffer;
@@ -39,7 +44,7 @@ final class Decoder
     public function readBytes(int $maxLength): string
     {
         $data = '';
-        while ($this->position < strlen($this->buffer) && strlen($data) < $maxLength) {
+        while (!$this->isEOF() && strlen($data) < $maxLength) {
             $data .= $this->buffer[$this->position];
             $this->position++;
         }
@@ -51,7 +56,7 @@ final class Decoder
     {
         $value = '';
         while (
-            $this->position < strlen($this->buffer)
+            !$this->isEOF()
             && $this->buffer[$this->position] !== "\0"
             && strlen($value) < $maxLength
         ) {

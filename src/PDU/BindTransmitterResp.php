@@ -2,7 +2,7 @@
 
 namespace PE\SMPP\PDU;
 
-class BindTransmitterResp extends BindResp
+final class BindTransmitterResp extends BindResp
 {
     public function getCommandID(): int
     {

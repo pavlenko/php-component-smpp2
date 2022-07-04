@@ -7,6 +7,7 @@ use PE\SMPP\Decoder;
 abstract class BindResp extends PDU
 {
     private string $systemID;
+    private int $interfaceVersion = 0;
 
     public function __construct($body = '')
     {
@@ -18,11 +19,12 @@ abstract class BindResp extends PDU
         $decoder = new Decoder($body);
         $this->setSystemID($decoder->readString(16));
 
-        /**
-         * optional
-         *
-         * sc_interface_version TLV
-         */
+        if (!$decoder->isEOF()) {
+            $tlv = $decoder->readTLV();
+            if (0x0210 === $tlv->getTag()) {
+                $this->setInterfaceVersion($tlv->getValue());
+            }
+        }
     }
 
     public function getSystemID(): string
@@ -33,5 +35,15 @@ abstract class BindResp extends PDU
     public function setSystemID(string $systemID): void
     {
         $this->systemID = $systemID;
+    }
+
+    public function getInterfaceVersion(): int
+    {
+        return $this->interfaceVersion;
+    }
+
+    public function setInterfaceVersion(int $interfaceVersion): void
+    {
+        $this->interfaceVersion = $interfaceVersion;
     }
 }
