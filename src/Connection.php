@@ -113,7 +113,7 @@ class Connection
             stream_set_timeout($this->socket, $timeout);
         }
 
-        $stream = new Stream((string) stream_get_contents($this->socket, 16));
+        $stream = new Stream((string) fread($this->socket, 16));
         if ($stream->bytesLeft() < 16) {
             throw new \RuntimeException('Malformed PDU header');
         }
@@ -127,13 +127,14 @@ class Connection
             throw new \RuntimeException('Unknown PDU');
         }
 
-        $body = (string) stream_get_contents($this->socket, $length);
-        if (strlen($body) < $length) {
+        $body = (string) fread($this->socket, $length);
+        if (strlen($body) < $length - 16) {
             throw new \RuntimeException('Malformed PDU body');
         }
 
         /* @var $pdu PDU */
-        $pdu = new PDU::CLASS_MAP[$commandID]($body);
+        $cls = PDU::CLASS_MAP[$commandID];
+        $pdu = new $cls($body);
         $pdu->setCommandStatus($commandStatus);
         $pdu->setSequenceNumber($sequenceNum);
         return $pdu;

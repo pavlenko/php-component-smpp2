@@ -8,11 +8,11 @@ use PE\SMPP\Decoder;
 
 abstract class Bind extends PDU
 {
-    private string $systemType;
-    private string $systemID;
-    private string $password;
-    private int $interfaceVersion;
-    private ?Address $address;
+    private string $systemType = '';
+    private string $systemID = '';
+    private string $password = '';
+    private int $interfaceVersion = 0;
+    private ?Address $address = null;
 
     public function __construct($body = '')
     {
