@@ -4,7 +4,7 @@ namespace PE\SMPP\PDU;
 
 //TODO w_buffer
 //TODO r_buffer
-class Stream
+final class Stream
 {
     private string $buffer;
     private int $position = 0;
@@ -17,6 +17,11 @@ class Stream
     public function isEOF(): bool
     {
         return $this->position >= strlen($this->buffer);
+    }
+
+    public function bytesLeft(): int
+    {
+        return strlen($this->buffer) - $this->position;
     }
 
     public function shiftInt8(): int

@@ -28,6 +28,30 @@ abstract class PDU
     public const ENQUIRE_LINK          = 0x00000015;
     public const ENQUIRE_LINK_RESP     = 0x80000015;
 
+    public const CLASS_MAP = [
+/*public const GENERIC_NACK          = */ 0x80000000 => GenericNack::class,
+/*public const BIND_RECEIVER         = */ 0x00000001 => BindReceiver::class,
+/*public const BIND_RECEIVER_RESP    = */ 0x80000001 => BindReceiverResp::class,
+/*public const BIND_TRANSMITTER      = */ 0x00000002 => BindTransmitter::class,
+/*public const BIND_TRANSMITTER_RESP = */ 0x80000002 => BindTransmitterResp::class,
+/*public const QUERY_SM              = */ 0x00000003 => null,
+/*public const QUERY_SM_RESP         = */ 0x80000003 => null,
+/*public const SUBMIT_SM             = */ 0x00000004 => null,
+/*public const SUBMIT_SM_RESP        = */ 0x80000004 => null,
+/*public const DELIVER_SM            = */ 0x00000005 => null,
+/*public const DELIVER_SM_RESP       = */ 0x80000005 => null,
+/*public const UNBIND                = */ 0x00000006 => null,
+/*public const UNBIND_RESP           = */ 0x80000006 => null,
+/*public const REPLACE_SM            = */ 0x00000007 => null,
+/*public const REPLACE_SM_RESP       = */ 0x80000007 => null,
+/*public const CANCEL_SM             = */ 0x00000008 => null,
+/*public const CANCEL_SM_RESP        = */ 0x80000008 => null,
+/*public const BIND_TRANSCEIVER      = */ 0x00000009 => null,
+/*public const BIND_TRANSCEIVER_RESP = */ 0x80000009 => null,
+/*public const ENQUIRE_LINK          = */ 0x00000015 => null,
+/*public const ENQUIRE_LINK_RESP     = */ 0x80000015 => null,
+    ];
+
     private int $commandStatus = 0;
     private int $sequenceNumber = 1;
     private string $body;

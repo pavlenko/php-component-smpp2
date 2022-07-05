@@ -2,7 +2,7 @@
 
 namespace PE\SMPP\PDU;
 
-class QuerySmResp extends PDU
+final class QuerySmResp extends PDU
 {
     public function getCommandID(): int
     {

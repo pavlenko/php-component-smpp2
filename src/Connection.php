@@ -2,6 +2,8 @@
 
 namespace PE\SMPP;
 
+use PE\SMPP\PDU\Stream;
+
 class Connection
 {
     private string $host;
@@ -82,6 +84,7 @@ class Connection
         }
     }
 
+    //TODO change argument to PDU
     public function send(string $data): int
     {
         if (!is_resource($this->socket)) {
@@ -105,28 +108,24 @@ class Connection
             stream_set_timeout($this->socket, $timeout);
         }
 
-        //TODO
+        /* @see \React\Stream\DuplexResourceStream::handleData */
+        //TODO read only part of stream
 
-        $response = [];
+        $stream = new Stream((string) stream_get_contents($this->socket, 16));
+        if ($stream->bytesLeft() < 16) {
+            return null;//TODO exception
+        }
 
-        do {
-            $line = fgets($this->socket);
-            $info = stream_get_meta_data($this->socket);
+        $length        = $stream->shiftInt32();
+        $commandID     = $stream->shiftInt32();
+        $commandStatus = $stream->shiftInt32();
+        $sequenceNum   = $stream->shiftInt32();
 
-            if ($info['timed_out']) {
-                throw new \RuntimeException('Connection timed out');
-            }
+        //TODO resolve PDU class - else exception
 
-            if (false === $line) {
-                throw new \RuntimeException('Cannot read data');
-            }
+        $body = (string) stream_get_contents($this->socket, $length);
 
-            [$code, $message] = preg_split('/([\s-]+)/', $line, 2);
-
-            $response[] = trim($message);
-        } while (' ' !== $line[3]);
-
-        return new Response($code, array_shift($response), $response);
+        return null;
     }
 
     public function exit(): void

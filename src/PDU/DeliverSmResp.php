@@ -2,7 +2,7 @@
 
 namespace PE\SMPP\PDU;
 
-class DeliverSmResp extends SubmitSmResp
+final class DeliverSmResp extends SubmitSmResp
 {
     public function getCommandID(): int
     {

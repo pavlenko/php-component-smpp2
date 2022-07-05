@@ -2,7 +2,7 @@
 
 namespace PE\SMPP\PDU;
 
-class CancelSmResp extends PDU
+final class CancelSmResp extends PDU
 {
     public function getCommandID(): int
     {

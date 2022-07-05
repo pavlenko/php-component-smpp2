@@ -2,7 +2,7 @@
 
 namespace PE\SMPP\PDU;
 
-class UnbindResp extends PDU
+final class UnbindResp extends PDU
 {
     public function getCommandID(): int
     {
