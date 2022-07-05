@@ -2,6 +2,7 @@
 
 namespace PE\SMPP;
 
+use PE\SMPP\PDU\PDU;
 use PE\SMPP\PDU\Stream;
 
 class Connection
@@ -84,21 +85,25 @@ class Connection
         }
     }
 
-    //TODO change argument to PDU
-    public function send(string $data): int
+    public function sendPDU(PDU $pdu, string $expectPDU = null): ?PDU
     {
         if (!is_resource($this->socket)) {
             throw new \RuntimeException('No connection has been established');
         }
 
-        if (false === ($result = fwrite($this->socket, $data . "\r\n"))) {
+        $result = fwrite($this->socket, $pdu);
+        if (false === $result) {
             throw new \RuntimeException('Cannot send data');
         }
 
-        return $result;
+        if (null === $expectPDU) {
+            return null;
+        }
+
+        return $this->readPDU();
     }
 
-    public function read(int $timeout = null)
+    public function readPDU(int $timeout = null): PDU
     {
         if (!is_resource($this->socket)) {
             throw new \RuntimeException('No connection has been established');
@@ -108,12 +113,9 @@ class Connection
             stream_set_timeout($this->socket, $timeout);
         }
 
-        /* @see \React\Stream\DuplexResourceStream::handleData */
-        //TODO read only part of stream
-
         $stream = new Stream((string) stream_get_contents($this->socket, 16));
         if ($stream->bytesLeft() < 16) {
-            return null;//TODO exception
+            throw new \RuntimeException('Malformed PDU header');
         }
 
         $length        = $stream->shiftInt32();
@@ -121,11 +123,20 @@ class Connection
         $commandStatus = $stream->shiftInt32();
         $sequenceNum   = $stream->shiftInt32();
 
-        //TODO resolve PDU class - else exception
+        if (!array_key_exists($commandID, PDU::CLASS_MAP)) {
+            throw new \RuntimeException('Unknown PDU');
+        }
 
         $body = (string) stream_get_contents($this->socket, $length);
+        if (strlen($body) < $length) {
+            throw new \RuntimeException('Malformed PDU body');
+        }
 
-        return null;
+        /* @var $pdu PDU */
+        $pdu = new PDU::CLASS_MAP[$commandID]($body);
+        $pdu->setCommandStatus($commandStatus);
+        $pdu->setSequenceNumber($sequenceNum);
+        return $pdu;
     }
 
     public function exit(): void
