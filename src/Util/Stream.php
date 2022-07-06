@@ -29,7 +29,7 @@ final class Stream
             $context
         );
         if (false === $socket) {
-            throw new SocketException($errorStr ?: 'Could not connect to socket ' . $address, $errorNum);
+            throw new SocketException($errorStr ?: 'Cannot connect to socket ' . $address, $errorNum);
         }
         return new self($socket);
     }
@@ -69,12 +69,10 @@ final class Stream
 //stream_socket_enable_crypto — Включает или отключает шифрование на уже подключённом сокете
 //stream_socket_get_name — Получить название локального или удалённого сокета
 //stream_socket_pair — Создаёт пару подключённых, неразличимых потоков сокетов
-//stream_socket_recvfrom — Получает данные из сокета, подключённого или нет
-//stream_socket_sendto — Отправляет сообщение в сокет, независимо от того, подсоединён он или нет
 //stream_socket_shutdown — Закрыть полнодуплексное соединение
 
     /**
-     * Create socket with specified resource, private for prevent call outside
+     * Create stream with specified resource, private for prevent call outside
      *
      * @param resource $resource
      */
@@ -93,6 +91,61 @@ final class Stream
     {
         if (!stream_set_timeout($this->resource, $seconds, $micros)) {
             throw new SocketException('Cannot set read/write timeout');
+        }
+    }
+
+    /**
+     * Set blocking/non-blocking mode
+     *
+     * @param bool $enable
+     */
+    public function setBlocking(bool $enable): void
+    {
+        if (!stream_set_blocking($this->resource, $enable)) {
+            throw new SocketException('Cannot set blocking mode');
+        }
+    }
+
+    /**
+     * Read line from stream until reach $length or EOL or EOF
+     *
+     * @param int|null $length
+     * @return string
+     */
+    public function readLine(int $length = null): string
+    {
+        $string = fgets($this->resource, $length);
+        if (false === $string) {
+            throw new SocketException('Cannot read line from socket');
+        }
+        return $string;
+    }
+
+    /**
+     * Read data from stream until reach $limit or EOL
+     *
+     * @param int|null $length
+     * @return string
+     */
+    public function readData(int $length = null): string
+    {
+        $string = fread($this->resource, $length ?: PHP_INT_MAX);
+        if (false === $string) {
+            throw new SocketException('Cannot read data from socket');
+        }
+        return $string;
+    }
+
+    /**
+     * Send data to stream (can be truncated if length greater than $length)
+     *
+     * @param string   $data
+     * @param int|null $length
+     */
+    public function sendData(string $data, int $length = null): void
+    {
+        if (false === fwrite($this->resource, $data, $length)) {
+            throw new SocketException('Cannot write data to socket');
         }
     }
 }
