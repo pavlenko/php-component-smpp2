@@ -34,6 +34,14 @@ final class Stream
         return new self($socket);
     }
 
+    /**
+     * Create server socket
+     *
+     * @param string     $address Address to the socket to listen to.
+     * @param resource   $context Stream transport related context
+     *
+     * @return static
+     */
     public static function createServer(string $address, $context = null): self
     {
         $socket = @stream_socket_server(
@@ -57,11 +65,8 @@ final class Stream
 //stream_context_set_option — Устанавливает опцию для потока/обёртки/контекста
 //stream_context_set_params — Устанавливает параметры для потока/обёртки/контекста
 //stream_copy_to_stream — Копирует данные из одного потока в другой
-//stream_get_contents — Читает оставшуюся часть потока в строку
-//stream_get_line — Получает строку из потокового ресурса до указанного разделителя
 //stream_get_meta_data — Извлекает заголовок/метаданные из потоков/файловых указателей
 //stream_select — Запускает эквивалент системного вызова select() на заданных массивах потоков со временем ожидания, указанным параметрами seconds и microseconds
-//stream_set_blocking — Установить блокирующий/неблокирующий режим в потоке
 //stream_set_chunk_size — Установить размер фрагмента данных потока
 //stream_set_read_buffer — Установить буферизацию чтения файла на указанном потоке
 //stream_set_write_buffer — Устанавливает буферизацию файла при записи в указанный поток
@@ -69,7 +74,6 @@ final class Stream
 //stream_socket_enable_crypto — Включает или отключает шифрование на уже подключённом сокете
 //stream_socket_get_name — Получить название локального или удалённого сокета
 //stream_socket_pair — Создаёт пару подключённых, неразличимых потоков сокетов
-//stream_socket_shutdown — Закрыть полнодуплексное соединение
 
     /**
      * Create stream with specified resource, private for prevent call outside
@@ -110,6 +114,7 @@ final class Stream
      * Read line from stream until reach $length or EOL or EOF
      *
      * @param int|null $length
+     *
      * @return string
      */
     public function readLine(int $length = null): string
@@ -125,6 +130,7 @@ final class Stream
      * Read data from stream until reach $limit or EOL
      *
      * @param int|null $length
+     *
      * @return string
      */
     public function readData(int $length = null): string
@@ -146,6 +152,16 @@ final class Stream
     {
         if (false === fwrite($this->resource, $data, $length)) {
             throw new SocketException('Cannot write data to socket');
+        }
+    }
+
+    /**
+     * Close stream
+     */
+    public function close(): void
+    {
+        if (is_resource($this->resource)) {
+            fclose($this->resource);
         }
     }
 }
