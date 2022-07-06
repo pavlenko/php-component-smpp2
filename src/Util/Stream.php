@@ -98,8 +98,6 @@ final class Stream
 //stream_copy_to_stream — Копирует данные из одного потока в другой
 //stream_get_meta_data — Извлекает заголовок/метаданные из потоков/файловых указателей
 //stream_set_chunk_size — Установить размер фрагмента данных потока
-//stream_set_read_buffer — Установить буферизацию чтения файла на указанном потоке
-//stream_set_write_buffer — Устанавливает буферизацию файла при записи в указанный поток
 //stream_socket_accept — Принимать соединение в сокете, созданном c помощью функции stream_socket_server
 //stream_socket_enable_crypto — Включает или отключает шифрование на уже подключённом сокете
 //stream_socket_get_name — Получить название локального или удалённого сокета
@@ -135,6 +133,30 @@ final class Stream
     public function setBlocking(bool $enable): void
     {
         if (!stream_set_blocking($this->resource, $enable)) {
+            throw new SocketException('Cannot set blocking mode');
+        }
+    }
+
+    /**
+     * Set the read buffer
+     *
+     * @param int $size The number of bytes to buffer. If <b>$size</b> is 0 then operations are unbuffered
+     */
+    public function setBufferR(int $size): void
+    {
+        if (0 !== stream_set_read_buffer($this->resource, $size)) {
+            throw new SocketException('Cannot set blocking mode');
+        }
+    }
+
+    /**
+     * Set the write buffer
+     *
+     * @param int $size The number of bytes to buffer. If <b>$size</b> is 0 then operations are unbuffered
+     */
+    public function setBufferW(int $size): void
+    {
+        if (0 !== stream_set_write_buffer($this->resource, $size)) {
             throw new SocketException('Cannot set blocking mode');
         }
     }
