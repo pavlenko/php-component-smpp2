@@ -66,7 +66,6 @@ final class Stream
 //stream_context_set_params — Устанавливает параметры для потока/обёртки/контекста
 //stream_copy_to_stream — Копирует данные из одного потока в другой
 //stream_get_meta_data — Извлекает заголовок/метаданные из потоков/файловых указателей
-//stream_select — Запускает эквивалент системного вызова select() на заданных массивах потоков со временем ожидания, указанным параметрами seconds и microseconds
 //stream_set_chunk_size — Установить размер фрагмента данных потока
 //stream_set_read_buffer — Установить буферизацию чтения файла на указанном потоке
 //stream_set_write_buffer — Устанавливает буферизацию файла при записи в указанный поток
@@ -108,6 +107,46 @@ final class Stream
         if (!stream_set_blocking($this->resource, $enable)) {
             throw new SocketException('Cannot set blocking mode');
         }
+    }
+
+    /**
+     * Check if stream ready to read
+     *
+     * @param float|null $timeout
+     *
+     * @return bool
+     */
+    public function selectR(float $timeout = null): bool
+    {
+        $us = null !== $timeout ? ($timeout - floor($timeout)) * 1_000_000 : 0;
+
+        $r = [$this->resource];
+        $e = null;
+        $n = stream_select($r, $e, $e, null !== $timeout ? (int) $timeout : null, $us);
+        if (false === $n) {
+            throw new SocketException('Cannot set blocking mode');
+        }
+        return (bool) $n;
+    }
+
+    /**
+     * Check if stream ready to write
+     *
+     * @param float|null $timeout
+     *
+     * @return bool
+     */
+    public function selectW(float $timeout = null): bool
+    {
+        $us = null !== $timeout ? ($timeout - floor($timeout)) * 1_000_000 : 0;
+
+        $w = [$this->resource];
+        $e = null;
+        $n = stream_select($e, $w, $e, null !== $timeout ? (int) $timeout : null, $us);
+        if (false === $n) {
+            throw new SocketException('Cannot set blocking mode');
+        }
+        return (bool) $n;
     }
 
     /**
