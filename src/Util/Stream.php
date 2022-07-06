@@ -57,6 +57,37 @@ final class Stream
         return new self($socket);
     }
 
+    /**
+     * Create socket pair
+     *
+     * @param int $domain The protocol family to be used:<br>
+     *   <b>STREAM_PF_INET</b>,<br>
+     *   <b>STREAM_PF_INET6</b> or<br>
+     *   <b>STREAM_PF_UNIX</b>
+     * @param int $type The type of communication to be used:<br>
+     *   <b>STREAM_SOCK_DGRAM</b>,<br>
+     *   <b>STREAM_SOCK_RAW</b>,<br>
+     *   <b>STREAM_SOCK_RDM</b>,<br>
+     *   <b>STREAM_SOCK_SEQPACKET</b> or<br>
+     *   <b>STREAM_SOCK_STREAM</b>
+     * @param int $protocol The protocol to be used:<br>
+     *   <b>STREAM_IPPROTO_ICMP</b>,<br>
+     *   <b>STREAM_IPPROTO_IP</b>,<br>
+     *   <b>STREAM_IPPROTO_RAW</b>,<br>
+     *   <b>STREAM_IPPROTO_TCP</b> or<br>
+     *   <b>STREAM_IPPROTO_UDP</b>
+     *
+     * @return Stream[]
+     */
+    public static function createPair(int $domain, int $type, int $protocol): array
+    {
+        $sockets = stream_socket_pair($domain, $type, $protocol);
+        if (false === $sockets) {
+            throw new SocketException('Cannot create socket pair');
+        }
+        return [new self($sockets[0]), new self($sockets[1])];
+    }
+
 //stream_context_create — Создаёт контекст потока
 //stream_context_get_default — Получает контекст потока по умолчанию
 //stream_context_get_options — Получает опции для потока/обёртки/контекста
@@ -72,7 +103,6 @@ final class Stream
 //stream_socket_accept — Принимать соединение в сокете, созданном c помощью функции stream_socket_server
 //stream_socket_enable_crypto — Включает или отключает шифрование на уже подключённом сокете
 //stream_socket_get_name — Получить название локального или удалённого сокета
-//stream_socket_pair — Создаёт пару подключённых, неразличимых потоков сокетов
 
     /**
      * Create stream with specified resource, private for prevent call outside
