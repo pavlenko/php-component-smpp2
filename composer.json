@@ -9,6 +9,7 @@
   "require": {
     "php": "^7.4",
     "ext-json": "*",
+    "clue/socket-raw": "^1.6",
     "psr/log": "^1.1"
   },
   "autoload": {
