@@ -29,7 +29,7 @@ final class Stream
             $context
         );
         if (false === $socket) {
-            throw new SocketException($errorStr ?: 'Cannot connect to socket ' . $address, $errorNum);
+            throw new StreamException($errorStr ?: 'Cannot connect to socket ' . $address, $errorNum);
         }
         return new self($socket);
     }
@@ -52,7 +52,7 @@ final class Stream
             $context
         );
         if (false === $socket) {
-            throw new SocketException($errorStr ?: 'Cannot connect to socket ' . $address, $errorNum);
+            throw new StreamException($errorStr ?: 'Cannot connect to socket ' . $address, $errorNum);
         }
         return new self($socket);
     }
@@ -83,7 +83,7 @@ final class Stream
     {
         $sockets = stream_socket_pair($domain, $type, $protocol);
         if (false === $sockets) {
-            throw new SocketException('Cannot create socket pair');
+            throw new StreamException('Cannot create socket pair');
         }
         return [new self($sockets[0]), new self($sockets[1])];
     }
@@ -121,7 +121,7 @@ final class Stream
     public function setTimeout(int $seconds, int $micros = 0): void
     {
         if (!stream_set_timeout($this->resource, $seconds, $micros)) {
-            throw new SocketException('Cannot set read/write timeout');
+            throw new StreamException('Cannot set read/write timeout');
         }
     }
 
@@ -133,7 +133,7 @@ final class Stream
     public function setBlocking(bool $enable): void
     {
         if (!stream_set_blocking($this->resource, $enable)) {
-            throw new SocketException('Cannot set blocking mode');
+            throw new StreamException('Cannot set blocking mode');
         }
     }
 
@@ -145,7 +145,7 @@ final class Stream
     public function setBufferR(int $size): void
     {
         if (0 !== stream_set_read_buffer($this->resource, $size)) {
-            throw new SocketException('Cannot set blocking mode');
+            throw new StreamException('Cannot set blocking mode');
         }
     }
 
@@ -157,7 +157,7 @@ final class Stream
     public function setBufferW(int $size): void
     {
         if (0 !== stream_set_write_buffer($this->resource, $size)) {
-            throw new SocketException('Cannot set blocking mode');
+            throw new StreamException('Cannot set blocking mode');
         }
     }
 
@@ -176,7 +176,7 @@ final class Stream
         $e = null;
         $n = stream_select($r, $e, $e, null !== $timeout ? (int) $timeout : null, $us);
         if (false === $n) {
-            throw new SocketException('Cannot set blocking mode');
+            throw new StreamException('Cannot set blocking mode');
         }
         return (bool) $n;
     }
@@ -196,7 +196,7 @@ final class Stream
         $e = null;
         $n = stream_select($e, $w, $e, null !== $timeout ? (int) $timeout : null, $us);
         if (false === $n) {
-            throw new SocketException('Cannot set blocking mode');
+            throw new StreamException('Cannot set blocking mode');
         }
         return (bool) $n;
     }
@@ -212,7 +212,7 @@ final class Stream
     {
         $string = fgets($this->resource, $length);
         if (false === $string) {
-            throw new SocketException('Cannot read line from socket');
+            throw new StreamException('Cannot read line from socket');
         }
         return $string;
     }
@@ -228,7 +228,7 @@ final class Stream
     {
         $string = fread($this->resource, $length ?: PHP_INT_MAX);
         if (false === $string) {
-            throw new SocketException('Cannot read data from socket');
+            throw new StreamException('Cannot read data from socket');
         }
         return $string;
     }
@@ -242,7 +242,7 @@ final class Stream
     public function sendData(string $data, int $length = null): void
     {
         if (false === fwrite($this->resource, $data, $length)) {
-            throw new SocketException('Cannot write data to socket');
+            throw new StreamException('Cannot write data to socket');
         }
     }
 
