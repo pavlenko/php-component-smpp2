@@ -7,7 +7,7 @@ use PE\SMPP\Util\Buffer;
 
 class Connection
 {
-    private Buffer $host;
+    private string $host;
     private int $port;
 
     /**
@@ -19,18 +19,18 @@ class Connection
      * @param string $host
      * @param int    $port
      */
-    public function __construct(Buffer $host = 'localhost', int $port = 2775)
+    public function __construct(string $host = 'localhost', int $port = 2775)
     {
         $this->host = $host;
         $this->port = $port;
     }
 
-    public function getHost(): Buffer
+    public function getHost(): string
     {
         return $this->host ?: 'localhost';
     }
 
-    public function setHost(Buffer $host): void
+    public function setHost(string $host): void
     {
         $this->host = $host;
     }
