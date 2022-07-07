@@ -2,6 +2,20 @@
 
 namespace PE\SMPP\Util;
 
+//TODO
+// stream_context_create — Создаёт контекст потока
+// stream_context_get_default — Получает контекст потока по умолчанию
+// stream_context_get_options — Получает опции для потока/обёртки/контекста
+// stream_context_get_params — Получает параметры из контекста
+// stream_context_set_default — Установить контекст потока по умолчанию
+// stream_context_set_option — Устанавливает опцию для потока/обёртки/контекста
+// stream_context_set_params — Устанавливает параметры для потока/обёртки/контекста
+// stream_get_meta_data — Извлекает заголовок/метаданные из потоков/файловых указателей
+// stream_set_chunk_size — Установить размер фрагмента данных потока
+// stream_socket_accept — Принимать соединение в сокете, созданном c помощью функции stream_socket_server
+// stream_socket_enable_crypto — Включает или отключает шифрование на уже подключённом сокете
+// stream_socket_get_name — Получить название локального или удалённого сокета
+
 final class Stream
 {
     /**
@@ -37,8 +51,8 @@ final class Stream
     /**
      * Create server socket
      *
-     * @param string     $address Address to the socket to listen to.
-     * @param resource   $context Stream transport related context
+     * @param string   $address Address to the socket to listen to.
+     * @param resource $context Stream transport related context
      *
      * @return static
      */
@@ -87,20 +101,6 @@ final class Stream
         }
         return [new self($sockets[0]), new self($sockets[1])];
     }
-
-//stream_context_create — Создаёт контекст потока
-//stream_context_get_default — Получает контекст потока по умолчанию
-//stream_context_get_options — Получает опции для потока/обёртки/контекста
-//stream_context_get_params — Получает параметры из контекста
-//stream_context_set_default — Установить контекст потока по умолчанию
-//stream_context_set_option — Устанавливает опцию для потока/обёртки/контекста
-//stream_context_set_params — Устанавливает параметры для потока/обёртки/контекста
-//stream_copy_to_stream — Копирует данные из одного потока в другой
-//stream_get_meta_data — Извлекает заголовок/метаданные из потоков/файловых указателей
-//stream_set_chunk_size — Установить размер фрагмента данных потока
-//stream_socket_accept — Принимать соединение в сокете, созданном c помощью функции stream_socket_server
-//stream_socket_enable_crypto — Включает или отключает шифрование на уже подключённом сокете
-//stream_socket_get_name — Получить название локального или удалённого сокета
 
     /**
      * Create stream with specified resource
