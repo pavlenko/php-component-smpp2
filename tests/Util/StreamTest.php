@@ -6,6 +6,7 @@ use PE\SMPP\Util\Stream;
 use PE\SMPP\Util\StreamException;
 use phpmock\phpunit\PHPMock;
 use PHPUnit\Framework\TestCase;
+use function PHPUnit\Framework\assertInstanceOf;
 
 final class StreamTest extends TestCase
 {
@@ -192,5 +193,65 @@ final class StreamTest extends TestCase
         $f->expects(self::once())->willReturn(true);
 
         (new Stream(STDOUT))->setOptions([]);
+    }
+
+    public function testAcceptFailure(): void
+    {
+        $this->expectException(StreamException::class);
+
+        $r = new \ReflectionClass(Stream::class);
+        $f = $this->getFunctionMock($r->getNamespaceName(), 'stream_socket_accept');
+        $f->expects(self::once())->willReturn(false);
+
+        (new Stream(STDOUT))->accept();
+    }
+
+    public function testAcceptSuccess(): void
+    {
+        $r = new \ReflectionClass(Stream::class);
+        $f = $this->getFunctionMock($r->getNamespaceName(), 'stream_socket_accept');
+        $f->expects(self::once())->willReturn(STDOUT);
+
+        assertInstanceOf(Stream::class, (new Stream(STDOUT))->accept());
+    }
+
+    public function testSelectRFailure(): void
+    {
+        $this->expectException(StreamException::class);
+
+        $r = new \ReflectionClass(Stream::class);
+        $f = $this->getFunctionMock($r->getNamespaceName(), 'stream_select');
+        $f->expects(self::once())->willReturn(false);
+
+        (new Stream(STDOUT))->selectR();
+    }
+
+    public function testSelectRSuccess(): void
+    {
+        $r = new \ReflectionClass(Stream::class);
+        $f = $this->getFunctionMock($r->getNamespaceName(), 'stream_select');
+        $f->expects(self::once())->willReturn(0);
+
+        (new Stream(STDOUT))->selectR();
+    }
+
+    public function testSelectWFailure(): void
+    {
+        $this->expectException(StreamException::class);
+
+        $r = new \ReflectionClass(Stream::class);
+        $f = $this->getFunctionMock($r->getNamespaceName(), 'stream_select');
+        $f->expects(self::once())->willReturn(false);
+
+        (new Stream(STDOUT))->selectW();
+    }
+
+    public function testSelectWSuccess(): void
+    {
+        $r = new \ReflectionClass(Stream::class);
+        $f = $this->getFunctionMock($r->getNamespaceName(), 'stream_select');
+        $f->expects(self::once())->willReturn(0);
+
+        (new Stream(STDOUT))->selectW();
     }
 }

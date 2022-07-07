@@ -230,9 +230,9 @@ final class Stream
      *
      * @param float|null $timeout
      *
-     * @return bool
+     * @return int
      */
-    public function selectR(float $timeout = null): bool
+    public function selectR(float $timeout = null): int
     {
         $us = null !== $timeout ? ($timeout - floor($timeout)) * 1_000_000 : 0;
 
@@ -242,7 +242,7 @@ final class Stream
         if (false === $n) {
             throw new StreamException('Cannot set blocking mode');
         }
-        return (bool) $n;
+        return $n;
     }
 
     /**
@@ -250,9 +250,9 @@ final class Stream
      *
      * @param float|null $timeout
      *
-     * @return bool
+     * @return int
      */
-    public function selectW(float $timeout = null): bool
+    public function selectW(float $timeout = null): int
     {
         $us = null !== $timeout ? ($timeout - floor($timeout)) * 1_000_000 : 0;
 
@@ -262,7 +262,7 @@ final class Stream
         if (false === $n) {
             throw new StreamException('Cannot set blocking mode');
         }
-        return (bool) $n;
+        return $n;
     }
 
     /**
