@@ -195,6 +195,24 @@ final class StreamTest extends TestCase
         (new Stream(STDOUT))->setOptions([]);
     }
 
+    public function testGetOptions(): void
+    {
+        $r = new \ReflectionClass(Stream::class);
+        $f = $this->getFunctionMock($r->getNamespaceName(), 'stream_context_get_options');
+        $f->expects(self::once())->willReturn([]);
+
+        (new Stream(STDOUT))->getOptions();
+    }
+
+    public function testGetMetadata(): void
+    {
+        $r = new \ReflectionClass(Stream::class);
+        $f = $this->getFunctionMock($r->getNamespaceName(), 'stream_get_meta_data');
+        $f->expects(self::once())->willReturn([]);
+
+        (new Stream(STDOUT))->getMetadata();
+    }
+
     public function testAcceptFailure(): void
     {
         $this->expectException(StreamException::class);
