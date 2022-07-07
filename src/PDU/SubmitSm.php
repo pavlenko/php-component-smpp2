@@ -2,7 +2,7 @@
 
 namespace PE\SMPP\PDU;
 
-use PE\SMPP\Builder;
+use PE\SMPP\Util\Buffer;
 
 class SubmitSm extends PDU
 {
@@ -157,23 +157,23 @@ class SubmitSm extends PDU
 
     public function __toString(): string
     {
-        $builder = new Builder();
-        $builder->addString($this->getServiceType());
-        $builder->addAddress($this->getSourceAddress());
-        $builder->addAddress($this->getDestinationAddress());
-        $builder->addInt8( $this->getEsmClass());
-        $builder->addInt8($this->getProtocolId());
-        $builder->addInt8($this->getPriorityFlag());
-        $builder->addDateTime($this->getScheduleDeliveryTime());
-        $builder->addDateTime($this->getValidityPeriod());
-        $builder->addInt8($this->getRegisteredDelivery());
-        $builder->addInt8($this->getReplaceIfPresentFlag());
-        $builder->addInt8($this->getDataCoding());
-        $builder->addInt8($this->getSmDefaultMsgId());
-        $builder->addInt8(strlen($this->getShortMessage()));
-        $builder->addBytes($this->getShortMessage());
+        $buffer = new Buffer();
+        $buffer->writeString($this->getServiceType());
+        $buffer->writeAddress($this->getSourceAddress());
+        $buffer->writeAddress($this->getDestinationAddress());
+        $buffer->writeInt8( $this->getEsmClass());
+        $buffer->writeInt8($this->getProtocolId());
+        $buffer->writeInt8($this->getPriorityFlag());
+        $buffer->writeDateTime($this->getScheduleDeliveryTime());
+        $buffer->writeDateTime($this->getValidityPeriod());
+        $buffer->writeInt8($this->getRegisteredDelivery());
+        $buffer->writeInt8($this->getReplaceIfPresentFlag());
+        $buffer->writeInt8($this->getDataCoding());
+        $buffer->writeInt8($this->getSmDefaultMsgId());
+        $buffer->writeInt8(strlen($this->getShortMessage()));
+        $buffer->writeBytes($this->getShortMessage());
 
-        $this->setBody((string) $builder);
+        $this->setBody((string) $buffer);
         return parent::__toString();
     }
 }

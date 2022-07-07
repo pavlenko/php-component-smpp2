@@ -12,7 +12,7 @@ final class Buffer
     private string $buffer;
     private int $position = 0;
 
-    public function __construct(string $buffer)
+    public function __construct(string $buffer = '')
     {
         $this->buffer = $buffer;
     }
@@ -145,5 +145,10 @@ final class Buffer
         $this->writeInt8($value ? $value->getTon() : 0);
         $this->writeInt8($value ? $value->getNpi() : 0);
         $this->writeString($value ? $value->getValue() : '');
+    }
+
+    public function __toString(): string
+    {
+        return $this->buffer;
     }
 }

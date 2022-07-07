@@ -2,7 +2,7 @@
 
 namespace PE\SMPP\PDU;
 
-use PE\SMPP\Builder;
+use PE\SMPP\Util\Buffer;
 
 class SubmitSmResp extends PDU
 {
@@ -16,9 +16,7 @@ class SubmitSmResp extends PDU
             return;
         }
 
-        return;//TODO
-        $wrapper = new DataWrapper($body);
-        $this->messageID = $wrapper->readNullTerminatedString(65);
+        $this->setMessageID((new Buffer($body))->shiftString(64));
     }
 
     public function getCommandId(): int
@@ -38,10 +36,10 @@ class SubmitSmResp extends PDU
 
     public function __toString(): string
     {
-        $builder = new Builder();
-        $builder->addString($this->getMessageID());
+        $buffer = new Buffer();
+        $buffer->writeString($this->getMessageID());
 
-        $this->setBody($builder);
+        $this->setBody($buffer);
         return parent::__toString();
     }
 }

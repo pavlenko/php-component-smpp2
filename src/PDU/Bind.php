@@ -2,8 +2,7 @@
 
 namespace PE\SMPP\PDU;
 
-use PE\SMPP\Builder;
-use PE\SMPP\Decoder;
+use PE\SMPP\Util\Buffer;
 
 abstract class Bind extends PDU
 {
@@ -20,12 +19,12 @@ abstract class Bind extends PDU
             return;
         }
 
-        $decoder = new Decoder($body);
-        $this->setSystemID($decoder->readString(16));
-        $this->setPassword($decoder->readString(9));
-        $this->setSystemType($decoder->readString(13));
-        $this->setInterfaceVersion($decoder->readInt8());
-        $this->setAddress($decoder->readAddress(41));
+        $buffer = new Buffer($body);
+        $this->setSystemID($buffer->shiftString(16));
+        $this->setPassword($buffer->shiftString(9));
+        $this->setSystemType($buffer->shiftString(13));
+        $this->setInterfaceVersion($buffer->shiftInt8());
+        $this->setAddress($buffer->shiftAddress(41));
     }
 
     public function getSystemType(): string
@@ -80,14 +79,14 @@ abstract class Bind extends PDU
 
     public function __toString(): string
     {
-        $builder = new Builder();
-        $builder->addString($this->getSystemID());
-        $builder->addString($this->getPassword());
-        $builder->addString($this->getSystemType());
-        $builder->addInt8($this->getInterfaceVersion());
-        $builder->addAddress($this->getAddress());
+        $buffer = new Buffer();
+        $buffer->writeString($this->getSystemID());
+        $buffer->writeString($this->getPassword());
+        $buffer->writeString($this->getSystemType());
+        $buffer->writeInt8($this->getInterfaceVersion());
+        $buffer->writeAddress($this->getAddress());
 
-        $this->setBody((string) $builder);
+        $this->setBody((string) $buffer);
         return parent::__toString();
     }
 }

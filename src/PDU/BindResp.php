@@ -2,7 +2,7 @@
 
 namespace PE\SMPP\PDU;
 
-use PE\SMPP\Decoder;
+use PE\SMPP\Util\Buffer;
 
 abstract class BindResp extends PDU
 {
@@ -16,11 +16,11 @@ abstract class BindResp extends PDU
             return;
         }
 
-        $decoder = new Decoder($body);
-        $this->setSystemID($decoder->readString(16));
+        $buffer = new Buffer($body);
+        $this->setSystemID($buffer->shiftString(16));
 
-        if (!$decoder->isEOF()) {
-            $tlv = $decoder->readTLV();
+        if (!$buffer->isEOF()) {
+            $tlv = $buffer->shiftTLV();
             if (0x0210 === $tlv->getTag()) {// <-- sc_interface_version
                 $this->setInterfaceVersion($tlv->getValue());//TODO decode value...
             }

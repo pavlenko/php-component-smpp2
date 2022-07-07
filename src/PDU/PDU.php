@@ -2,7 +2,7 @@
 
 namespace PE\SMPP\PDU;
 
-use PE\SMPP\Builder;
+use PE\SMPP\Util\Buffer;
 
 abstract class PDU
 {
@@ -100,12 +100,12 @@ abstract class PDU
 
     public function __toString(): string
     {
-        $builder = new Builder();
-        $builder->addInt32($this->getCommandLength());
-        $builder->addInt32($this->getCommandID());
-        $builder->addInt32($this->getCommandStatus());
-        $builder->addInt32($this->getSequenceNumber());
+        $buffer = new Buffer();
+        $buffer->writeInt32($this->getCommandLength());
+        $buffer->writeInt32($this->getCommandID());
+        $buffer->writeInt32($this->getCommandStatus());
+        $buffer->writeInt32($this->getSequenceNumber());
 
-        return $builder . $this->getBody();
+        return $buffer . $this->getBody();
     }
 }
