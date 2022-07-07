@@ -134,7 +134,7 @@ final class Stream
     public function setBufferR(int $size): void
     {
         if (0 !== stream_set_read_buffer($this->resource, $size)) {
-            throw new StreamException('Cannot set blocking mode');
+            throw new StreamException('Cannot set read buffer');
         }
     }
 
@@ -146,7 +146,7 @@ final class Stream
     public function setBufferW(int $size): void
     {
         if (0 !== stream_set_write_buffer($this->resource, $size)) {
-            throw new StreamException('Cannot set blocking mode');
+            throw new StreamException('Cannot set write buffer');
         }
     }
 

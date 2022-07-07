@@ -113,4 +113,46 @@ final class StreamTest extends TestCase
 
         (new Stream(STDOUT))->setBlocking(true);
     }
+
+
+    public function testSetBufferRFailure(): void
+    {
+        $this->expectException(StreamException::class);
+
+        $r = new \ReflectionClass(Stream::class);
+        $f = $this->getFunctionMock($r->getNamespaceName(), 'stream_set_read_buffer');
+        $f->expects(self::once())->willReturn(1);
+
+        (new Stream(STDOUT))->setBufferR(1);
+    }
+
+    public function testSetBufferRSuccess(): void
+    {
+        $r = new \ReflectionClass(Stream::class);
+        $f = $this->getFunctionMock($r->getNamespaceName(), 'stream_set_read_buffer');
+        $f->expects(self::once())->willReturn(0);
+
+        (new Stream(STDOUT))->setBufferR(1);
+    }
+
+
+    public function testSetBufferWFailure(): void
+    {
+        $this->expectException(StreamException::class);
+
+        $r = new \ReflectionClass(Stream::class);
+        $f = $this->getFunctionMock($r->getNamespaceName(), 'stream_set_write_buffer');
+        $f->expects(self::once())->willReturn(1);
+
+        (new Stream(STDOUT))->setBufferW(1);
+    }
+
+    public function testSetBufferWSuccess(): void
+    {
+        $r = new \ReflectionClass(Stream::class);
+        $f = $this->getFunctionMock($r->getNamespaceName(), 'stream_set_write_buffer');
+        $f->expects(self::once())->willReturn(0);
+
+        (new Stream(STDOUT))->setBufferW(1);
+    }
 }
