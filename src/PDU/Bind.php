@@ -2,7 +2,6 @@
 
 namespace PE\SMPP\PDU;
 
-use alexeevdv\React\Smpp\Utils\DataWrapper;
 use PE\SMPP\Builder;
 use PE\SMPP\Decoder;
 

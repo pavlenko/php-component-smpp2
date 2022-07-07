@@ -1,10 +1,13 @@
 <?php
 
-namespace PE\SMPP\PDU;
+namespace PE\SMPP\Util;
 
 //TODO w_buffer
 //TODO r_buffer
-final class Stream
+use PE\SMPP\PDU\Address;
+use PE\SMPP\PDU\TLV;
+
+final class Buffer
 {
     private string $buffer;
     private int $position = 0;

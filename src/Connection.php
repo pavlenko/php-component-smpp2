@@ -3,11 +3,11 @@
 namespace PE\SMPP;
 
 use PE\SMPP\PDU\PDU;
-use PE\SMPP\PDU\Stream;
+use PE\SMPP\Util\Buffer;
 
 class Connection
 {
-    private string $host;
+    private Buffer $host;
     private int $port;
 
     /**
@@ -19,18 +19,18 @@ class Connection
      * @param string $host
      * @param int    $port
      */
-    public function __construct(string $host = 'localhost', int $port = 2775)
+    public function __construct(Buffer $host = 'localhost', int $port = 2775)
     {
         $this->host = $host;
         $this->port = $port;
     }
 
-    public function getHost(): string
+    public function getHost(): Buffer
     {
         return $this->host ?: 'localhost';
     }
 
-    public function setHost(string $host): void
+    public function setHost(Buffer $host): void
     {
         $this->host = $host;
     }
@@ -85,7 +85,7 @@ class Connection
         }
     }
 
-    public function sendPDU(PDU $pdu, string $expectPDU = null): ?PDU
+    public function sendPDU(PDU $pdu, Buffer $expectPDU = null): ?PDU
     {
         if (!is_resource($this->socket)) {
             throw new \RuntimeException('No connection has been established');
@@ -113,7 +113,7 @@ class Connection
             stream_set_timeout($this->socket, $timeout);
         }
 
-        $stream = new Stream((string) fread($this->socket, 16));
+        $stream = new Buffer((string) fread($this->socket, 16));
         if ($stream->bytesLeft() < 16) {
             throw new \RuntimeException('Malformed PDU header');
         }
