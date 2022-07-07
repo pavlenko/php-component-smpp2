@@ -114,7 +114,6 @@ final class StreamTest extends TestCase
         (new Stream(STDOUT))->setBlocking(true);
     }
 
-
     public function testSetBufferRFailure(): void
     {
         $this->expectException(StreamException::class);
@@ -135,7 +134,6 @@ final class StreamTest extends TestCase
         (new Stream(STDOUT))->setBufferR(1);
     }
 
-
     public function testSetBufferWFailure(): void
     {
         $this->expectException(StreamException::class);
@@ -154,5 +152,45 @@ final class StreamTest extends TestCase
         $f->expects(self::once())->willReturn(0);
 
         (new Stream(STDOUT))->setBufferW(1);
+    }
+
+    public function testSetCryptoFailure(): void
+    {
+        $this->expectException(StreamException::class);
+
+        $r = new \ReflectionClass(Stream::class);
+        $f = $this->getFunctionMock($r->getNamespaceName(), 'stream_socket_enable_crypto');
+        $f->expects(self::once())->willReturn(false);
+
+        (new Stream(STDOUT))->setCrypto(true);
+    }
+
+    public function testSetCryptoSuccess(): void
+    {
+        $r = new \ReflectionClass(Stream::class);
+        $f = $this->getFunctionMock($r->getNamespaceName(), 'stream_socket_enable_crypto');
+        $f->expects(self::once())->willReturn(true);
+
+        (new Stream(STDOUT))->setCrypto(true);
+    }
+
+    public function testSetOptionsFailure(): void
+    {
+        $this->expectException(StreamException::class);
+
+        $r = new \ReflectionClass(Stream::class);
+        $f = $this->getFunctionMock($r->getNamespaceName(), 'stream_context_set_option');
+        $f->expects(self::once())->willReturn(false);
+
+        (new Stream(STDOUT))->setOptions([]);
+    }
+
+    public function testSetOptionsSuccess(): void
+    {
+        $r = new \ReflectionClass(Stream::class);
+        $f = $this->getFunctionMock($r->getNamespaceName(), 'stream_context_set_option');
+        $f->expects(self::once())->willReturn(true);
+
+        (new Stream(STDOUT))->setOptions([]);
     }
 }

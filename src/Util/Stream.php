@@ -167,6 +167,7 @@ final class Stream
      * Retrieves header/metadata
      *
      * @return array
+     * @codeCoverageIgnore
      */
     public function getMetadata(): array
     {
@@ -183,6 +184,7 @@ final class Stream
      * </code>
      *
      * @return array
+     * @codeCoverageIgnore
      */
     public function getOptions(): array
     {
