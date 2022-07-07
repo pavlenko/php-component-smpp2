@@ -12,7 +12,6 @@ namespace PE\SMPP\Util;
 // stream_context_set_params — Устанавливает параметры для потока/обёртки/контекста
 // stream_get_meta_data — Извлекает заголовок/метаданные из потоков/файловых указателей
 // stream_set_chunk_size — Установить размер фрагмента данных потока
-// stream_socket_accept — Принимать соединение в сокете, созданном c помощью функции stream_socket_server
 // stream_socket_enable_crypto — Включает или отключает шифрование на уже подключённом сокете
 // stream_socket_get_name — Получить название локального или удалённого сокета
 
@@ -162,6 +161,22 @@ final class Stream
         if (0 !== stream_set_write_buffer($this->resource, $size)) {
             throw new StreamException('Cannot set blocking mode');
         }
+    }
+
+    /**
+     * Accept a connection on a socket
+     *
+     * @param float|null $timeout
+     *
+     * @return $this
+     */
+    public function accept(float $timeout = 0): self
+    {
+        $socket = stream_socket_accept($this->resource, $timeout);
+        if (false === $socket) {
+            throw new StreamException('Cannot accept new connection');
+        }
+        return new self($socket);
     }
 
     /**
