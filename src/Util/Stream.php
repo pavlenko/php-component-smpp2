@@ -106,24 +106,30 @@ final class Stream
      *
      * @param int $seconds
      * @param int $micros
+     *
+     * @return Stream
      */
-    public function setTimeout(int $seconds, int $micros = 0): void
+    public function setTimeout(int $seconds, int $micros = 0): self
     {
         if (!stream_set_timeout($this->resource, $seconds, $micros)) {
             throw new StreamException('Cannot set read/write timeout');
         }
+        return $this;
     }
 
     /**
      * Set blocking/non-blocking mode
      *
      * @param bool $enable
+     *
+     * @return Stream
      */
-    public function setBlocking(bool $enable): void
+    public function setBlocking(bool $enable): self
     {
         if (!stream_set_blocking($this->resource, $enable)) {
             throw new StreamException('Cannot set blocking mode');
         }
+        return $this;
     }
 
     /**
@@ -212,18 +218,16 @@ final class Stream
      *
      * @param float|null $timeout
      *
-     * @return $this
+     * @return static|null
      */
-    public function accept(float $timeout = 0): self
+    public function accept(float $timeout = 0): ?self
     {
         $socket = stream_socket_accept($this->resource, $timeout);
-        if (false === $socket) {
-            throw new StreamException('Cannot accept new connection');
-        }
-        return new self($socket);
+        return $socket ? new self($socket) : null;
     }
 
     /**
+     * @TODO read, write & except arrays changed to contain only streams which can be read or write
      * Check if stream ready to read
      *
      * @param float|null $timeout

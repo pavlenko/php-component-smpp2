@@ -6,12 +6,22 @@ use PE\SMPP\Util\Stream;
 use PE\SMPP\Util\StreamException;
 use phpmock\phpunit\PHPMock;
 use PHPUnit\Framework\TestCase;
-use function PHPUnit\Framework\assertInstanceOf;
 
 final class StreamTest extends TestCase
 {
     use PHPMock;
 
+    /**
+     * @return resource
+     */
+    private function getResource()
+    {
+        return fopen('php://temp', 'w+');
+    }
+
+    /**
+     * @runInSeparateProcess
+     */
     public function testConstructFailure(): void
     {
         $this->expectException(StreamException::class);
@@ -38,7 +48,7 @@ final class StreamTest extends TestCase
     {
         $r = new \ReflectionClass(Stream::class);
         $f = $this->getFunctionMock($r->getNamespaceName(), 'stream_socket_client');
-        $f->expects(self::once())->willReturn(STDOUT);
+        $f->expects(self::once())->willReturn($this->getResource());
 
         self::assertInstanceOf(Stream::class, Stream::createClient('127.0.0.1'));
     }
@@ -58,7 +68,7 @@ final class StreamTest extends TestCase
     {
         $r = new \ReflectionClass(Stream::class);
         $f = $this->getFunctionMock($r->getNamespaceName(), 'stream_socket_server');
-        $f->expects(self::once())->willReturn(STDOUT);
+        $f->expects(self::once())->willReturn($this->getResource());
 
         self::assertInstanceOf(Stream::class, Stream::createServer('127.0.0.1'));
     }
@@ -78,7 +88,7 @@ final class StreamTest extends TestCase
     {
         $r = new \ReflectionClass(Stream::class);
         $f = $this->getFunctionMock($r->getNamespaceName(), 'stream_socket_pair');
-        $f->expects(self::once())->willReturn([STDOUT, STDOUT]);
+        $f->expects(self::once())->willReturn([$this->getResource(), $this->getResource()]);
 
         $pair = Stream::createPair(STREAM_PF_UNIX, STREAM_SOCK_STREAM, STREAM_IPPROTO_IP);
 
@@ -94,7 +104,7 @@ final class StreamTest extends TestCase
         $f = $this->getFunctionMock($r->getNamespaceName(), 'stream_set_timeout');
         $f->expects(self::once())->willReturn(false);
 
-        (new Stream(STDOUT))->setTimeout(1);
+        (new Stream($this->getResource()))->setTimeout(1);
     }
 
     public function testSetTimeoutSuccess(): void
@@ -103,7 +113,7 @@ final class StreamTest extends TestCase
         $f = $this->getFunctionMock($r->getNamespaceName(), 'stream_set_timeout');
         $f->expects(self::once())->willReturn(true);
 
-        (new Stream(STDOUT))->setTimeout(1);
+        (new Stream($this->getResource()))->setTimeout(1);
     }
 
     public function testSetBlockingFailure(): void
@@ -114,7 +124,7 @@ final class StreamTest extends TestCase
         $f = $this->getFunctionMock($r->getNamespaceName(), 'stream_set_blocking');
         $f->expects(self::once())->willReturn(false);
 
-        (new Stream(STDOUT))->setBlocking(true);
+        (new Stream($this->getResource()))->setBlocking(true);
     }
 
     public function testSetBlockingSuccess(): void
@@ -123,7 +133,7 @@ final class StreamTest extends TestCase
         $f = $this->getFunctionMock($r->getNamespaceName(), 'stream_set_blocking');
         $f->expects(self::once())->willReturn(true);
 
-        (new Stream(STDOUT))->setBlocking(true);
+        (new Stream($this->getResource()))->setBlocking(true);
     }
 
     public function testSetBufferRFailure(): void
@@ -134,7 +144,7 @@ final class StreamTest extends TestCase
         $f = $this->getFunctionMock($r->getNamespaceName(), 'stream_set_read_buffer');
         $f->expects(self::once())->willReturn(1);
 
-        (new Stream(STDOUT))->setBufferR(1);
+        (new Stream($this->getResource()))->setBufferR(1);
     }
 
     public function testSetBufferRSuccess(): void
@@ -143,7 +153,7 @@ final class StreamTest extends TestCase
         $f = $this->getFunctionMock($r->getNamespaceName(), 'stream_set_read_buffer');
         $f->expects(self::once())->willReturn(0);
 
-        (new Stream(STDOUT))->setBufferR(1);
+        (new Stream($this->getResource()))->setBufferR(1);
     }
 
     public function testSetBufferWFailure(): void
@@ -154,7 +164,7 @@ final class StreamTest extends TestCase
         $f = $this->getFunctionMock($r->getNamespaceName(), 'stream_set_write_buffer');
         $f->expects(self::once())->willReturn(1);
 
-        (new Stream(STDOUT))->setBufferW(1);
+        (new Stream($this->getResource()))->setBufferW(1);
     }
 
     public function testSetBufferWSuccess(): void
@@ -163,7 +173,7 @@ final class StreamTest extends TestCase
         $f = $this->getFunctionMock($r->getNamespaceName(), 'stream_set_write_buffer');
         $f->expects(self::once())->willReturn(0);
 
-        (new Stream(STDOUT))->setBufferW(1);
+        (new Stream($this->getResource()))->setBufferW(1);
     }
 
     public function testSetCryptoFailure(): void
@@ -174,7 +184,7 @@ final class StreamTest extends TestCase
         $f = $this->getFunctionMock($r->getNamespaceName(), 'stream_socket_enable_crypto');
         $f->expects(self::once())->willReturn(false);
 
-        (new Stream(STDOUT))->setCrypto(true);
+        (new Stream($this->getResource()))->setCrypto(true);
     }
 
     public function testSetCryptoSuccess(): void
@@ -183,7 +193,7 @@ final class StreamTest extends TestCase
         $f = $this->getFunctionMock($r->getNamespaceName(), 'stream_socket_enable_crypto');
         $f->expects(self::once())->willReturn(true);
 
-        (new Stream(STDOUT))->setCrypto(true);
+        (new Stream($this->getResource()))->setCrypto(true);
     }
 
     public function testSetOptionsFailure(): void
@@ -194,7 +204,7 @@ final class StreamTest extends TestCase
         $f = $this->getFunctionMock($r->getNamespaceName(), 'stream_context_set_option');
         $f->expects(self::once())->willReturn(false);
 
-        (new Stream(STDOUT))->setOptions([]);
+        (new Stream($this->getResource()))->setOptions([]);
     }
 
     public function testSetOptionsSuccess(): void
@@ -203,7 +213,7 @@ final class StreamTest extends TestCase
         $f = $this->getFunctionMock($r->getNamespaceName(), 'stream_context_set_option');
         $f->expects(self::once())->willReturn(true);
 
-        (new Stream(STDOUT))->setOptions([]);
+        (new Stream($this->getResource()))->setOptions([]);
     }
 
     public function testGetOptions(): void
@@ -212,7 +222,7 @@ final class StreamTest extends TestCase
         $f = $this->getFunctionMock($r->getNamespaceName(), 'stream_context_get_options');
         $f->expects(self::once())->willReturn([]);
 
-        (new Stream(STDOUT))->getOptions();
+        (new Stream($this->getResource()))->getOptions();
     }
 
     public function testGetMetadata(): void
@@ -221,27 +231,25 @@ final class StreamTest extends TestCase
         $f = $this->getFunctionMock($r->getNamespaceName(), 'stream_get_meta_data');
         $f->expects(self::once())->willReturn([]);
 
-        (new Stream(STDOUT))->getMetadata();
+        (new Stream($this->getResource()))->getMetadata();
     }
 
     public function testAcceptFailure(): void
     {
-        $this->expectException(StreamException::class);
-
         $r = new \ReflectionClass(Stream::class);
         $f = $this->getFunctionMock($r->getNamespaceName(), 'stream_socket_accept');
         $f->expects(self::once())->willReturn(false);
 
-        (new Stream(STDOUT))->accept();
+        self::assertNull((new Stream($this->getResource()))->accept());
     }
 
     public function testAcceptSuccess(): void
     {
         $r = new \ReflectionClass(Stream::class);
         $f = $this->getFunctionMock($r->getNamespaceName(), 'stream_socket_accept');
-        $f->expects(self::once())->willReturn(STDOUT);
+        $f->expects(self::once())->willReturn($this->getResource());
 
-        assertInstanceOf(Stream::class, (new Stream(STDOUT))->accept());
+        self::assertInstanceOf(Stream::class, (new Stream($this->getResource()))->accept());
     }
 
     public function testSelectRFailure(): void
@@ -252,7 +260,7 @@ final class StreamTest extends TestCase
         $f = $this->getFunctionMock($r->getNamespaceName(), 'stream_select');
         $f->expects(self::once())->willReturn(false);
 
-        (new Stream(STDOUT))->selectR();
+        (new Stream($this->getResource()))->selectR();
     }
 
     public function testSelectRSuccess(): void
@@ -261,7 +269,7 @@ final class StreamTest extends TestCase
         $f = $this->getFunctionMock($r->getNamespaceName(), 'stream_select');
         $f->expects(self::once())->willReturn(0);
 
-        (new Stream(STDOUT))->selectR();
+        (new Stream($this->getResource()))->selectR();
     }
 
     public function testSelectWFailure(): void
@@ -272,7 +280,7 @@ final class StreamTest extends TestCase
         $f = $this->getFunctionMock($r->getNamespaceName(), 'stream_select');
         $f->expects(self::once())->willReturn(false);
 
-        (new Stream(STDOUT))->selectW();
+        (new Stream($this->getResource()))->selectW();
     }
 
     public function testSelectWSuccess(): void
@@ -281,7 +289,7 @@ final class StreamTest extends TestCase
         $f = $this->getFunctionMock($r->getNamespaceName(), 'stream_select');
         $f->expects(self::once())->willReturn(0);
 
-        (new Stream(STDOUT))->selectW();
+        (new Stream($this->getResource()))->selectW();
     }
 
     public function testCopyToFailure(): void
@@ -292,7 +300,7 @@ final class StreamTest extends TestCase
         $f = $this->getFunctionMock($r->getNamespaceName(), 'stream_copy_to_stream');
         $f->expects(self::once())->willReturn(false);
 
-        (new Stream(STDIN))->copyTo(new Stream(STDOUT));
+        (new Stream($this->getResource()))->copyTo(new Stream($this->getResource()));
     }
 
     public function testCopyToSuccess(): void
@@ -301,7 +309,7 @@ final class StreamTest extends TestCase
         $f = $this->getFunctionMock($r->getNamespaceName(), 'stream_copy_to_stream');
         $f->expects(self::once())->willReturn(1);
 
-        (new Stream(STDIN))->copyTo(new Stream(STDOUT), 1);
+        (new Stream($this->getResource()))->copyTo(new Stream($this->getResource()), 1);
     }
 
     public function testReadLineFailure(): void
@@ -312,7 +320,7 @@ final class StreamTest extends TestCase
         $f = $this->getFunctionMock($r->getNamespaceName(), 'fgets');
         $f->expects(self::once())->willReturn(false);
 
-        (new Stream(STDIN))->readLine();
+        (new Stream($this->getResource()))->readLine();
     }
 
     public function testReadLineSuccess(): void
@@ -321,7 +329,7 @@ final class StreamTest extends TestCase
         $f = $this->getFunctionMock($r->getNamespaceName(), 'fgets');
         $f->expects(self::once())->willReturn(1);
 
-        (new Stream(STDIN))->readLine();
+        (new Stream($this->getResource()))->readLine();
     }
 
     public function testReadDataFailure(): void
@@ -332,7 +340,7 @@ final class StreamTest extends TestCase
         $f = $this->getFunctionMock($r->getNamespaceName(), 'fread');
         $f->expects(self::once())->willReturn(false);
 
-        (new Stream(STDIN))->readData();
+        (new Stream($this->getResource()))->readData();
     }
 
     public function testReadDataSuccess(): void
@@ -341,7 +349,7 @@ final class StreamTest extends TestCase
         $f = $this->getFunctionMock($r->getNamespaceName(), 'fread');
         $f->expects(self::once())->willReturn(1);
 
-        (new Stream(STDIN))->readData();
+        (new Stream($this->getResource()))->readData();
     }
 
     public function testSendDataFailure(): void
@@ -352,7 +360,7 @@ final class StreamTest extends TestCase
         $f = $this->getFunctionMock($r->getNamespaceName(), 'fwrite');
         $f->expects(self::once())->willReturn(false);
 
-        (new Stream(STDIN))->sendData('D');
+        (new Stream($this->getResource()))->sendData('D');
     }
 
     public function testSendDataSuccess(): void
@@ -361,7 +369,7 @@ final class StreamTest extends TestCase
         $f = $this->getFunctionMock($r->getNamespaceName(), 'fwrite');
         $f->expects(self::once())->willReturn(1);
 
-        (new Stream(STDIN))->sendData('D');
+        (new Stream($this->getResource()))->sendData('D');
     }
 
     public function testCloseSkipped(): void
@@ -374,7 +382,7 @@ final class StreamTest extends TestCase
         $f2 = $this->getFunctionMock($r->getNamespaceName(), 'fclose');
         $f2->expects(self::never());
 
-        (new Stream(STDIN))->close();
+        (new Stream($this->getResource()))->close();
     }
 
     public function testCloseSuccess(): void
@@ -387,6 +395,6 @@ final class StreamTest extends TestCase
         $f2 = $this->getFunctionMock($r->getNamespaceName(), 'fclose');
         $f2->expects(self::once());
 
-        (new Stream(STDIN))->close();
+        (new Stream($this->getResource()))->close();
     }
 }
