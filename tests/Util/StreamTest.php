@@ -11,7 +11,7 @@ final class StreamTest extends TestCase
 {
     use PHPMock;
 
-    public function testCreateClientFailure()
+    public function testCreateClientFailure(): void
     {
         $this->expectException(StreamException::class);
 
@@ -22,7 +22,7 @@ final class StreamTest extends TestCase
         Stream::createClient('127.0.0.1');
     }
 
-    public function testCreateClientSuccess()
+    public function testCreateClientSuccess(): void
     {
         $r = new \ReflectionClass(Stream::class);
         $f = $this->getFunctionMock($r->getNamespaceName(), 'stream_socket_client');
@@ -31,7 +31,7 @@ final class StreamTest extends TestCase
         self::assertInstanceOf(Stream::class, Stream::createClient('127.0.0.1'));
     }
 
-    public function testCreateServerFailure()
+    public function testCreateServerFailure(): void
     {
         $this->expectException(StreamException::class);
 
@@ -42,12 +42,75 @@ final class StreamTest extends TestCase
         Stream::createServer('127.0.0.1');
     }
 
-    public function testCreateServerSuccess()
+    public function testCreateServerSuccess(): void
     {
         $r = new \ReflectionClass(Stream::class);
         $f = $this->getFunctionMock($r->getNamespaceName(), 'stream_socket_server');
         $f->expects(self::once())->willReturn(STDOUT);
 
         self::assertInstanceOf(Stream::class, Stream::createServer('127.0.0.1'));
+    }
+
+    public function testCreatePairFailure(): void
+    {
+        $this->expectException(StreamException::class);
+
+        $r = new \ReflectionClass(Stream::class);
+        $f = $this->getFunctionMock($r->getNamespaceName(), 'stream_socket_pair');
+        $f->expects(self::once())->willReturn(false);
+
+        Stream::createPair(STREAM_PF_UNIX, STREAM_SOCK_STREAM, STREAM_IPPROTO_IP);
+    }
+
+    public function testCreatePairSuccess(): void
+    {
+        $r = new \ReflectionClass(Stream::class);
+        $f = $this->getFunctionMock($r->getNamespaceName(), 'stream_socket_pair');
+        $f->expects(self::once())->willReturn([STDOUT, STDOUT]);
+
+        $pair = Stream::createPair(STREAM_PF_UNIX, STREAM_SOCK_STREAM, STREAM_IPPROTO_IP);
+
+        self::assertInstanceOf(Stream::class, $pair[0]);
+        self::assertInstanceOf(Stream::class, $pair[1]);
+    }
+
+    public function testSetTimeoutFailure(): void
+    {
+        $this->expectException(StreamException::class);
+
+        $r = new \ReflectionClass(Stream::class);
+        $f = $this->getFunctionMock($r->getNamespaceName(), 'stream_set_timeout');
+        $f->expects(self::once())->willReturn(false);
+
+        (new Stream(STDOUT))->setTimeout(1);
+    }
+
+    public function testSetTimeoutSuccess(): void
+    {
+        $r = new \ReflectionClass(Stream::class);
+        $f = $this->getFunctionMock($r->getNamespaceName(), 'stream_set_timeout');
+        $f->expects(self::once())->willReturn(true);
+
+        (new Stream(STDOUT))->setTimeout(1);
+    }
+
+    public function testSetBlockingFailure(): void
+    {
+        $this->expectException(StreamException::class);
+
+        $r = new \ReflectionClass(Stream::class);
+        $f = $this->getFunctionMock($r->getNamespaceName(), 'stream_set_blocking');
+        $f->expects(self::once())->willReturn(false);
+
+        (new Stream(STDOUT))->setBlocking(true);
+    }
+
+    public function testSetBlockingSuccess(): void
+    {
+        $r = new \ReflectionClass(Stream::class);
+        $f = $this->getFunctionMock($r->getNamespaceName(), 'stream_set_blocking');
+        $f->expects(self::once())->willReturn(true);
+
+        (new Stream(STDOUT))->setBlocking(true);
     }
 }
