@@ -96,6 +96,43 @@ final class StreamTest extends TestCase
         self::assertInstanceOf(Stream::class, $pair[1]);
     }
 
+    public function testSelectFailure(): void
+    {
+        $this->expectException(StreamException::class);
+
+        $r = new \ReflectionClass(Stream::class);
+        $f = $this->getFunctionMock($r->getNamespaceName(), 'stream_select');
+        $f->expects(self::once())->willReturn(false);
+
+        $r = [];
+        $w = [];
+        $e = [];
+
+        Stream::select($r, $w, $e, 1);
+    }
+
+    public function testSelectSuccess(): void
+    {
+        $r = new \ReflectionClass(Stream::class);
+        $f = $this->getFunctionMock($r->getNamespaceName(), 'stream_select');
+        $f->expects(self::once())->willReturnCallback(function (&$r) {
+            unset($r[0]);
+            return 1;
+        });
+
+        $s1 = new Stream($this->getResource());
+        $s2 = new Stream($this->getResource());
+
+        $r = [$s1, $s2];
+        $w = [];
+        $e = [];
+
+        Stream::select($r, $w, $e, 1);
+
+        self::assertCount(1, $r);
+        self::assertSame($s2, current($r));
+    }
+
     public function testSetTimeoutFailure(): void
     {
         $this->expectException(StreamException::class);
@@ -250,46 +287,6 @@ final class StreamTest extends TestCase
         $f->expects(self::once())->willReturn($this->getResource());
 
         self::assertInstanceOf(Stream::class, (new Stream($this->getResource()))->accept());
-    }
-
-    public function testSelectRFailure(): void
-    {
-        $this->expectException(StreamException::class);
-
-        $r = new \ReflectionClass(Stream::class);
-        $f = $this->getFunctionMock($r->getNamespaceName(), 'stream_select');
-        $f->expects(self::once())->willReturn(false);
-
-        (new Stream($this->getResource()))->selectR();
-    }
-
-    public function testSelectRSuccess(): void
-    {
-        $r = new \ReflectionClass(Stream::class);
-        $f = $this->getFunctionMock($r->getNamespaceName(), 'stream_select');
-        $f->expects(self::once())->willReturn(0);
-
-        (new Stream($this->getResource()))->selectR();
-    }
-
-    public function testSelectWFailure(): void
-    {
-        $this->expectException(StreamException::class);
-
-        $r = new \ReflectionClass(Stream::class);
-        $f = $this->getFunctionMock($r->getNamespaceName(), 'stream_select');
-        $f->expects(self::once())->willReturn(false);
-
-        (new Stream($this->getResource()))->selectW();
-    }
-
-    public function testSelectWSuccess(): void
-    {
-        $r = new \ReflectionClass(Stream::class);
-        $f = $this->getFunctionMock($r->getNamespaceName(), 'stream_select');
-        $f->expects(self::once())->willReturn(0);
-
-        (new Stream($this->getResource()))->selectW();
     }
 
     public function testCopyToFailure(): void

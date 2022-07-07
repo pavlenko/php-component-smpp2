@@ -6,14 +6,9 @@ use PE\SMPP\PDU;
 
 require_once __DIR__ . '/vendor/autoload.php';
 
-$conn = new Connection('127.0.0.1');
-$conn->connect();
+$r1 = fopen('php://temp', 'w+');
+$r2 = fopen('php://temp', 'w+');
 
-$bindTransmitter = new PDU\BindTransmitter();
-$bindTransmitter->setSystemId('username');
-$bindTransmitter->setPassword('password');
+$a = [$r1 => 'A', $r2 => 'B'];
 
-$resp = $conn->sendPDU($bindTransmitter, PDU\BindTransmitterResp::class);
-var_dump($resp);
-
-$conn->exit();
+var_dump($r1, $r2, $a);

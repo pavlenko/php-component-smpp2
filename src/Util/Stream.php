@@ -89,6 +89,45 @@ final class Stream
     }
 
     /**
+     * Call system select() for resolve streams which is ready to read/write
+     *
+     * @param static[] $rStreams
+     * @param static[] $wStreams
+     * @param static[] $eStreams
+     * @param float|null $timeout
+     *
+     * @return int
+     */
+    public static function select(array &$rStreams, array &$wStreams, array &$eStreams, float $timeout = null): int
+    {
+        $us = null !== $timeout
+            ? ($timeout - floor($timeout)) * 1_000_000
+            : 0;
+
+        $rResources = array_map(fn(Stream $stream) => $stream->resource, $rStreams);
+        $wResources = array_map(fn(Stream $stream) => $stream->resource, $wStreams);
+        $eResources = array_map(fn(Stream $stream) => $stream->resource, $eStreams);
+
+        $num = stream_select(
+            $rResources,
+            $wResources,
+            $eResources,
+            null !== $timeout ? (int) $timeout : null,
+            $us
+        );
+
+        if (false === $num) {
+            throw new StreamException('Cannot select');
+        }
+
+        $rStreams = array_filter($rStreams, fn(Stream $stream) => in_array($stream->resource, $rResources));
+        $wStreams = array_filter($wStreams, fn(Stream $stream) => in_array($stream->resource, $wResources));
+        $eStreams = array_filter($eStreams, fn(Stream $stream) => in_array($stream->resource, $eResources));
+
+        return $num;
+    }
+
+    /**
      * Create stream with specified resource
      *
      * @param resource $resource
@@ -224,47 +263,6 @@ final class Stream
     {
         $socket = stream_socket_accept($this->resource, $timeout);
         return $socket ? new self($socket) : null;
-    }
-
-    /**
-     * @TODO read, write & except arrays changed to contain only streams which can be read or write
-     * Check if stream ready to read
-     *
-     * @param float|null $timeout
-     *
-     * @return int
-     */
-    public function selectR(float $timeout = null): int
-    {
-        $us = null !== $timeout ? ($timeout - floor($timeout)) * 1_000_000 : 0;
-
-        $r = [$this->resource];
-        $e = null;
-        $n = stream_select($r, $e, $e, null !== $timeout ? (int) $timeout : null, $us);
-        if (false === $n) {
-            throw new StreamException('Cannot set blocking mode');
-        }
-        return $n;
-    }
-
-    /**
-     * Check if stream ready to write
-     *
-     * @param float|null $timeout
-     *
-     * @return int
-     */
-    public function selectW(float $timeout = null): int
-    {
-        $us = null !== $timeout ? ($timeout - floor($timeout)) * 1_000_000 : 0;
-
-        $w = [$this->resource];
-        $e = null;
-        $n = stream_select($e, $w, $e, null !== $timeout ? (int) $timeout : null, $us);
-        if (false === $n) {
-            throw new StreamException('Cannot set blocking mode');
-        }
-        return $n;
     }
 
     /**
