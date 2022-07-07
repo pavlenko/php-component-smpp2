@@ -7,3 +7,6 @@
 - Add data coding converters
 - Connection must work with stream in low level
   not work with PDU directly 
+- Maybe can create session class for store sent packets
+  and sequence number, alo maybe use sub-packets for
+  allow to send chunked messages
