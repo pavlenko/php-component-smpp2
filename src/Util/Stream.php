@@ -3,13 +3,6 @@
 namespace PE\SMPP\Util;
 
 //TODO
-// stream_context_create — Создаёт контекст потока
-// stream_context_get_default — Получает контекст потока по умолчанию
-// stream_context_get_options — Получает опции для потока/обёртки/контекста
-// stream_context_get_params — Получает параметры из контекста
-// stream_context_set_default — Установить контекст потока по умолчанию
-// stream_context_set_option — Устанавливает опцию для потока/обёртки/контекста
-// stream_context_set_params — Устанавливает параметры для потока/обёртки/контекста
 // stream_get_meta_data — Извлекает заголовок/метаданные из потоков/файловых указателей
 // stream_set_chunk_size — Установить размер фрагмента данных потока
 // stream_socket_enable_crypto — Включает или отключает шифрование на уже подключённом сокете
@@ -160,6 +153,40 @@ final class Stream
     {
         if (0 !== stream_set_write_buffer($this->resource, $size)) {
             throw new StreamException('Cannot set blocking mode');
+        }
+    }
+
+    /**
+     * Get options in format:
+     * <code>
+     * $options = [
+     *     'wrapper_name' => ['option_name' => $value, ...],
+     *     ...
+     * ]
+     * </code>
+     *
+     * @return array
+     */
+    public function getOptions(): array
+    {
+        return stream_context_get_options($this->resource);
+    }
+
+    /**
+     * Set options in format:
+     * <code>
+     * $options = [
+     *     'wrapper_name' => ['option_name' => $value, ...],
+     *     ...
+     * ]
+     * </code>
+     *
+     * @param array $options
+     */
+    public function setOptions(array $options): void
+    {
+        if (!stream_context_set_option($this->resource, $options)) {
+            throw new StreamException('Cannot set options');
         }
     }
 
