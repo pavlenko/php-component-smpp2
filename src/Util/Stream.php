@@ -95,7 +95,7 @@ final class Stream
      */
     public function __construct($resource)
     {
-        if (!\is_resource($resource) || \get_resource_type($resource) !== 'stream') {
+        if (!is_resource($resource) || get_resource_type($resource) !== 'stream') {
             throw new StreamException('First parameter must be a valid stream resource');
         }
         $this->resource = $resource;
