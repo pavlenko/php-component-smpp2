@@ -254,4 +254,24 @@ final class StreamTest extends TestCase
 
         (new Stream(STDOUT))->selectW();
     }
+
+    public function testCopyToFailure(): void
+    {
+        $this->expectException(StreamException::class);
+
+        $r = new \ReflectionClass(Stream::class);
+        $f = $this->getFunctionMock($r->getNamespaceName(), 'stream_copy_to_stream');
+        $f->expects(self::once())->willReturn(false);
+
+        (new Stream(STDIN))->copyTo(new Stream(STDOUT));
+    }
+
+    public function testCopyToSuccess(): void
+    {
+        $r = new \ReflectionClass(Stream::class);
+        $f = $this->getFunctionMock($r->getNamespaceName(), 'stream_copy_to_stream');
+        $f->expects(self::once())->willReturn(1);
+
+        (new Stream(STDIN))->copyTo(new Stream(STDOUT), 1);
+    }
 }
