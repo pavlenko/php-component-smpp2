@@ -103,12 +103,15 @@ final class Stream
 //stream_socket_get_name — Получить название локального или удалённого сокета
 
     /**
-     * Create stream with specified resource, private for prevent call outside
+     * Create stream with specified resource
      *
      * @param resource $resource
      */
-    private function __construct($resource)
+    public function __construct($resource)
     {
+        if (!\is_resource($resource) || \get_resource_type($resource) !== 'stream') {
+            throw new StreamException('First parameter must be a valid stream resource');
+        }
         $this->resource = $resource;
     }
 
@@ -199,6 +202,28 @@ final class Stream
             throw new StreamException('Cannot set blocking mode');
         }
         return (bool) $n;
+    }
+
+    public function copyTo(self $stream, int $length = null, int $offset = 0): int
+    {
+        //TODO check logic with limit offset
+        fseek($this->resource, 0, SEEK_END);
+        $len = ftell($this->resource);
+        $pos = 0;
+
+        if (null !== $length) {
+            $len = min($length, $len);
+        }
+
+        while ($pos < $len && !feof($this->resource)) {
+            $num = stream_copy_to_stream($this->resource, $stream->resource, 65535, $pos);
+            if (false === $num) {
+                throw new StreamException('Cannot copy stream data');
+            }
+            $pos += $num;
+        }
+
+        return $pos;
     }
 
     /**
