@@ -292,4 +292,90 @@ final class StreamTest extends TestCase
 
         (new Stream(STDIN))->copyTo(new Stream(STDOUT), 1);
     }
+
+    public function testReadLineFailure(): void
+    {
+        $this->expectException(StreamException::class);
+
+        $r = new \ReflectionClass(Stream::class);
+        $f = $this->getFunctionMock($r->getNamespaceName(), 'fgets');
+        $f->expects(self::once())->willReturn(false);
+
+        (new Stream(STDIN))->readLine();
+    }
+
+    public function testReadLineSuccess(): void
+    {
+        $r = new \ReflectionClass(Stream::class);
+        $f = $this->getFunctionMock($r->getNamespaceName(), 'fgets');
+        $f->expects(self::once())->willReturn(1);
+
+        (new Stream(STDIN))->readLine();
+    }
+
+    public function testReadDataFailure(): void
+    {
+        $this->expectException(StreamException::class);
+
+        $r = new \ReflectionClass(Stream::class);
+        $f = $this->getFunctionMock($r->getNamespaceName(), 'fread');
+        $f->expects(self::once())->willReturn(false);
+
+        (new Stream(STDIN))->readData();
+    }
+
+    public function testReadDataSuccess(): void
+    {
+        $r = new \ReflectionClass(Stream::class);
+        $f = $this->getFunctionMock($r->getNamespaceName(), 'fread');
+        $f->expects(self::once())->willReturn(1);
+
+        (new Stream(STDIN))->readData();
+    }
+
+    public function testSendDataFailure(): void
+    {
+        $this->expectException(StreamException::class);
+
+        $r = new \ReflectionClass(Stream::class);
+        $f = $this->getFunctionMock($r->getNamespaceName(), 'fwrite');
+        $f->expects(self::once())->willReturn(false);
+
+        (new Stream(STDIN))->sendData('D');
+    }
+
+    public function testSendDataSuccess(): void
+    {
+        $r = new \ReflectionClass(Stream::class);
+        $f = $this->getFunctionMock($r->getNamespaceName(), 'fwrite');
+        $f->expects(self::once())->willReturn(1);
+
+        (new Stream(STDIN))->sendData('D');
+    }
+
+    public function testCloseSkipped(): void
+    {
+        $r = new \ReflectionClass(Stream::class);
+
+        $f1 = $this->getFunctionMock($r->getNamespaceName(), 'is_resource');
+        $f1->expects(self::once())->willReturn(false);
+
+        $f2 = $this->getFunctionMock($r->getNamespaceName(), 'fclose');
+        $f2->expects(self::never());
+
+        (new Stream(STDIN))->close();
+    }
+
+    public function testCloseSuccess(): void
+    {
+        $r = new \ReflectionClass(Stream::class);
+
+        $f1 = $this->getFunctionMock($r->getNamespaceName(), 'is_resource');
+        $f1->expects(self::once())->willReturn(true);
+
+        $f2 = $this->getFunctionMock($r->getNamespaceName(), 'fclose');
+        $f2->expects(self::once());
+
+        (new Stream(STDIN))->close();
+    }
 }
