@@ -2,10 +2,6 @@
 
 namespace PE\SMPP\Util;
 
-//TODO
-// stream_get_meta_data — Извлекает заголовок/метаданные из потоков/файловых указателей
-// stream_socket_get_name — Получить название локального или удалённого сокета
-
 final class Stream
 {
     /**
@@ -165,6 +161,16 @@ final class Stream
         if (!stream_socket_enable_crypto($this->resource, $enabled, $method)) {
             throw new StreamException('Cannot set crypto method(s)');
         }
+    }
+
+    /**
+     * Retrieves header/metadata
+     *
+     * @return array
+     */
+    public function getMetadata(): array
+    {
+        return stream_get_meta_data($this->resource);
     }
 
     /**
