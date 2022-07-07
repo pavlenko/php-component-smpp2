@@ -12,6 +12,17 @@ final class StreamTest extends TestCase
 {
     use PHPMock;
 
+    public function testConstructFailure(): void
+    {
+        $this->expectException(StreamException::class);
+
+        $r = new \ReflectionClass(Stream::class);
+        $f = $this->getFunctionMock($r->getNamespaceName(), 'get_resource_type');
+        $f->expects(self::once())->willReturn('foo');
+
+        new Stream(curl_init());
+    }
+
     public function testCreateClientFailure(): void
     {
         $this->expectException(StreamException::class);
