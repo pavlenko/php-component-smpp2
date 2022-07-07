@@ -204,25 +204,25 @@ final class Stream
         return (bool) $n;
     }
 
-    public function copyTo(self $stream, int $length = null, int $offset = 0): int
+    /**
+     * Copy stream data to another one
+     *
+     * @param Stream $stream
+     * @param int    $length
+     * @param int    $offset
+     *
+     * @return int
+     */
+    public function copyTo(self $stream, int $length = 0, int $offset = 0): int
     {
-        //TODO check logic with limit offset
-        fseek($this->resource, 0, SEEK_END);
-        $len = ftell($this->resource);
         $pos = 0;
-
-        if (null !== $length) {
-            $len = min($length, $len);
-        }
-
-        while ($pos < $len && !feof($this->resource)) {
-            $num = stream_copy_to_stream($this->resource, $stream->resource, 65535, $pos);
+        while (!feof($this->resource) && (0 === $length || $pos < $length)) {
+            $num = stream_copy_to_stream($this->resource, $stream->resource, 8192, $offset + $pos);
             if (false === $num) {
                 throw new StreamException('Cannot copy stream data');
             }
             $pos += $num;
         }
-
         return $pos;
     }
 
