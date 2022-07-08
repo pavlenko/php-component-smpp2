@@ -91,7 +91,7 @@ final class Server
         }
     }
 
-    private function handleConnect(Stream $stream)
+    private function handleConnect(Stream $stream): void
     {
         $this->logger->log(LogLevel::DEBUG, 'Accepted new connection');
         $this->sessions->attach($stream, new SessionV2($stream));
@@ -167,15 +167,18 @@ final class Server
     private function handlePending(Stream $stream): void
     {
         if (time() - self::TIMEOUT_ENQUIRE > $this->sessions[$stream]->getEnquiredAt()) {
-            $this->sessions[$stream]->sendPDU(
-                new EnquireLink(),
-                PDU::ENQUIRE_LINK_RESP,
-                self::TIMEOUT_RESPONSE
-            );
+            $this->pending[$stream][] = [new EnquireLink(), PDU::ENQUIRE_LINK_RESP, self::TIMEOUT_RESPONSE];
         }
-        //TODO send delivery receipt
-        // - add to server pending list via event handler, identified by message id & client id
-        // - remove receipt after some time if not sent to recipient
+
+        foreach ($this->pending[$stream] ?? [] as $key => [$pdu, $expectedResp, $timeout]) {
+            if ($this->sessions[$stream]->sendPDU($pdu, $expectedResp, $timeout)) {
+                unset($this->pending[$stream][$key]);
+            } else {
+                $this->sessions[$stream]->close();
+                $this->sessions->detach($stream);
+                return;
+            }
+        }
     }
 
     public function stop(): void
