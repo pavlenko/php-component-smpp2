@@ -4,9 +4,47 @@ namespace PE\SMPP;
 
 use PE\SMPP\Util\Buffer;
 use PE\SMPP\Util\Stream;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 
 final class Server
 {
+    private LoggerInterface $logger;
+    private ?Stream $master = null;
+
+    /**
+     * @var Stream[]
+     */
+    private array $clients = [];
+
+    public function __construct(LoggerInterface $logger = null)
+    {
+        $this->logger = $logger ?: new NullLogger();
+    }
+
+    public function init(string $address): void
+    {
+        $this->master = Stream::createServer($address);
+        $this->master->setBlocking(false);
+
+        if (0 === strpos($address, 'tls')) {
+            $this->master->setCrypto(true, STREAM_CRYPTO_METHOD_TLS_SERVER);
+        }
+    }
+
+    public function stop(): void
+    {
+        foreach ($this->clients as $client) {
+            $client->close();
+        }
+
+        if ($this->master) {
+            $this->master->close();
+            $this->master = null;
+        }
+    }
+
+    //TODO rename to tick & remove infinite loop
     public function run(): void
     {
         $master  = Stream::createServer('127.0.0.1');
@@ -28,6 +66,7 @@ final class Server
             }
 
             // Handle read data
+            //TODO split loop to foreach($r as $client){} && foreach($clients as $client){ if(in_array($client, $r)){continue} }
             foreach ($clients as $key => $client) {
                 if (in_array($client, $r)) {
                     $head = $client->readData(16);
