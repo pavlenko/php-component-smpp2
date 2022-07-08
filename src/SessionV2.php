@@ -15,9 +15,12 @@ final class SessionV2
      */
     private array $sentPDUs = [];
 
+    private int $enquiredAt;
+
     public function __construct(Stream $stream)
     {
         $this->stream = $stream;
+        $this->setEnquiredAt();//TODO maybe datetime
     }
 
     /**
@@ -26,6 +29,16 @@ final class SessionV2
     public function getSentPDUs(): array
     {
         return $this->sentPDUs;
+    }
+
+    public function getEnquiredAt(): int
+    {
+        return $this->enquiredAt;
+    }
+
+    public function setEnquiredAt(): void
+    {
+        $this->enquiredAt = time();
     }
 
     public function readPDU(): ?PDU

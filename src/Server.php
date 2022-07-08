@@ -15,6 +15,7 @@ use PE\SMPP\PDU\DeliverSmResp;
 use PE\SMPP\PDU\EnquireLink;
 use PE\SMPP\PDU\EnquireLinkResp;
 use PE\SMPP\PDU\GenericNack;
+use PE\SMPP\PDU\PDU;
 use PE\SMPP\PDU\QuerySm;
 use PE\SMPP\PDU\QuerySmResp;
 use PE\SMPP\PDU\ReplaceSm;
@@ -30,7 +31,9 @@ use Psr\Log\NullLogger;
 
 final class Server
 {
-    public const RESP_TIMEOUT = 5;
+    public const TIMEOUT_CONNECT  = 10;
+    public const TIMEOUT_ENQUIRE  = 5;
+    public const TIMEOUT_RESPONSE = 10;
 
     private LoggerInterface $logger;
     private ?Stream $master = null;
@@ -83,17 +86,8 @@ final class Server
             $this->handleTimeout($stream);
         }
 
-        // Handle rest clients connected check
-        foreach ($this->clients as $key => $client) {
-            if (!in_array($client, $r)) {
-                continue;
-            }
-
-            $num = $client->sendData('ENQUIRE_LINK');
-            if (0 === $num) {
-                $client->close();
-                unset($this->clients[$key]);
-            }
+        foreach ($this->sessions as $stream) {
+            $this->handlePending($stream);
         }
     }
 
@@ -103,7 +97,7 @@ final class Server
         $this->sessions->attach($stream, new SessionV2($stream));
     }
 
-    private function handleReceive(Stream $stream)
+    private function handleReceive(Stream $stream): void
     {
         //TODO maybe add special processors per pdu request type
         $sess = $this->sessions[$stream];
@@ -155,7 +149,7 @@ final class Server
         $response->setCommandStatus(CommandStatus::NO_ERROR);
         $response->setSequenceNum($pdu->getSequenceNum());
 
-        $sess->sendPDU($response, null, self::RESP_TIMEOUT);
+        $sess->sendPDU($response, null, self::TIMEOUT_RESPONSE);
     }
 
     private function handleTimeout(Stream $stream): void
@@ -170,25 +164,18 @@ final class Server
         }
     }
 
-    //TODO rename method???
-    //TODO send deliver_sm if processed & check it response
-    //TODO Send enquire link PDU for check client alive
-    private function handleEnquire(){}
-
-    private function handleStalled(): void
+    private function handlePending(Stream $stream): void
     {
-        foreach ($this->sessions as $session) {
-            $interval = time() - $session->enquiredAt();
-            // Check enquire interval
-            if ($interval > 'ENQUIRE_INTERVAL') {
-                $session->sendPDU('ENQUIRE_LINK', 'ENQUIRE_TIMEOUT');//TODO check if sent not failed
-                $session->setEnquireAt(time());
-            }
-            // Check pdu timeout
-            if ($interval > 'ENQUIRE_TIMEOUT') {
-                $this->sessions->detach($session->close());
-            }
+        if (time() - self::TIMEOUT_ENQUIRE > $this->sessions[$stream]->getEnquiredAt()) {
+            $this->sessions[$stream]->sendPDU(
+                new EnquireLink(),
+                PDU::ENQUIRE_LINK_RESP,
+                self::TIMEOUT_RESPONSE
+            );
         }
+        //TODO send delivery receipt
+        // - add to server pending list via event handler, identified by message id & client id
+        // - remove receipt after some time if not sent to recipient
     }
 
     public function stop(): void
