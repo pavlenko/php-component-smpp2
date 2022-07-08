@@ -83,14 +83,29 @@ final class Server
                 continue;
             }
 
-            //TODO create enquire link pdu
-            //TODO maybe add to session: __construct(Stream), readPDU(): PDU, sendPDU(PDU): void
             $num = $client->sendData('ENQUIRE_LINK');
             if (0 === $num) {
                 $client->close();
                 unset($this->clients[$key]);
             }
-            //TODO else check enquire response exist before timed out
+        }
+    }
+
+    private function handleConnect(){}
+
+    private function handleStalled(): void
+    {
+        foreach ($this->sessions as $session) {
+            $interval = time() - $session->enquiredAt();
+            // Check enquire interval
+            if ($interval > 'ENQUIRE_INTERVAL') {
+                $session->sendPDU('ENQUIRE_LINK', 'ENQUIRE_TIMEOUT');//TODO check if sent not failed
+                $session->setEnquireAt(time());
+            }
+            // Check pdu timeout
+            if ($interval > 'ENQUIRE_TIMEOUT') {
+                $this->sessions->detach($session->close());
+            }
         }
     }
 
