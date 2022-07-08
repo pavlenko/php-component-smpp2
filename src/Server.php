@@ -5,6 +5,7 @@ namespace PE\SMPP;
 use PE\SMPP\Util\Buffer;
 use PE\SMPP\Util\Stream;
 use Psr\Log\LoggerInterface;
+use Psr\Log\LogLevel;
 use Psr\Log\NullLogger;
 
 final class Server
@@ -29,19 +30,6 @@ final class Server
 
         if (0 === strpos($address, 'tls')) {
             $this->master->setCrypto(true, STREAM_CRYPTO_METHOD_TLS_SERVER);
-        }
-    }
-
-    public function stop(): void
-    {
-        foreach ($this->clients as $key => $client) {
-            $client->close();
-            unset($this->clients[$key]);
-        }
-
-        if ($this->master) {
-            $this->master->close();
-            $this->master = null;
         }
     }
 
@@ -104,5 +92,20 @@ final class Server
             }
             //TODO else check enquire response exist before timed out
         }
+    }
+
+    public function stop(): void
+    {
+        $this->logger->log(LogLevel::INFO, 'Stopping server ...');
+        foreach ($this->clients as $key => $client) {
+            $client->close();
+            unset($this->clients[$key]);
+        }
+
+        if ($this->master) {
+            $this->master->close();
+            $this->master = null;
+        }
+        $this->logger->log(LogLevel::INFO, 'Stopping server OK');
     }
 }
