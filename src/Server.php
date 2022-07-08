@@ -2,6 +2,7 @@
 
 namespace PE\SMPP;
 
+use PE\SMPP\Util\Buffer;
 use PE\SMPP\Util\Stream;
 
 final class Server
@@ -27,10 +28,31 @@ final class Server
             }
 
             // Handle read data
-            foreach ($clients as $client) {
-                //TODO handle incoming data in some way (maybe read to internal buffer for each stream)
-                $client->readData(8192);
-                //TODO handle close client connections if result of data is empty
+            foreach ($r as $client) {
+                $head = $client->readData(16);
+
+                if ('' === $head) {
+                    $client->close();
+                    unset($clients[array_search($client, $clients)]);
+                    continue;
+                }
+
+                $stream = new Buffer($head);
+                if ($stream->bytesLeft() < 16) {
+                    throw new \RuntimeException('Malformed PDU header');
+                }
+
+                $length        = $stream->shiftInt32();
+                $commandID     = $stream->shiftInt32();
+                $commandStatus = $stream->shiftInt32();
+                $sequenceNum   = $stream->shiftInt32();
+
+                $body = (string) $client->readData($length);
+                if (strlen($body) < $length - 16) {
+                    throw new \RuntimeException('Malformed PDU body');
+                }
+
+                new Command($commandID, $commandStatus, $sequenceNum, $body);
             }
         }
     }

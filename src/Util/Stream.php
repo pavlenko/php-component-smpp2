@@ -335,10 +335,11 @@ final class Stream
     /**
      * Close stream
      */
-    public function close(): void
+    public function close(): self
     {
         if (is_resource($this->resource)) {
             fclose($this->resource);
         }
+        return $this;
     }
 }
