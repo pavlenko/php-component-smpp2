@@ -2,10 +2,27 @@
 
 namespace PE\SMPP;
 
+use PE\SMPP\PDU\BindReceiver;
+use PE\SMPP\PDU\BindReceiverResp;
+use PE\SMPP\PDU\BindTransceiver;
+use PE\SMPP\PDU\BindTransceiverResp;
 use PE\SMPP\PDU\BindTransmitter;
 use PE\SMPP\PDU\BindTransmitterResp;
+use PE\SMPP\PDU\CancelSm;
+use PE\SMPP\PDU\CancelSmResp;
+use PE\SMPP\PDU\DeliverSm;
+use PE\SMPP\PDU\DeliverSmResp;
+use PE\SMPP\PDU\EnquireLink;
+use PE\SMPP\PDU\EnquireLinkResp;
+use PE\SMPP\PDU\GenericNack;
+use PE\SMPP\PDU\QuerySm;
+use PE\SMPP\PDU\QuerySmResp;
+use PE\SMPP\PDU\ReplaceSm;
+use PE\SMPP\PDU\ReplaceSmResp;
 use PE\SMPP\PDU\SubmitSm;
 use PE\SMPP\PDU\SubmitSmResp;
+use PE\SMPP\PDU\Unbind;
+use PE\SMPP\PDU\UnbindResp;
 use PE\SMPP\Util\Buffer;
 use PE\SMPP\Util\Stream;
 use Psr\Log\LoggerInterface;
@@ -110,28 +127,52 @@ final class Server
 
     private function handleReceive(Stream $stream)
     {
-        $pdu = $this->sessions[$stream]->readPDU();
-        if ($pdu instanceof BindTransmitter) {//receiver, transceiver
-            $this->logger->log(LogLevel::DEBUG, 'BIND_TRANSMITTER');
+        //TODO maybe add special processors per pdu request type
+        $sess = $this->sessions[$stream];
+        $pdu  = $sess->readPDU();
 
-            $res = new BindTransmitterResp();
-            $res->setCommandStatus(CommandStatus::NO_ERROR);
-            $res->setSequenceNumber($pdu->getSequenceNumber());
+        switch (true) {
+            case ($pdu instanceof BindReceiver):
+                $response = new BindReceiverResp();
+                break;
+            case ($pdu instanceof BindTransmitter):
+                $response = new BindTransmitterResp();
+                break;
+            case ($pdu instanceof BindTransceiver):
+                $response = new BindTransceiverResp();
+                break;
+            case ($pdu instanceof Unbind):
+                $response = new UnbindResp();//TODO <-- disconnect client
+                break;
+            case ($pdu instanceof SubmitSm):
+                $response = new SubmitSmResp();
+                $response->setMessageID(uniqid('', true));
+                break;
+            case ($pdu instanceof DeliverSm)://TODO <-- this probably need processing on client side
+                $response = new DeliverSmResp();
+                $response->setMessageID(uniqid('', true));
+                break;
+            case ($pdu instanceof QuerySm):
+                $response = new QuerySmResp();
+                break;
+            case ($pdu instanceof CancelSm):
+                $response = new CancelSmResp();
+                break;
+            case ($pdu instanceof ReplaceSm)://TODO <-- add fields by spec
+                $response = new ReplaceSmResp();
+                break;
+            case ($pdu instanceof EnquireLink):
+                $response = new EnquireLinkResp();
+                break;
+            default:
+                // SUBMIT_MULTI, DATA_SM
+                $response = new GenericNack();
+        }
 
-            $this->sessions[$stream]->sendPDU($res);
-        }
-        if ($pdu instanceof SubmitSm) {//sm_multi
-            $res = new SubmitSmResp();
-            $res->setCommandStatus(CommandStatus::NO_ERROR);
-            $res->setSequenceNumber($pdu->getSequenceNumber());
-            $res->setMessageID(uniqid('', true));
-            $this->sessions[$stream]->sendPDU($res);
-        }
-        if (PDU::CANCEL_SM === $pdu->getCommandID()) {//TRY to simplify PDU object (fields, address, tlv)
-            $this->sessions[$stream]->sendPDU(new PDU(PDU::CANCEL_SM_RESP, PDU::NO_ERROR, $pdu->getSequenceNumber()));
-        }
-        // query_sm, cancel_sm, replace_sm, unbind
-        // respond with generic nack if pdu not handled by this server
+        $response->setCommandStatus(CommandStatus::NO_ERROR);
+        $response->setSequenceNumber($pdu->getSequenceNumber());
+
+        $sess->sendPDU($response);
     }
 
     //TODO Process sent PDU responses timed out

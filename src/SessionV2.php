@@ -2,6 +2,7 @@
 
 namespace PE\SMPP;
 
+use PE\SMPP\PDU\PDU;
 use PE\SMPP\Util\Stream;
 
 class SessionV2
@@ -23,9 +24,9 @@ class SessionV2
         return $this->stream;
     }
 
-    public function readPDU()//TODO automatically remove waited responses
+    public function readPDU(): ?PDU//TODO automatically remove waited responses
     {}
 
-    public function sendPDU($pdu, $timeout = 0)//TODO response timeout? or expected result type?
+    public function sendPDU(PDU $pdu, int $timeout = 0)//TODO response timeout? or expected result type?
     {}
 }
