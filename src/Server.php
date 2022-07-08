@@ -2,6 +2,8 @@
 
 namespace PE\SMPP;
 
+use PE\SMPP\PDU\BindTransmitter;
+use PE\SMPP\PDU\BindTransmitterResp;
 use PE\SMPP\Util\Buffer;
 use PE\SMPP\Util\Stream;
 use Psr\Log\LoggerInterface;
@@ -14,13 +16,19 @@ final class Server
     private ?Stream $master = null;
 
     /**
+     * @var \SplObjectStorage|SessionV2[]
+     */
+    private \SplObjectStorage $sessions;
+
+    /**
      * @var Stream[]
      */
     private array $clients = [];
 
     public function __construct(LoggerInterface $logger = null)
     {
-        $this->logger = $logger ?: new NullLogger();
+        $this->logger   = $logger ?: new NullLogger();
+        $this->sessions = new \SplObjectStorage();
     }
 
     public function init(string $address): void
@@ -35,7 +43,7 @@ final class Server
 
     public function tick(): void
     {
-        $r = array_merge([$this->master], $this->clients);
+        $r = array_merge([$this->master], iterator_to_array($this->sessions));
         $n = null;
 
         // Check streams first
@@ -46,7 +54,7 @@ final class Server
         // Handle new connections
         if (in_array($this->master, $r)) {
             unset($r[array_search($this->master, $r)]);
-            $this->clients[] = $this->master->accept();
+            $this->handleConnect($this->master->accept());
         }
 
         // Handle incoming data
@@ -91,11 +99,26 @@ final class Server
         }
     }
 
-    //TODO Receive new connection
-    private function handleConnect(){}
+    private function handleConnect(Stream $stream)
+    {
+        $this->logger->log(LogLevel::DEBUG, 'Accepted new connection');
+        $this->sessions->attach($stream, new SessionV2($stream));
+    }
 
     //TODO Receive PDU from client
-    private function handleReceive(){}
+    private function handleReceive(Stream $stream)
+    {
+        $pdu = $this->sessions[$stream]->readPDU();
+        if ($pdu instanceof BindTransmitter) {
+            $this->logger->log(LogLevel::DEBUG, 'BIND_TRANSMITTER');
+
+            $res = new BindTransmitterResp();
+            $res->setCommandStatus(CommandStatus::NO_ERROR);
+            $res->setSequenceNumber($pdu->getSequenceNumber());
+
+            $this->sessions[$stream]->sendPDU($pdu);
+        }
+    }
 
     //TODO Process sent PDU responses timed out
     private function handleTimeout(){}

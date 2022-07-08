@@ -23,9 +23,9 @@ class SessionV2
         return $this->stream;
     }
 
-    public function readPDU()
+    public function readPDU()//TODO automatically remove waited responses
     {}
 
-    public function sendPDU($pdu, $timeout)//TODO response timeout? or expected result type?
+    public function sendPDU($pdu, $timeout = 0)//TODO response timeout? or expected result type?
     {}
 }
