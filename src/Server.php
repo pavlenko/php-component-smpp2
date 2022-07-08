@@ -30,6 +30,8 @@ use Psr\Log\NullLogger;
 
 final class Server
 {
+    public const RESP_TIMEOUT = 5;
+
     private LoggerInterface $logger;
     private ?Stream $master = null;
 
@@ -77,6 +79,10 @@ final class Server
             $this->handleReceive($client);
         }
 
+        foreach ($this->sessions as $stream) {
+            $this->handleTimeout($stream);
+        }
+
         // Handle rest clients connected check
         foreach ($this->clients as $key => $client) {
             if (!in_array($client, $r)) {
@@ -104,7 +110,9 @@ final class Server
         $pdu  = $sess->readPDU();
 
         if (null === $pdu) {
-            $this->sessions->detach($sess->close());
+            $this->sessions[$stream]->close();
+            $this->sessions->detach($stream);
+            return;
         }
 
         switch (true) {
@@ -145,13 +153,22 @@ final class Server
         }
 
         $response->setCommandStatus(CommandStatus::NO_ERROR);
-        $response->setSequenceNumber($pdu->getSequenceNumber());
+        $response->setSequenceNum($pdu->getSequenceNum());
 
-        $sess->sendPDU($response);
+        $sess->sendPDU($response, null, self::RESP_TIMEOUT);
     }
 
-    //TODO Process sent PDU responses timed out
-    private function handleTimeout(){}
+    private function handleTimeout(Stream $stream): void
+    {
+        $sent = $this->sessions[$stream]->getSentPDUs();
+        foreach ($sent as $packet) {
+            if (time() > $packet->getExpectedTill()) {
+                $this->sessions[$stream]->close();
+                $this->sessions->detach($stream);
+                return;
+            }
+        }
+    }
 
     //TODO rename method???
     //TODO send deliver_sm if processed & check it response

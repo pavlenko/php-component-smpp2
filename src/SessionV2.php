@@ -6,28 +6,30 @@ use PE\SMPP\PDU\PDU;
 use PE\SMPP\Util\Buffer;
 use PE\SMPP\Util\Stream;
 
-class SessionV2
+final class SessionV2
 {
-    public const EVENT_READ = 'session.read';
-    public const EVENT_SEND = 'session.send';
-
     private Stream $stream;
-    //TODO serializer to handle data coding
-    private array $sent = [];//TODO packet: time, pdu, maybe some other options
+
+    /**
+     * @var Packet[]
+     */
+    private array $sentPDUs = [];
 
     public function __construct(Stream $stream)
     {
         $this->stream = $stream;
     }
 
-    public function getStream(): Stream
+    /**
+     * @return Packet[]
+     */
+    public function getSentPDUs(): array
     {
-        return $this->stream;
+        return $this->sentPDUs;
     }
 
     public function readPDU(): ?PDU
     {
-        //TODO automatically remove waited responses
         $head = $this->stream->readData(16);
 
         if ('' === $head) {
@@ -35,6 +37,7 @@ class SessionV2
             return null;
         }
 
+        //TODO maybe move to factory class FROM
         $buffer = new Buffer($head);
         if ($buffer->bytesLeft() < 16) {
             throw new \RuntimeException('Malformed PDU header');
@@ -54,13 +57,26 @@ class SessionV2
         $cls = PDU::CLASS_MAP[$commandID];
         $pdu = new $cls($body);
         $pdu->setCommandStatus($commandStatus);
-        $pdu->setSequenceNumber($sequenceNum);
+        $pdu->setSequenceNum($sequenceNum);
+        //TODO maybe move to factory class TILL
+
+        foreach ($this->sentPDUs as $key => $packet) {
+            if ($packet->getExpectedResp() === $commandID && $packet->getPdu()->getSequenceNum() === $sequenceNum) {
+                unset($this->sentPDUs[$key]);
+            }
+        }
 
         return $pdu;
     }
 
-    public function sendPDU(PDU $pdu, int $timeout = 0)//TODO response timeout? or expected result type?
-    {}
+    public function sendPDU(PDU $pdu, int $expectedResp = null, int $timeout = null): bool
+    {
+        $res = $this->stream->sendData($pdu);
+        if (0 !== $res) {
+            $this->sentPDUs[] = new Packet($pdu, $expectedResp, time() + $timeout);
+        }
+        return !!$res;
+    }
 
     public function close(): self
     {

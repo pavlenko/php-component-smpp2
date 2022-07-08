@@ -136,7 +136,7 @@ class Connection
         $cls = PDU::CLASS_MAP[$commandID];
         $pdu = new $cls($body);
         $pdu->setCommandStatus($commandStatus);
-        $pdu->setSequenceNumber($sequenceNum);
+        $pdu->setSequenceNum($sequenceNum);
         return $pdu;
     }
 

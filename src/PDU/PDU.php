@@ -53,7 +53,7 @@ abstract class PDU
     ];
 
     private int $commandStatus = 0;
-    private int $sequenceNumber = 1;
+    private int $sequenceNum = 1;
     private string $body;
 
     public function __construct(string $body = '')
@@ -78,14 +78,14 @@ abstract class PDU
         $this->commandStatus = $status;
     }
 
-    public function getSequenceNumber(): int
+    public function getSequenceNum(): int
     {
-        return $this->sequenceNumber;
+        return $this->sequenceNum;
     }
 
-    public function setSequenceNumber(int $sequenceNumber): void
+    public function setSequenceNum(int $sequenceNum): void
     {
-        $this->sequenceNumber = $sequenceNumber;
+        $this->sequenceNum = $sequenceNum;
     }
 
     public function getBody(): string
@@ -104,7 +104,7 @@ abstract class PDU
         $buffer->writeInt32($this->getCommandLength());
         $buffer->writeInt32($this->getCommandID());
         $buffer->writeInt32($this->getCommandStatus());
-        $buffer->writeInt32($this->getSequenceNumber());
+        $buffer->writeInt32($this->getSequenceNum());
 
         return $buffer . $this->getBody();
     }
