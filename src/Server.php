@@ -91,7 +91,17 @@ final class Server
         }
     }
 
+    //TODO Receive new connection
     private function handleConnect(){}
+
+    //TODO Receive PDU from client
+    private function handleReceive(){}
+
+    //TODO Process sent PDU responses timed out
+    private function handleTimeout(){}
+
+    //TODO Send enquire link PDU for check client alive
+    private function handleEnquire(){}
 
     private function handleStalled(): void
     {
