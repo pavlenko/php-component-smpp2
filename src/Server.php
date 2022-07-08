@@ -31,7 +31,9 @@ use Psr\Log\NullLogger;
 
 final class Server
 {
-    public const TIMEOUT_CONNECT  = 10;
+    //TODO server events for allow communicate with other apps
+    //TODO move constants to session class
+    public const TIMEOUT_CONNECT  = 10;//TODO this for client only
     public const TIMEOUT_ENQUIRE  = 5;
     public const TIMEOUT_RESPONSE = 10;
 
