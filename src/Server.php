@@ -23,7 +23,6 @@ use PE\SMPP\PDU\SubmitSm;
 use PE\SMPP\PDU\SubmitSmResp;
 use PE\SMPP\PDU\Unbind;
 use PE\SMPP\PDU\UnbindResp;
-use PE\SMPP\Util\Buffer;
 use PE\SMPP\Util\Stream;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
@@ -65,18 +64,15 @@ final class Server
         $r = array_merge([$this->master], iterator_to_array($this->sessions));
         $n = null;
 
-        // Check streams first
         if (0 === Stream::select($r, $n, $n)) {
             return;
         }
 
-        // Handle new connections
         if (in_array($this->master, $r)) {
             unset($r[array_search($this->master, $r)]);
             $this->handleConnect($this->master->accept());
         }
 
-        // Handle incoming data
         foreach ($r as $client) {
             $this->handleReceive($client);
         }
@@ -145,7 +141,6 @@ final class Server
                 $response = new EnquireLinkResp();
                 break;
             default:
-                // SUBMIT_MULTI, DATA_SM
                 $response = new GenericNack();
         }
 
@@ -182,9 +177,9 @@ final class Server
     public function stop(): void
     {
         $this->logger->log(LogLevel::INFO, 'Stopping server ...');
-        foreach ($this->clients as $key => $client) {
-            $client->close();
-            unset($this->clients[$key]);
+        foreach ($this->sessions as $stream) {
+            $this->sessions[$stream]->close();
+            $this->sessions->detach($stream);
         }
 
         if ($this->master) {
