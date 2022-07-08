@@ -4,6 +4,8 @@ namespace PE\SMPP;
 
 use PE\SMPP\PDU\BindTransmitter;
 use PE\SMPP\PDU\BindTransmitterResp;
+use PE\SMPP\PDU\SubmitSm;
+use PE\SMPP\PDU\SubmitSmResp;
 use PE\SMPP\Util\Buffer;
 use PE\SMPP\Util\Stream;
 use Psr\Log\LoggerInterface;
@@ -59,6 +61,7 @@ final class Server
 
         // Handle incoming data
         foreach ($r as $client) {
+            $this->handleReceive($client);
             $head = $client->readData(16);
 
             if ('' === $head) {
@@ -105,24 +108,37 @@ final class Server
         $this->sessions->attach($stream, new SessionV2($stream));
     }
 
-    //TODO Receive PDU from client
     private function handleReceive(Stream $stream)
     {
         $pdu = $this->sessions[$stream]->readPDU();
-        if ($pdu instanceof BindTransmitter) {
+        if ($pdu instanceof BindTransmitter) {//receiver, transceiver
             $this->logger->log(LogLevel::DEBUG, 'BIND_TRANSMITTER');
 
             $res = new BindTransmitterResp();
             $res->setCommandStatus(CommandStatus::NO_ERROR);
             $res->setSequenceNumber($pdu->getSequenceNumber());
 
-            $this->sessions[$stream]->sendPDU($pdu);
+            $this->sessions[$stream]->sendPDU($res);
         }
+        if ($pdu instanceof SubmitSm) {//sm_multi
+            $res = new SubmitSmResp();
+            $res->setCommandStatus(CommandStatus::NO_ERROR);
+            $res->setSequenceNumber($pdu->getSequenceNumber());
+            $res->setMessageID(uniqid('', true));
+            $this->sessions[$stream]->sendPDU($res);
+        }
+        if (PDU::CANCEL_SM === $pdu->getCommandID()) {//TRY to simplify PDU object (fields, address, tlv)
+            $this->sessions[$stream]->sendPDU(new PDU(PDU::CANCEL_SM_RESP, PDU::NO_ERROR, $pdu->getSequenceNumber()));
+        }
+        // query_sm, cancel_sm, replace_sm, unbind
+        // respond with generic nack if pdu not handled by this server
     }
 
     //TODO Process sent PDU responses timed out
     private function handleTimeout(){}
 
+    //TODO rename method???
+    //TODO send deliver_sm if processed & check it response
     //TODO Send enquire link PDU for check client alive
     private function handleEnquire(){}
 
