@@ -102,6 +102,7 @@ final class Server
                 $client->close();
                 unset($this->clients[$key]);
             }
+            //TODO else check enquire response exist before timed out
         }
     }
 }
