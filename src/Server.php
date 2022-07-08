@@ -79,30 +79,6 @@ final class Server
         // Handle incoming data
         foreach ($r as $client) {
             $this->handleReceive($client);
-            $head = $client->readData(16);
-
-            if ('' === $head) {
-                $client->close();
-                unset($this->clients[array_search($client, $this->clients)]);
-                continue;
-            }
-
-            $buffer = new Buffer($head);
-            if ($buffer->bytesLeft() < 16) {
-                throw new \RuntimeException('Malformed PDU header');
-            }
-
-            $length        = $buffer->shiftInt32();
-            $commandID     = $buffer->shiftInt32();
-            $commandStatus = $buffer->shiftInt32();
-            $sequenceNum   = $buffer->shiftInt32();
-
-            $body = (string) $client->readData($length);
-            if (strlen($body) < $length - 16) {
-                throw new \RuntimeException('Malformed PDU body');
-            }
-
-            new Command($commandID, $commandStatus, $sequenceNum, $body);
         }
 
         // Handle rest clients connected check
@@ -130,6 +106,10 @@ final class Server
         //TODO maybe add special processors per pdu request type
         $sess = $this->sessions[$stream];
         $pdu  = $sess->readPDU();
+
+        if (null === $pdu) {
+            $this->sessions->detach($sess->close());
+        }
 
         switch (true) {
             case ($pdu instanceof BindReceiver):
