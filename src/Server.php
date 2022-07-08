@@ -34,8 +34,9 @@ final class Server
 
     public function stop(): void
     {
-        foreach ($this->clients as $client) {
+        foreach ($this->clients as $key => $client) {
             $client->close();
+            unset($this->clients[$key]);
         }
 
         if ($this->master) {
