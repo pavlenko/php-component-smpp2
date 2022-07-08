@@ -298,7 +298,7 @@ final class Stream
     {
         $string = fgets($this->resource, $length);
         if (false === $string) {
-            throw new StreamException('Cannot read line from socket');
+            throw new StreamException('Cannot read line from stream');
         }
         return $string;
     }
@@ -314,7 +314,7 @@ final class Stream
     {
         $string = fread($this->resource, $length ?: PHP_INT_MAX);
         if (false === $string) {
-            throw new StreamException('Cannot read data from socket');
+            throw new StreamException('Cannot read data from stream');
         }
         return $string;
     }
@@ -324,12 +324,16 @@ final class Stream
      *
      * @param string   $data
      * @param int|null $length
+     *
+     * @return int
      */
-    public function sendData(string $data, int $length = null): void
+    public function sendData(string $data, int $length = null): int
     {
-        if (false === fwrite($this->resource, $data, $length)) {
-            throw new StreamException('Cannot write data to socket');
+        $num = fwrite($this->resource, $data, $length);
+        if (false === $num) {
+            throw new StreamException('Cannot write data to stream');
         }
+        return $num;
     }
 
     /**
