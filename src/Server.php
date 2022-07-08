@@ -32,10 +32,6 @@ use Psr\Log\NullLogger;
 final class Server
 {
     //TODO server events for allow communicate with other apps
-    //TODO move constants to session class
-    public const TIMEOUT_CONNECT  = 10;//TODO this for client only
-    public const TIMEOUT_ENQUIRE  = 5;
-    public const TIMEOUT_RESPONSE = 10;
 
     private LoggerInterface $logger;
     private ?Stream $master = null;
@@ -45,10 +41,7 @@ final class Server
      */
     private \SplObjectStorage $sessions;
 
-    /**
-     * @var Stream[]
-     */
-    private array $clients = [];
+    private array $pendings = [];
 
     public function __construct(LoggerInterface $logger = null)
     {
@@ -86,6 +79,10 @@ final class Server
 
         foreach ($this->sessions as $stream) {
             $this->handleTimeout($stream);
+        }
+
+        foreach ($this->sessions as $stream) {
+            $this->handleEnquire($stream);
         }
 
         foreach ($this->sessions as $stream) {
@@ -151,7 +148,7 @@ final class Server
         $response->setCommandStatus(CommandStatus::NO_ERROR);
         $response->setSequenceNum($pdu->getSequenceNum());
 
-        $sess->sendPDU($response, null, self::TIMEOUT_RESPONSE);
+        $sess->sendPDU($response, null, SessionV2::TIMEOUT_RESPONSE);
     }
 
     private function handleTimeout(Stream $stream): void
@@ -166,20 +163,21 @@ final class Server
         }
     }
 
+    private function handleEnquire(Stream $stream): void
+    {
+        if (time() - SessionV2::TIMEOUT_ENQUIRE > $this->sessions[$stream]->getEnquiredAt()) {
+            $this->sessions[$stream]->sendPDU(new EnquireLink(), PDU::ENQUIRE_LINK_RESP, SessionV2::TIMEOUT_RESPONSE);
+        }
+    }
+
     private function handlePending(Stream $stream): void
     {
-        if (time() - self::TIMEOUT_ENQUIRE > $this->sessions[$stream]->getEnquiredAt()) {
-            $this->pending[$stream][] = [new EnquireLink(), PDU::ENQUIRE_LINK_RESP, self::TIMEOUT_RESPONSE];
-        }
-
-        foreach ($this->pending[$stream] ?? [] as $key => [$pdu, $expectedResp, $timeout]) {
-            if ($this->sessions[$stream]->sendPDU($pdu, $expectedResp, $timeout)) {
-                unset($this->pending[$stream][$key]);
-            } else {
-                $this->sessions[$stream]->close();
-                $this->sessions->detach($stream);
-                return;
+        foreach ($this->pendings as $key => [$systemID, $pdu, $expectedResp, $timeout]) {
+            if ($this->sessions[$stream]->getSystemID() !== $systemID) {
+                continue;
             }
+            $this->sessions[$stream]->sendPDU($pdu, $expectedResp, $timeout);
+            unset($this->pendings[$key]);
         }
     }
 

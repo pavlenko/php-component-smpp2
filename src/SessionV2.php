@@ -8,6 +8,10 @@ use PE\SMPP\Util\Stream;
 
 final class SessionV2
 {
+    public const TIMEOUT_CONNECT  = 10;
+    public const TIMEOUT_ENQUIRE  = 5;
+    public const TIMEOUT_RESPONSE = 10;
+
     private Stream $stream;
 
     /**
