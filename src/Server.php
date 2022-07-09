@@ -159,6 +159,7 @@ final class Server
 
     private function handleTimeout(Stream $stream): void
     {
+        $this->logger->log(LogLevel::DEBUG, 'Process timeouts from ' . $this->sessions[$stream]->getPeerName());
         $sent = $this->sessions[$stream]->getSentPDUs();
         foreach ($sent as $packet) {
             if (time() > $packet->getExpectedTill()) {

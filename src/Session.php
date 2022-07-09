@@ -38,6 +38,11 @@ final class Session
         return $this->stream;
     }
 
+    public function getPeerName(): string
+    {
+        return $this->stream->getPeerName();
+    }
+
     /**
      * @return Packet[]
      */

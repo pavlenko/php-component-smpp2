@@ -11,6 +11,7 @@ use PE\SMPP\PDU\GenericNack;
 use PE\SMPP\PDU\PDU;
 use PE\SMPP\Util\Stream;
 use Psr\Log\LoggerInterface;
+use Psr\Log\LogLevel;
 use Psr\Log\NullLogger;
 
 final class Client
@@ -58,7 +59,7 @@ final class Client
         $this->handleTimeout($this->session);
     }
 
-    private function handleReceive(Session $session): void//TODO make abstract for client & server
+    private function handleReceive(Session $session): void
     {
         $pdu = $session->readPDU();
 
@@ -80,11 +81,12 @@ final class Client
                 $response = new GenericNack();
         }
 
-        $session->sendPDU($response);
+        $session->sendPDU($response, null, Session::TIMEOUT_RESPONSE);
     }
 
-    private function handleTimeout(Session $session): void//TODO make abstract for client & server
+    private function handleTimeout(Session $session): void
     {
+        $this->logger->log(LogLevel::DEBUG, 'Process timeouts from ' . $session->getPeerName());
         $sent = $session->getSentPDUs();
         foreach ($sent as $packet) {
             if (time() > $packet->getExpectedTill()) {
@@ -96,9 +98,8 @@ final class Client
 
     public function stop(): void
     {
-        if ($this->stream) {
-            $this->stream->close();
-            $this->stream = null;
-        }
+        $this->logger->log(LogLevel::INFO, 'Stopping client ...');
+        $this->session->close();
+        $this->logger->log(LogLevel::INFO, 'Stopping client OK');
     }
 }
