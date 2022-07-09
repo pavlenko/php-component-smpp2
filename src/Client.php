@@ -21,6 +21,7 @@ final class Client
     private ?string $password;
     private LoggerInterface $logger;
     private ?Session $session = null;
+    private array $pending = [];
 
     public function __construct(Bind $bind, string $systemID, string $password = null, LoggerInterface $logger = null)
     {
@@ -58,6 +59,7 @@ final class Client
         }
 
         $this->handleTimeout($this->session);
+        $this->handlePending($this->session);
     }
 
     private function handleReceive(Session $session): void
@@ -94,6 +96,17 @@ final class Client
                 $session->close();
                 return;
             }
+        }
+    }
+
+    private function handlePending(Session $session): void
+    {
+        foreach ($this->pending as $key => [$systemID, $pdu, $expectedResp, $timeout]) {
+            if ($session->getSystemID() !== $systemID) {
+                continue;
+            }
+            $session->sendPDU($pdu, $expectedResp, $timeout);
+            unset($this->pending[$key]);
         }
     }
 
