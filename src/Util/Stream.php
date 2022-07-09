@@ -25,7 +25,7 @@ final class Stream
             $errorNum,
             $errorStr,
             $timeout,
-            STREAM_CLIENT_CONNECT,
+            STREAM_CLIENT_CONNECT|STREAM_CLIENT_ASYNC_CONNECT,
             $context
         );
         if (false === $socket) {

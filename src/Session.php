@@ -33,6 +33,11 @@ final class Session
         $this->setEnquiredAt();//TODO maybe datetime
     }
 
+    public function getStream(): Stream
+    {
+        return $this->stream;
+    }
+
     /**
      * @return Packet[]
      */
