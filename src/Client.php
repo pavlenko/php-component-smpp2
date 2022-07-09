@@ -16,25 +16,31 @@ use Psr\Log\NullLogger;
 
 final class Client
 {
+    use Logger;
+
+    private string $address;
     private string $systemID;
     private ?string $password;
     private LoggerInterface $logger;
     private ?Session $session = null;
     private array $pending = [];
 
-    public function __construct(string $systemID, string $password = null, LoggerInterface $logger = null)
+    public function __construct(string $address, string $systemID, string $password = null, LoggerInterface $logger = null)
     {
+        $this->address  = $address;
         $this->systemID = $systemID;
         $this->password = $password;
         $this->logger   = $logger ?: new NullLogger();
     }
 
-    public function init(string $address)
+    public function init()
     {
-        $stream = Stream::createClient($address, null, Session::TIMEOUT_CONNECT);
+        $this->log(LogLevel::DEBUG, 'Connect to ' . $this->address);
+
+        $stream = Stream::createClient($this->address, null, Session::TIMEOUT_CONNECT);
         $stream->setBlocking(false);
 
-        $this->session = new Session($stream);
+        $this->session = new Session($stream, $this->logger);
 
         $bind = new BindTransmitter();
         $bind->setSystemID($this->systemID);
@@ -48,7 +54,7 @@ final class Client
         $r = [$this->session->getStream()];
         $n = null;
 
-        if (0 === Stream::select($r, $n, $n)) {
+        if (0 === Stream::select($r, $n, $n, 0.05)) {
             $this->stop();
             return;
         }
@@ -113,8 +119,8 @@ final class Client
 
     public function stop(): void
     {
-        $this->logger->log(LogLevel::INFO, 'Stopping client ...');
+        $this->log(LogLevel::DEBUG, 'Stopping client ...');
         $this->session->close();
-        $this->logger->log(LogLevel::INFO, 'Stopping client OK');
+        $this->log(LogLevel::DEBUG, 'Stopping client OK');
     }
 }

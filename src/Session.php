@@ -5,10 +5,15 @@ namespace PE\SMPP;
 use PE\SMPP\PDU\PDU;
 use PE\SMPP\Util\Buffer;
 use PE\SMPP\Util\Stream;
+use Psr\Log\LoggerInterface;
+use Psr\Log\LogLevel;
+use Psr\Log\NullLogger;
 
 //TODO sequence num processing
 final class Session
 {
+    use Logger;
+
     public const MODE_TRANSMITTER = 1;
     public const MODE_RECEIVER    = 2;
     public const MODE_TRANSCEIVER = 3;
@@ -18,6 +23,7 @@ final class Session
     public const TIMEOUT_RESPONSE = 10;
 
     private Stream $stream;
+    private LoggerInterface $logger;
 
     /**
      * @var Packet[]
@@ -28,9 +34,10 @@ final class Session
     private ?string $password = null;
     private int $enquiredAt;
 
-    public function __construct(Stream $stream)
+    public function __construct(Stream $stream, LoggerInterface $logger = null)
     {
         $this->stream = $stream;
+        $this->logger = $logger ?: new NullLogger();
         $this->setEnquiredAt();
     }
 
@@ -91,7 +98,6 @@ final class Session
             return null;
         }
 
-        //TODO maybe move to factory class FROM
         $buffer = new Buffer($head);
         if ($buffer->bytesLeft() < 16) {
             throw new \RuntimeException('Malformed PDU header');
@@ -112,8 +118,8 @@ final class Session
         $pdu = new $cls($body);
         $pdu->setCommandStatus($commandStatus);
         $pdu->setSequenceNum($sequenceNum);
-        //TODO maybe move to factory class TILL
 
+        $this->log(LogLevel::DEBUG, sprintf('readPDU(0x%08X)', $pdu->getCommandID()));
         foreach ($this->sentPDUs as $key => $packet) {
             if ($packet->getExpectedResp() === $commandID && $packet->getPdu()->getSequenceNum() === $sequenceNum) {
                 unset($this->sentPDUs[$key]);
@@ -125,6 +131,7 @@ final class Session
 
     public function sendPDU(PDU $pdu, int $expectedResp = null, int $timeout = null): bool
     {
+        $this->log(LogLevel::DEBUG, sprintf('sendPDU(0x%08X)', $pdu->getCommandID()));
         $this->sentPDUs[] = new Packet($pdu, $expectedResp, time() + $timeout);
         return (bool) $this->stream->sendData($pdu);
     }

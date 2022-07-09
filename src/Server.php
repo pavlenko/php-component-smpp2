@@ -29,6 +29,7 @@ use Psr\Log\NullLogger;
 
 final class Server
 {
+    use Logger;
     //TODO server events for allow communicate with other apps
 
     private string $address;
@@ -51,7 +52,7 @@ final class Server
 
     public function init(): void
     {
-        $this->logger->log(LogLevel::INFO, 'Start server listening on ' . $this->address);
+        $this->log(LogLevel::DEBUG, 'Listen to ' . $this->address);
         $this->master = Stream::createServer($this->address);
         $this->master->setBlocking(false);
 
@@ -70,7 +71,12 @@ final class Server
 
         if (in_array($this->master, $r)) {
             unset($r[array_search($this->master, $r)]);
-            $this->handleConnect($this->master->accept());
+
+            $stream  = $this->master->accept();
+            $session = new Session($stream, null);
+
+            $this->sessions->attach($stream, $session);
+            $this->logger->log(LogLevel::DEBUG, 'Accepted new connection from ' . $session->getPeerName());
         }
 
         foreach ($r as $client) {
@@ -88,12 +94,6 @@ final class Server
         foreach ($this->sessions as $stream) {
             $this->handlePending($stream);
         }
-    }
-
-    private function handleConnect(Stream $stream): void
-    {
-        $this->logger->log(LogLevel::DEBUG, 'Accepted new connection');
-        $this->sessions->attach($stream, new Session($stream));
     }
 
     private function handleReceive(Stream $stream): void

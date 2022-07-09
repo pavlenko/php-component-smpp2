@@ -20,13 +20,13 @@ final class Stream
      */
     public static function createClient(string $address, $context = null, ?float $timeout = null): self
     {
-        $socket = @stream_socket_client(
+        $socket = stream_socket_client(
             $address,
             $errorNum,
             $errorStr,
             $timeout,
             STREAM_CLIENT_CONNECT|STREAM_CLIENT_ASYNC_CONNECT,
-            $context
+            $context ?? stream_context_create()//TODO remove pass context or resolve default params or pass params as array to stream_socket_client
         );
         if (false === $socket) {
             throw new StreamException($errorStr ?: 'Cannot connect to socket ' . $address, $errorNum);
@@ -49,7 +49,7 @@ final class Stream
             $errorNum,
             $errorStr,
             STREAM_SERVER_BIND|STREAM_SERVER_LISTEN,
-            $context ?? stream_context_create()
+            $context ?? stream_context_create()//TODO remove pass context or resolve default params or pass params as array to stream_socket_client
         );
         if (false === $socket) {
             throw new StreamException($errorStr ?: 'Cannot connect to socket ' . $address, $errorNum);

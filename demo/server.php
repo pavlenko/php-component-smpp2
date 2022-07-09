@@ -14,7 +14,7 @@ $server->init();
 
 $loop = new Loop(10);
 $loop->addPeriodicTimer(0.5, fn() => $server->tick());
-$loop->addSingularTimer(10, function (Loop $loop) use ($server) {
+$loop->addSingularTimer(60, function (Loop $loop) use ($server) {
     $loop->stop();
     $server->stop();
 });
