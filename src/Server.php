@@ -33,6 +33,7 @@ final class Server
 {
     //TODO server events for allow communicate with other apps
 
+    private string $address;
     private LoggerInterface $logger;
     private ?Stream $master = null;
 
@@ -43,30 +44,31 @@ final class Server
 
     private array $pendings = [];
 
-    public function __construct(LoggerInterface $logger = null)
+    public function __construct(string $address, LoggerInterface $logger = null)
     {
+        $this->address  = $address;
         $this->logger   = $logger ?: new NullLogger();
         $this->sessions = new \SplObjectStorage();
     }
 
-    public function init(string $address): void
+    public function init(): void
     {
-        $this->master = Stream::createServer($address);
+        $this->logger->log(LogLevel::INFO, 'Start server listening on ' . $this->address);
+        $this->master = Stream::createServer($this->address);
         $this->master->setBlocking(false);
 
-        if (0 === strpos($address, 'tls')) {
+        if (0 === strpos($this->address, 'tls')) {
             $this->master->setCrypto(true, STREAM_CRYPTO_METHOD_TLS_SERVER);
         }
     }
 
     public function tick(): void
     {
-        $r = array_merge([$this->master], iterator_to_array($this->sessions));
-        $n = null;
+        $this->logger->log(LogLevel::INFO, 'dispatch');
 
-        if (0 === Stream::select($r, $n, $n)) {
-            return;
-        }
+        $r = array_merge([$this->master], iterator_to_array($this->sessions));
+        $n = [];
+        Stream::select($r, $n, $n);
 
         if (in_array($this->master, $r)) {
             unset($r[array_search($this->master, $r)]);

@@ -28,6 +28,7 @@
     "edomato/net-smpp-reactphp-client": "0.1.0",
     "php-mock/php-mock": "^2.3",
     "php-mock/php-mock-phpunit": "^2.6",
-    "phpunit/phpunit": "~9.0"
+    "phpunit/phpunit": "~9.0",
+    "symfony/console": "^5.4"
   }
 }

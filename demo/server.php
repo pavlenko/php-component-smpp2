@@ -2,15 +2,23 @@
 
 namespace PE\SMPP;
 
-$server = new Server();
-$server->init('127.0.0.1:2775');//TODO move to construct
+use Symfony\Component\Console\Logger\ConsoleLogger;
+use Symfony\Component\Console\Output\ConsoleOutput;
 
-$time = time();
-while (true) {
-    if (time() - $time > 20) {
-        break;
+require_once __DIR__ . '/../vendor/autoload.php';
+
+$logger = new ConsoleLogger(new ConsoleOutput(ConsoleOutput::VERBOSITY_DEBUG));
+$server = new Server('127.0.0.1:2775', $logger);
+$server->init();
+
+$tick = microtime(true);
+$time = microtime(true);
+while (microtime(true) - $tick < 15) {
+    if (microtime(true) - $time > 2) {
+        $time = microtime(true);
+        $server->tick();
     }
-    $server->tick();
-    sleep(1);
+    usleep(100_000);
+    echo "tick\n";
 }
 $server->stop();

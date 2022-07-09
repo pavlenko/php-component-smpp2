@@ -44,12 +44,12 @@ final class Stream
      */
     public static function createServer(string $address, $context = null): self
     {
-        $socket = @stream_socket_server(
+        $socket = stream_socket_server(
             $address,
             $errorNum,
             $errorStr,
             STREAM_SERVER_BIND|STREAM_SERVER_LISTEN,
-            $context
+            $context ?? stream_context_create()
         );
         if (false === $socket) {
             throw new StreamException($errorStr ?: 'Cannot connect to socket ' . $address, $errorNum);
