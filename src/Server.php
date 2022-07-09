@@ -37,7 +37,7 @@ final class Server
     private ?Stream $master = null;
 
     /**
-     * @var \SplObjectStorage|SessionV2[]
+     * @var \SplObjectStorage|Session[]
      */
     private \SplObjectStorage $sessions;
 
@@ -93,7 +93,7 @@ final class Server
     private function handleConnect(Stream $stream): void
     {
         $this->logger->log(LogLevel::DEBUG, 'Accepted new connection');
-        $this->sessions->attach($stream, new SessionV2($stream));
+        $this->sessions->attach($stream, new Session($stream));
     }
 
     private function handleReceive(Stream $stream): void
@@ -154,7 +154,7 @@ final class Server
         $response->setCommandStatus(CommandStatus::NO_ERROR);
         $response->setSequenceNum($pdu->getSequenceNum());
 
-        $sess->sendPDU($response, null, SessionV2::TIMEOUT_RESPONSE);
+        $sess->sendPDU($response, null, Session::TIMEOUT_RESPONSE);
     }
 
     private function handleTimeout(Stream $stream): void
@@ -171,8 +171,8 @@ final class Server
 
     private function handleEnquire(Stream $stream): void
     {
-        if (time() - SessionV2::TIMEOUT_ENQUIRE > $this->sessions[$stream]->getEnquiredAt()) {
-            $this->sessions[$stream]->sendPDU(new EnquireLink(), PDU::ENQUIRE_LINK_RESP, SessionV2::TIMEOUT_RESPONSE);
+        if (time() - Session::TIMEOUT_ENQUIRE > $this->sessions[$stream]->getEnquiredAt()) {
+            $this->sessions[$stream]->sendPDU(new EnquireLink(), PDU::ENQUIRE_LINK_RESP, Session::TIMEOUT_RESPONSE);
         }
     }
 

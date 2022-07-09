@@ -2,7 +2,9 @@
 
 namespace PE\SMPP;
 
-use PE\SMPP\PDU\Address;
+use PE\SMPP\PDU\PDU;
+use PE\SMPP\Util\Buffer;
+use PE\SMPP\Util\Stream;
 
 final class Session
 {
@@ -10,61 +12,115 @@ final class Session
     public const MODE_RECEIVER    = 2;
     public const MODE_TRANSCEIVER = 3;
 
-    private int $mode;
-    private string $systemType;
-    private string $systemID;
-    private string $password;
-    private int $interfaceVer = 0;
-    private Address $address;
+    public const TIMEOUT_CONNECT  = 10;
+    public const TIMEOUT_ENQUIRE  = 5;
+    public const TIMEOUT_RESPONSE = 10;
 
-    public function __construct(
-        int $mode,
-        string $systemID,
-        string $password = '',
-        string $systemType = '',
-        ?Address $address = null,
-        int $interfaceVer = null
-    ) {
-        $modes = [self::MODE_TRANSMITTER, self::MODE_RECEIVER, self::MODE_TRANSCEIVER];
-        if (!in_array($mode, $modes)) {
-            throw new \InvalidArgumentException('Mode must be of ' . self::class . '::MODE_* constants');
-        }
+    private Stream $stream;
 
-        $this->mode         = $mode;
-        $this->systemID     = $systemID;
-        $this->password     = $password;
-        $this->systemType   = $systemType;
-        $this->address      = $address ?? new Address(Address::TON_UNKNOWN, Address::NPI_UNKNOWN, '');
-        $this->interfaceVer = $interfaceVer ?? 0x34;
-    }
+    /**
+     * @var Packet[]
+     */
+    private array $sentPDUs = [];
 
-    public function getMode(): int
+    private ?string $systemID = null;
+    private ?string $password = null;
+    private int $enquiredAt;
+
+    public function __construct(Stream $stream)
     {
-        return $this->mode;
+        $this->stream = $stream;
+        $this->setEnquiredAt();//TODO maybe datetime
     }
 
-    public function getSystemType(): string
+    /**
+     * @return Packet[]
+     */
+    public function getSentPDUs(): array
     {
-        return $this->systemType;
+        return $this->sentPDUs;
     }
 
-    public function getSystemID(): string
+    public function getSystemID(): ?string
     {
         return $this->systemID;
     }
 
-    public function getPassword(): string
+    public function setSystemID(string $systemID): void
+    {
+        $this->systemID = $systemID;
+    }
+
+    public function getPassword(): ?string
     {
         return $this->password;
     }
 
-    public function getInterfaceVer(): int
+    public function setPassword(string $password): void
     {
-        return $this->interfaceVer;
+        $this->password = $password;
     }
 
-    public function getAddress(): Address
+    public function getEnquiredAt(): int
     {
-        return $this->address;
+        return $this->enquiredAt;
+    }
+
+    public function setEnquiredAt(): void
+    {
+        $this->enquiredAt = time();
+    }
+
+    public function readPDU(): ?PDU
+    {
+        $head = $this->stream->readData(16);
+
+        if ('' === $head) {
+            $this->stream->close();
+            return null;
+        }
+
+        //TODO maybe move to factory class FROM
+        $buffer = new Buffer($head);
+        if ($buffer->bytesLeft() < 16) {
+            throw new \RuntimeException('Malformed PDU header');
+        }
+
+        $length        = $buffer->shiftInt32();
+        $commandID     = $buffer->shiftInt32();
+        $commandStatus = $buffer->shiftInt32();
+        $sequenceNum   = $buffer->shiftInt32();
+
+        $body = $this->stream->readData($length);
+        if (strlen($body) < $length - 16) {
+            throw new \RuntimeException('Malformed PDU body');
+        }
+
+        /* @var $pdu PDU */
+        $cls = PDU::CLASS_MAP[$commandID];
+        $pdu = new $cls($body);
+        $pdu->setCommandStatus($commandStatus);
+        $pdu->setSequenceNum($sequenceNum);
+        //TODO maybe move to factory class TILL
+
+        foreach ($this->sentPDUs as $key => $packet) {
+            if ($packet->getExpectedResp() === $commandID && $packet->getPdu()->getSequenceNum() === $sequenceNum) {
+                unset($this->sentPDUs[$key]);
+            }
+        }
+
+        return $pdu;
+    }
+
+    public function sendPDU(PDU $pdu, int $expectedResp = null, int $timeout = null): bool
+    {
+        $this->sentPDUs[] = new Packet($pdu, $expectedResp, time() + $timeout);
+        return (bool) $this->stream->sendData($pdu);
+    }
+
+    public function close(): self
+    {
+        $this->stream->close();
+        return $this;
     }
 }
