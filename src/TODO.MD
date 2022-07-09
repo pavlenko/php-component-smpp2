@@ -1,5 +1,7 @@
 # TODO
 
+- Bridge for allow to communicate app (server/client)
+  with daemon
 - Sequence number must be unique per connection
 - Increment sequence number on each command send call
 - Create common command class instead of class per type
