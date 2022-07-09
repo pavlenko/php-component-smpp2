@@ -2,7 +2,7 @@
 
 namespace PE\SMPP;
 
-use PE\SMPP\PDU\BindTransmitter;
+use PE\SMPP\PDU\Bind;
 use PE\SMPP\PDU\DeliverSm;
 use PE\SMPP\PDU\DeliverSmResp;
 use PE\SMPP\PDU\EnquireLink;
@@ -16,13 +16,15 @@ use Psr\Log\NullLogger;
 
 final class Client
 {
+    private Bind $bind;
     private string $systemID;
     private ?string $password;
     private LoggerInterface $logger;
     private ?Session $session = null;
 
-    public function __construct(string $systemID, string $password = null, LoggerInterface $logger = null)
+    public function __construct(Bind $bind, string $systemID, string $password = null, LoggerInterface $logger = null)
     {
+        $this->bind     = $bind;
         $this->systemID = $systemID;
         $this->password = $password;
         $this->logger   = $logger ?: new NullLogger();
@@ -35,11 +37,10 @@ final class Client
 
         $this->session = new Session($stream);
 
-        $bind = new BindTransmitter();
-        $bind->setSystemID($this->systemID);
-        $bind->setPassword($this->password);
+        $this->bind->setSystemID($this->systemID);
+        $this->bind->setPassword($this->password);
 
-        $this->session->sendPDU($bind, PDU::BIND_TRANSMITTER_RESP, Session::TIMEOUT_RESPONSE);
+        $this->session->sendPDU($this->bind, PDU::BIND_TRANSMITTER_RESP, Session::TIMEOUT_RESPONSE);
     }
 
     public function tick(): void
