@@ -6,6 +6,7 @@ use PE\SMPP\PDU\PDU;
 use PE\SMPP\Util\Buffer;
 use PE\SMPP\Util\Stream;
 
+//TODO sequence num processing
 final class Session
 {
     public const MODE_TRANSMITTER = 1;
@@ -30,7 +31,7 @@ final class Session
     public function __construct(Stream $stream)
     {
         $this->stream = $stream;
-        $this->setEnquiredAt();//TODO maybe datetime
+        $this->setEnquiredAt();
     }
 
     public function getStream(): Stream

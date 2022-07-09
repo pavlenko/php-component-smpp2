@@ -131,10 +131,6 @@ final class Server
                 $response = new SubmitSmResp();
                 $response->setMessageID(uniqid('', true));
                 break;
-            case ($pdu instanceof DeliverSm)://TODO <-- this probably need processing on client side
-                $response = new DeliverSmResp();
-                $response->setMessageID(uniqid('', true));
-                break;
             case ($pdu instanceof QuerySm):
                 $response = new QuerySmResp();
                 break;

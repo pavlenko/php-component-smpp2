@@ -108,6 +108,8 @@ final class Client
             $session->sendPDU($pdu, $expectedResp, $timeout);
             unset($this->pending[$key]);
         }
+        //TODO clear pending by valid till time
+        //TODO store pending in external storage
     }
 
     public function stop(): void
