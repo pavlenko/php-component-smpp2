@@ -10,8 +10,6 @@ use PE\SMPP\PDU\BindTransmitter;
 use PE\SMPP\PDU\BindTransmitterResp;
 use PE\SMPP\PDU\CancelSm;
 use PE\SMPP\PDU\CancelSmResp;
-use PE\SMPP\PDU\DeliverSm;
-use PE\SMPP\PDU\DeliverSmResp;
 use PE\SMPP\PDU\EnquireLink;
 use PE\SMPP\PDU\EnquireLinkResp;
 use PE\SMPP\PDU\GenericNack;
@@ -64,11 +62,11 @@ final class Server
 
     public function tick(): void
     {
-        $this->logger->log(LogLevel::INFO, 'dispatch');
+        $this->logger->log(LogLevel::DEBUG, 'tick');
 
         $r = array_merge([$this->master], iterator_to_array($this->sessions));
         $n = [];
-        Stream::select($r, $n, $n);
+        Stream::select($r, $n, $n, 0.05);//<-- here always need timeout, for prevent blocking process
 
         if (in_array($this->master, $r)) {
             unset($r[array_search($this->master, $r)]);

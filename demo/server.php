@@ -2,6 +2,7 @@
 
 namespace PE\SMPP;
 
+use PE\Component\Loop\Loop;
 use Symfony\Component\Console\Logger\ConsoleLogger;
 use Symfony\Component\Console\Output\ConsoleOutput;
 
@@ -11,14 +12,10 @@ $logger = new ConsoleLogger(new ConsoleOutput(ConsoleOutput::VERBOSITY_DEBUG));
 $server = new Server('127.0.0.1:2775', $logger);
 $server->init();
 
-$tick = microtime(true);
-$time = microtime(true);
-while (microtime(true) - $tick < 15) {
-    if (microtime(true) - $time > 2) {
-        $time = microtime(true);
-        $server->tick();
-    }
-    usleep(100_000);
-    echo "tick\n";
-}
-$server->stop();
+$loop = new Loop(10);
+$loop->addPeriodicTimer(0.5, fn() => $server->tick());
+$loop->addSingularTimer(10, function (Loop $loop) use ($server) {
+    $loop->stop();
+    $server->stop();
+});
+$loop->run();
