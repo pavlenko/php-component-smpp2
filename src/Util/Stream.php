@@ -98,7 +98,7 @@ final class Stream
      *
      * @return int
      */
-    public static function select(array &$rStreams, array &$wStreams, array &$eStreams, float $timeout = null): int
+    public static function select(?array &$rStreams, ?array &$wStreams, ?array &$eStreams, float $timeout = null): int
     {
         $us = null !== $timeout
             ? ($timeout - floor($timeout)) * 1_000_000
@@ -328,9 +328,9 @@ final class Stream
     {
         $string = fread($this->resource, $length ?: PHP_INT_MAX);
         if (false === $string) {
-            throw new StreamException('Cannot read data from stream');
+            //TODO throw new StreamException('Cannot read data from stream');
         }
-        return $string;
+        return (string) $string;
     }
 
     /**

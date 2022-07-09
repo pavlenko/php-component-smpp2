@@ -2,6 +2,7 @@
 
 namespace PE\SMPP;
 
+use PE\SMPP\PDU\Address;
 use PE\SMPP\PDU\BindTransmitter;
 use PE\SMPP\PDU\DeliverSm;
 use PE\SMPP\PDU\DeliverSmResp;
@@ -9,6 +10,7 @@ use PE\SMPP\PDU\EnquireLink;
 use PE\SMPP\PDU\EnquireLinkResp;
 use PE\SMPP\PDU\GenericNack;
 use PE\SMPP\PDU\PDU;
+use PE\SMPP\PDU\SubmitSm;
 use PE\SMPP\Util\Stream;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
@@ -49,13 +51,22 @@ final class Client
         $this->session->sendPDU($bind, PDU::BIND_TRANSMITTER_RESP, Session::TIMEOUT_RESPONSE);
     }
 
+    public function send(Address $src, Address $dst, string $text): void
+    {
+        $pdu = new SubmitSm();
+        $pdu->setSourceAddress($src);
+        $pdu->setDestinationAddress($dst);
+        $pdu->setShortMessage($text);
+
+        $this->session->sendPDU($pdu, PDU::SUBMIT_SM_RESP, Session::TIMEOUT_RESPONSE);
+    }
+
     public function tick(): void
     {
         $r = [$this->session->getStream()];
-        $n = null;
+        $n = [];
 
         if (0 === Stream::select($r, $n, $n, 0.05)) {
-            $this->stop();
             return;
         }
 
@@ -94,11 +105,11 @@ final class Client
 
     private function handleTimeout(Session $session): void
     {
-        $this->logger->log(LogLevel::DEBUG, 'Process timeouts from ' . $session->getPeerName());
+        $this->logger->log(LogLevel::DEBUG, 'Process timeouts');
         $sent = $session->getSentPDUs();
         foreach ($sent as $packet) {
             if (time() > $packet->getExpectedTill()) {
-                $session->close();
+                //$session->close();
                 return;
             }
         }

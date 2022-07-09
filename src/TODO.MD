@@ -1,4 +1,8 @@
-# TODO
+# TODO 1
+
+optimize server/client class methods for valid algorithm
+
+# TODO 2
 
 - Bridge for allow to communicate app (server/client)
   with daemon

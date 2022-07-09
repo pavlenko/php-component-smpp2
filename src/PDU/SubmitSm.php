@@ -7,13 +7,13 @@ use PE\SMPP\Util\Buffer;
 class SubmitSm extends PDU
 {
     private string $serviceType = '';
-    private Address $sourceAddress;
-    private Address $destinationAddress;
+    private ?Address $sourceAddress = null;
+    private ?Address $destinationAddress = null;
     private int $dataCoding = 0;//TODO DataCoding::DEFAULT;
     private string $shortMessage = '';
     private int $esmClass = 0;
-    private ?\DateTimeImmutable $validityPeriod;
-    private ?\DateTimeImmutable $scheduleDeliveryTime;
+    private ?\DateTimeImmutable $validityPeriod = null;
+    private ?\DateTimeImmutable $scheduleDeliveryTime = null;
     private int $registeredDelivery = 1;
     private int $protocolId = 0;
     private int $priorityFlag = 0;

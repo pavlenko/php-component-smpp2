@@ -74,7 +74,7 @@ final class Buffer
         return $data;
     }
 
-    public function writeBytes(int $value): void
+    public function writeBytes(string $value): void
     {
         $this->buffer .= $value;
     }
