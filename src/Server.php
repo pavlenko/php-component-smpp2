@@ -173,6 +173,7 @@ final class Server
     {
         if (time() - Session::TIMEOUT_ENQUIRE > $this->sessions[$stream]->getEnquiredAt()) {
             $this->sessions[$stream]->sendPDU(new EnquireLink(), PDU::ENQUIRE_LINK_RESP, Session::TIMEOUT_RESPONSE);
+            $this->sessions[$stream]->setEnquiredAt();
         }
     }
 
