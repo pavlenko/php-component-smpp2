@@ -110,12 +110,18 @@ final class Server
 
         switch (true) {
             case ($pdu instanceof BindReceiver):
+                $this->sessions[$stream]->setSystemID($pdu->getSystemID());
+                $this->sessions[$stream]->setPassword($pdu->getPassword());
                 $response = new BindReceiverResp();
                 break;
             case ($pdu instanceof BindTransmitter):
+                $this->sessions[$stream]->setSystemID($pdu->getSystemID());
+                $this->sessions[$stream]->setPassword($pdu->getPassword());
                 $response = new BindTransmitterResp();
                 break;
             case ($pdu instanceof BindTransceiver):
+                $this->sessions[$stream]->setSystemID($pdu->getSystemID());
+                $this->sessions[$stream]->setPassword($pdu->getPassword());
                 $response = new BindTransceiverResp();
                 break;
             case ($pdu instanceof Unbind):
@@ -172,11 +178,15 @@ final class Server
 
     private function handlePending(Stream $stream): void
     {
+        $toDelete = [];
         foreach ($this->pendings as $key => [$systemID, $pdu, $expectedResp, $timeout]) {
             if ($this->sessions[$stream]->getSystemID() !== $systemID) {
                 continue;
             }
             $this->sessions[$stream]->sendPDU($pdu, $expectedResp, $timeout);
+            $toDelete[] = $key;
+        }
+        foreach ($toDelete as $key) {
             unset($this->pendings[$key]);
         }
     }

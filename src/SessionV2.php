@@ -19,6 +19,8 @@ final class SessionV2
      */
     private array $sentPDUs = [];
 
+    private ?string $systemID = null;
+    private ?string $password = null;
     private int $enquiredAt;
 
     public function __construct(Stream $stream)
@@ -33,6 +35,26 @@ final class SessionV2
     public function getSentPDUs(): array
     {
         return $this->sentPDUs;
+    }
+
+    public function getSystemID(): ?string
+    {
+        return $this->systemID;
+    }
+
+    public function setSystemID(string $systemID): void
+    {
+        $this->systemID = $systemID;
+    }
+
+    public function getPassword(): ?string
+    {
+        return $this->password;
+    }
+
+    public function setPassword(string $password): void
+    {
+        $this->password = $password;
     }
 
     public function getEnquiredAt(): int
@@ -88,11 +110,8 @@ final class SessionV2
 
     public function sendPDU(PDU $pdu, int $expectedResp = null, int $timeout = null): bool
     {
-        $res = $this->stream->sendData($pdu);
-        if (0 !== $res) {
-            $this->sentPDUs[] = new Packet($pdu, $expectedResp, time() + $timeout);
-        }
-        return !!$res;
+        $this->sentPDUs[] = new Packet($pdu, $expectedResp, time() + $timeout);
+        return (bool) $this->stream->sendData($pdu);
     }
 
     public function close(): self
