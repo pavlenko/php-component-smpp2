@@ -97,7 +97,15 @@ final class ServerV2
     {}
 
     private function processWaiting(Session $session): void
-    {}
+    {
+        foreach ($this->waitPDUs as $key => [$systemID, $pdu, $expectedResp, $timeout]) {
+            if ($session->getSystemID() !== $systemID) {
+                continue;
+            }
+            $session->sendPDU($pdu, $expectedResp, $timeout);
+            unset($this->waitPDUs[$key]);
+        }
+    }
 
 
     private function stop(): void
