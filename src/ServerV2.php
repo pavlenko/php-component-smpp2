@@ -86,10 +86,10 @@ final class ServerV2
         //TODO here we can send outbind if has wait messages for client
     }
 
-    private function detachSession(Session $session): void
+    private function detachSession(Session $session, string $reason): void
     {
         if ($this->sessions->contains($session->getStream())) {
-            $this->log(LogLevel::DEBUG, 'detach session ' . $session->getPeerName());
+            $this->log(LogLevel::DEBUG, 'detach session ' . $session->getPeerName() . ' reason: ' . $reason);
             $session->close();
             $this->sessions->detach($session->getStream());
         }
@@ -99,7 +99,15 @@ final class ServerV2
     {}
 
     private function processTimeout(Session $session): void
-    {}
+    {
+        $sent = $session->getSentPDUs();
+        foreach ($sent as $packet) {
+            if (time() > $packet->getExpectedTime()) {
+                $this->detachSession($session, 'TIMED OUT');
+                return;
+            }
+        }
+    }
 
     private function processEnquire(Session $session): void
     {
@@ -124,7 +132,7 @@ final class ServerV2
     {
         $this->log(LogLevel::INFO, 'stop');
         foreach ($this->sessions as $stream) {
-            $this->detachSession($this->sessions[$stream]);
+            $this->detachSession($this->sessions[$stream], 'STOP SERVER');
         }
 
         if ($this->master) {

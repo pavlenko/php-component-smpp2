@@ -134,7 +134,7 @@ final class Session
     public function sendPDU(PDU $pdu, int $expectedResp = null, int $timeout = null): bool
     {
         $this->log(LogLevel::DEBUG, sprintf('sendPDU(0x%08X)', $pdu->getCommandID()));
-        $this->sentPDUs[] = new Packet($this->getSystemID(), $pdu, $expectedResp, time() + $timeout);
+        $this->sentPDUs[] = new Packet((string) $this->getSystemID(), $pdu, $expectedResp, time() + $timeout);
         return (bool) $this->stream->sendData($pdu);
     }
 
