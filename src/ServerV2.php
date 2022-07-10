@@ -3,8 +3,26 @@
 namespace PE\SMPP;
 
 use PE\Component\Loop\LoopInterface;
+use PE\SMPP\PDU\BindReceiver;
+use PE\SMPP\PDU\BindReceiverResp;
+use PE\SMPP\PDU\BindTransceiver;
+use PE\SMPP\PDU\BindTransceiverResp;
+use PE\SMPP\PDU\BindTransmitter;
+use PE\SMPP\PDU\BindTransmitterResp;
+use PE\SMPP\PDU\CancelSm;
+use PE\SMPP\PDU\CancelSmResp;
 use PE\SMPP\PDU\EnquireLink;
+use PE\SMPP\PDU\EnquireLinkResp;
+use PE\SMPP\PDU\GenericNack;
 use PE\SMPP\PDU\PDU;
+use PE\SMPP\PDU\QuerySm;
+use PE\SMPP\PDU\QuerySmResp;
+use PE\SMPP\PDU\ReplaceSm;
+use PE\SMPP\PDU\ReplaceSmResp;
+use PE\SMPP\PDU\SubmitSm;
+use PE\SMPP\PDU\SubmitSmResp;
+use PE\SMPP\PDU\Unbind;
+use PE\SMPP\PDU\UnbindResp;
 use PE\SMPP\Util\Stream;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
@@ -96,7 +114,57 @@ final class ServerV2
     }
 
     private function processReceive(Session $session): void
-    {}
+    {
+        $pdu = $session->readPDU();
+        if (null === $pdu) {
+            $this->detachSession($session, 'NO RESPOND');
+            return;
+        }
+
+        switch (true) {
+            case ($pdu instanceof BindReceiver):
+                $session->setSystemID($pdu->getSystemID());
+                $session->setPassword($pdu->getPassword());
+                $response = new BindReceiverResp();
+                break;
+            case ($pdu instanceof BindTransmitter):
+                $session->setSystemID($pdu->getSystemID());
+                $session->setPassword($pdu->getPassword());
+                $response = new BindTransmitterResp();
+                break;
+            case ($pdu instanceof BindTransceiver):
+                $session->setSystemID($pdu->getSystemID());
+                $session->setPassword($pdu->getPassword());
+                $response = new BindTransceiverResp();
+                break;
+            case ($pdu instanceof Unbind):
+                $response = new UnbindResp();//TODO <-- disconnect client
+                break;
+            case ($pdu instanceof SubmitSm):
+                $response = new SubmitSmResp();
+                $response->setMessageID(uniqid('', true));
+                break;
+            case ($pdu instanceof QuerySm):
+                $response = new QuerySmResp();
+                break;
+            case ($pdu instanceof CancelSm):
+                $response = new CancelSmResp();
+                break;
+            case ($pdu instanceof ReplaceSm)://TODO <-- add fields by spec
+                $response = new ReplaceSmResp();
+                break;
+            case ($pdu instanceof EnquireLink):
+                $response = new EnquireLinkResp();
+                break;
+            default:
+                $response = new GenericNack();
+        }
+
+        $response->setCommandStatus(CommandStatus::NO_ERROR);
+        $response->setSequenceNum($pdu->getSequenceNum());
+
+        $session->sendPDU($response, null, Session::TIMEOUT_RESPONSE);
+    }
 
     private function processTimeout(Session $session): void
     {
