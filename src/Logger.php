@@ -6,8 +6,8 @@ trait Logger
 {
     public function log(string $level, string $message)
     {
-        $prefix = substr(self::class, strrpos(self::class, "\\"));
-        $prefix = substr(self::class, strrpos(self::class, "\\", -strlen($prefix) - 1) + 1);
-        $this->logger->log($level, "[$prefix] $message");
+        $pos = strrpos(self::class, "\\");
+        $pre = false !== $pos ? substr(self::class, $pos + 1) : self::class;
+        $this->logger->log($level, "[SMPP\\$pre] $message");
     }
 }
