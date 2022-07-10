@@ -55,12 +55,7 @@ final class ServerV2
 
         if (in_array($this->master, $r)) {
             unset($r[array_search($this->master, $r)]);
-
-            $stream  = $this->master->accept();
-            $session = new Session($stream, null);
-
-            $this->sessions->attach($stream, $session);
-            $this->log(LogLevel::INFO, 'Accepted conn from ' . $session->getPeerName());
+            $this->acceptSession(new Session($this->master->accept(), $this->logger));
         }
 
         foreach ($r as $stream) {
@@ -74,6 +69,21 @@ final class ServerV2
         }
         foreach ($this->sessions as $stream) {
             $this->processWaiting($this->sessions[$stream]);
+        }
+    }
+
+    private function acceptSession(Session $session): void
+    {
+        $this->log(LogLevel::DEBUG, 'accept session ' . $session->getPeerName());
+        $this->sessions->attach($session->getStream(), $session);
+    }
+
+    private function detachSession(Session $session): void
+    {
+        if ($this->sessions->contains($session)) {
+            $this->log(LogLevel::DEBUG, 'detach session ' . $session->getPeerName());
+            $session->close();
+            $this->sessions->detach($session->getStream());
         }
     }
 
@@ -94,8 +104,7 @@ final class ServerV2
     {
         $this->log(LogLevel::INFO, 'stop');
         foreach ($this->sessions as $stream) {
-            $this->sessions[$stream]->close();
-            $this->sessions->detach($stream);
+            $this->detachSession($this->sessions[$stream]);
         }
 
         if ($this->master) {

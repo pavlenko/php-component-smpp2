@@ -10,6 +10,8 @@ use Psr\Log\LogLevel;
 use Psr\Log\NullLogger;
 
 //TODO sequence num processing
+//TODO session status, opened/closed/etc
+//TODO configurable timeouts
 final class Session
 {
     use Logger;
