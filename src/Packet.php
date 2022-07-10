@@ -6,18 +6,25 @@ use PE\SMPP\PDU\PDU;
 
 final class Packet
 {
+    private string $systemID;
     private PDU $pdu;
     private ?int $expectedResp;
-    private ?int $expectedTill;
+    private ?int $expectedTime;
 
-    public function __construct(PDU $pdu, int $expectedResp = null, int $expectedTill = null)
+    public function __construct(string $systemID, PDU $pdu, int $expectedResp = null, int $expectedTime = null)
     {
+        $this->systemID     = $systemID;
         $this->pdu          = $pdu;
         $this->expectedResp = $expectedResp;
-        $this->expectedTill = $expectedTill;
+        $this->expectedTime = $expectedTime;
     }
 
-    public function getPdu(): PDU
+    public function getSystemID(): string
+    {
+        return $this->systemID;
+    }
+
+    public function getPDU(): PDU
     {
         return $this->pdu;
     }
@@ -27,8 +34,8 @@ final class Packet
         return $this->expectedResp;
     }
 
-    public function getExpectedTill(): ?int
+    public function getExpectedTime(): ?int
     {
-        return $this->expectedTill;
+        return $this->expectedTime;
     }
 }

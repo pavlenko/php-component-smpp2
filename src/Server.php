@@ -158,7 +158,7 @@ final class Server
         $this->logger->log(LogLevel::DEBUG, 'Process timeouts from ' . $this->sessions[$stream]->getPeerName());
         $sent = $this->sessions[$stream]->getSentPDUs();
         foreach ($sent as $packet) {
-            if (time() > $packet->getExpectedTill()) {
+            if (time() > $packet->getExpectedTime()) {
                 $this->sessions[$stream]->close();
                 $this->sessions->detach($stream);
                 return;

@@ -21,6 +21,11 @@ final class ServerV2
      */
     private \SplObjectStorage $sessions;
 
+    /**
+     * @var Packet[]
+     */
+    private array $waitPDUs = [];
+
     public function __construct(string $address, LoggerInterface $logger = null)
     {
         $this->address  = $address;
@@ -98,15 +103,14 @@ final class ServerV2
 
     private function processWaiting(Session $session): void
     {
-        foreach ($this->waitPDUs as $key => [$systemID, $pdu, $expectedResp, $timeout]) {
-            if ($session->getSystemID() !== $systemID) {
+        foreach ($this->waitPDUs as $key => $packet) {
+            if ($session->getSystemID() !== $packet->getSystemID()) {
                 continue;
             }
-            $session->sendPDU($pdu, $expectedResp, $timeout);
+            $session->sendPDU($packet->getPDU(), $packet->getExpectedResp(), $packet->getExpectedTime());
             unset($this->waitPDUs[$key]);
         }
     }
-
 
     private function stop(): void
     {

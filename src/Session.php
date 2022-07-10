@@ -123,7 +123,7 @@ final class Session
 
         $this->log(LogLevel::DEBUG, sprintf('readPDU(0x%08X)', $pdu->getCommandID()));
         foreach ($this->sentPDUs as $key => $packet) {
-            if ($packet->getExpectedResp() === $commandID && $packet->getPdu()->getSequenceNum() === $sequenceNum) {
+            if ($packet->getExpectedResp() === $commandID && $packet->getPDU()->getSequenceNum() === $sequenceNum) {
                 unset($this->sentPDUs[$key]);
             }
         }

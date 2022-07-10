@@ -108,7 +108,7 @@ final class Client
         $this->logger->log(LogLevel::DEBUG, 'Process timeouts');
         $sent = $session->getSentPDUs();
         foreach ($sent as $packet) {
-            if (time() > $packet->getExpectedTill()) {
+            if (time() > $packet->getExpectedTime()) {
                 //$session->close();
                 return;
             }
