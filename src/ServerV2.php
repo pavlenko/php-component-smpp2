@@ -3,6 +3,8 @@
 namespace PE\SMPP;
 
 use PE\Component\Loop\LoopInterface;
+use PE\SMPP\PDU\EnquireLink;
+use PE\SMPP\PDU\PDU;
 use PE\SMPP\Util\Stream;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
@@ -81,6 +83,7 @@ final class ServerV2
     {
         $this->log(LogLevel::DEBUG, 'accept session ' . $session->getPeerName());
         $this->sessions->attach($session->getStream(), $session);
+        //TODO here we can send outbind if has wait messages for client
     }
 
     private function detachSession(Session $session): void
@@ -99,7 +102,12 @@ final class ServerV2
     {}
 
     private function processEnquire(Session $session): void
-    {}
+    {
+        if (time() - Session::TIMEOUT_ENQUIRE > $session->getEnquiredAt()) {
+            $session->sendPDU(new EnquireLink(), PDU::ENQUIRE_LINK_RESP, Session::TIMEOUT_RESPONSE);
+            $session->setEnquiredAt();
+        }
+    }
 
     private function processWaiting(Session $session): void
     {
