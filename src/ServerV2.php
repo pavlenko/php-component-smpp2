@@ -80,7 +80,7 @@ final class ServerV2
 
     private function detachSession(Session $session): void
     {
-        if ($this->sessions->contains($session)) {
+        if ($this->sessions->contains($session->getStream())) {
             $this->log(LogLevel::DEBUG, 'detach session ' . $session->getPeerName());
             $session->close();
             $this->sessions->detach($session->getStream());
