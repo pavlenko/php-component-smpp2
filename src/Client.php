@@ -63,6 +63,12 @@ final class Client
 
     public function tick(): void
     {
+        $this->log(LogLevel::INFO, 'tick');
+
+        if (!$this->session) {
+            return;
+        }
+
         $r = [$this->session->getStream()];
         $n = [];
 
@@ -74,8 +80,22 @@ final class Client
             $this->handleReceive($this->session);
         }
 
-        $this->handleTimeout($this->session);
-        $this->handlePending($this->session);
+        if ($this->session) {
+            $this->handleTimeout($this->session);
+        }
+
+        if ($this->session) {
+            $this->handlePending($this->session);
+        }
+    }
+
+    private function detachSession(Session $session, string $reason): void
+    {
+        if ($this->session === $session) {
+            $this->log(LogLevel::DEBUG, 'detach session ' . $session->getPeerName() . ' reason: ' . $reason);
+            $this->session->close();
+            $this->session = null;
+        }
     }
 
     private function handleReceive(Session $session): void
@@ -83,7 +103,7 @@ final class Client
         $pdu = $session->readPDU();
 
         if (null === $pdu) {
-            $session->close();
+            $this->detachSession($session, 'NO RESPOND');
             return;
         }
 
@@ -109,7 +129,7 @@ final class Client
         $sent = $session->getSentPDUs();
         foreach ($sent as $packet) {
             if (time() > $packet->getExpectedTime()) {
-                //$session->close();
+                $this->detachSession($session, 'TIMED OUT');
                 return;
             }
         }
@@ -130,8 +150,7 @@ final class Client
 
     public function stop(): void
     {
-        $this->log(LogLevel::DEBUG, 'Stopping client ...');
-        $this->session->close();
-        $this->log(LogLevel::DEBUG, 'Stopping client OK');
+        $this->log(LogLevel::INFO, 'stop');
+        $this->detachSession($this->session, 'STOP SERVER');
     }
 }
