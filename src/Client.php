@@ -24,8 +24,13 @@ final class Client
     private string $systemID;
     private ?string $password;
     private LoggerInterface $logger;
+
     private ?Session $session = null;
-    private array $pending = [];
+
+    /**
+     * @var Packet[]
+     */
+    private array $waitPDUs = [];
 
     public function __construct(string $address, string $systemID, string $password = null, LoggerInterface $logger = null)
     {
@@ -46,9 +51,9 @@ final class Client
 
         $bind = new BindTransmitter();
         $bind->setSystemID($this->systemID);
-        $bind->setPassword($this->password);
+        $bind->setPassword($this->password ?: "\0");
 
-        $this->session->sendPDU($bind, PDU::BIND_TRANSMITTER_RESP, Session::TIMEOUT_RESPONSE);
+        $this->waitPDUs[] = new Packet($this->systemID, $bind, PDU::BIND_TRANSMITTER_RESP, Session::TIMEOUT_RESPONSE);
     }
 
     public function send(Address $src, Address $dst, string $text): void
@@ -61,32 +66,27 @@ final class Client
         $this->session->sendPDU($pdu, PDU::SUBMIT_SM_RESP, Session::TIMEOUT_RESPONSE);
     }
 
-    public function tick(): void
+    public function tick(): bool
     {
-        $this->log(LogLevel::INFO, 'tick');
-
+        $this->log(LogLevel::DEBUG, 'tick');
         if (!$this->session) {
-            return;
+            return false;
         }
 
         $r = [$this->session->getStream()];
         $n = [];
-
-        if (0 === Stream::select($r, $n, $n, 0.05)) {
-            return;
-        }
+        Stream::select($r, $n, $n, 0.05);
 
         if (!empty($r)) {
             $this->handleReceive($this->session);
         }
-
         if ($this->session) {
             $this->handleTimeout($this->session);
         }
-
         if ($this->session) {
             $this->handlePending($this->session);
         }
+        return true;
     }
 
     private function detachSession(Session $session, string $reason): void
@@ -100,8 +100,8 @@ final class Client
 
     private function handleReceive(Session $session): void
     {
+        $this->log(LogLevel::DEBUG, __FUNCTION__);
         $pdu = $session->readPDU();
-
         if (null === $pdu) {
             $this->detachSession($session, 'NO RESPOND');
             return;
@@ -125,7 +125,7 @@ final class Client
 
     private function handleTimeout(Session $session): void
     {
-        $this->logger->log(LogLevel::DEBUG, 'Process timeouts');
+        $this->log(LogLevel::DEBUG, __FUNCTION__);
         $sent = $session->getSentPDUs();
         foreach ($sent as $packet) {
             if (time() > $packet->getExpectedTime()) {
@@ -137,20 +137,16 @@ final class Client
 
     private function handlePending(Session $session): void
     {
-        foreach ($this->pending as $key => [$systemID, $pdu, $expectedResp, $timeout]) {
-            if ($session->getSystemID() !== $systemID) {
-                continue;
-            }
-            $session->sendPDU($pdu, $expectedResp, $timeout);
-            unset($this->pending[$key]);
+        $this->log(LogLevel::DEBUG, __FUNCTION__);
+        foreach ($this->waitPDUs as $key => $packet) {
+            $session->sendPDU($packet->getPDU(), $packet->getExpectedResp(), $packet->getExpectedTime());
+            unset($this->waitPDUs[$key]);
         }
-        //TODO clear pending by valid till time
-        //TODO store pending in external storage
     }
 
     public function stop(): void
     {
-        $this->log(LogLevel::INFO, 'stop');
+        $this->log(LogLevel::DEBUG, 'stop');
         $this->detachSession($this->session, 'STOP SERVER');
     }
 }
