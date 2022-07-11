@@ -49,11 +49,11 @@ final class Client
 
         $this->session = new Session($stream, $this->logger);
 
-        $bind = new BindTransmitter();
-        $bind->setSystemID($this->systemID);
-        $bind->setPassword($this->password ?: "\0");
+        $pdu = new BindTransmitter();
+        $pdu->setSystemID($this->systemID);
+        $pdu->setPassword($this->password ?: "\0");
 
-        $this->waitPDUs[] = new Packet($this->systemID, $bind, PDU::BIND_TRANSMITTER_RESP, Session::TIMEOUT_RESPONSE);
+        $this->session->sendPDU($pdu, PDU::BIND_TRANSMITTER_RESP, Session::TIMEOUT_RESPONSE);
     }
 
     public function send(Address $src, Address $dst, string $text): void
@@ -92,7 +92,7 @@ final class Client
     private function detachSession(Session $session, string $reason): void
     {
         if ($this->session === $session) {
-            $this->log(LogLevel::DEBUG, 'detach session ' . $session->getPeerName() . ' reason: ' . $reason);
+            $this->log(LogLevel::DEBUG, __FUNCTION__ . ', reason: ' . $reason);
             $this->session->close();
             $this->session = null;
         }
