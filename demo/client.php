@@ -16,13 +16,19 @@ $client->setBlocking(false);
 
 $loop = new Loop(10);
 $loop->addSingularTimer(30, fn(Loop $loop) => $loop->stop());
-$loop->addPeriodicTimer(1, function () use ($client, $logger) {
+$loop->addPeriodicTimer(0.05, function (Loop $loop) use ($client, $logger) {
     $r = [$client];
     $n = [];
     Stream::select($r, $n, $n, 0.01);
 
     if (!empty($r)) {
         $logger->log(LogLevel::DEBUG, 'READ: ' . $client->readData(1024));
+        if ($client->isEOF()) {
+            $loop->stop();
+            return;
+        }
+        $client->sendData('TEST');
+        //stream_socket_sendto($client->getResource(), 'TEST');
     }
 });
 $loop->run();

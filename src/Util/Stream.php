@@ -330,15 +330,6 @@ final class Stream
         return $string;
     }
 
-    public function recvData(int $length): string
-    {
-        $string = stream_get_contents($this->resource, $length);
-        if (false === $string) {
-            throw new StreamException('Cannot read data from stream');
-        }
-        return $string;
-    }
-
     /**
      * Read data from stream until reach $limit or EOL
      *
@@ -350,9 +341,9 @@ final class Stream
     {
         $string = fread($this->resource, $length ?: PHP_INT_MAX);
         if (false === $string) {
-            //TODO throw new StreamException('Cannot read data from stream');
+            throw new StreamException('Cannot read data from stream');
         }
-        return (string) $string;
+        return $string;
     }
 
     /**
@@ -365,9 +356,9 @@ final class Stream
      */
     public function sendData(string $data, int $length = null): int
     {
-        $num = fwrite($this->resource, $data, $length);
+        $num = fwrite($this->resource, $data, $length ?: strlen($data));
         if (false === $num) {
-            throw new StreamException('Cannot write data to stream');
+            throw new StreamException('Cannot send data to stream');
         }
         return $num;
     }

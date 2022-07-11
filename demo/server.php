@@ -24,14 +24,21 @@ $loop->addPeriodicTimer(0.01, function () use ($server, &$client, $logger) {
     if (!empty($r)) {
         $logger->log(LogLevel::DEBUG, 'ACCEPT');
         $client = $server->accept();
-        $client->sendData('TEST');
     }
 });
-$loop->addPeriodicTimer(5, function () use ($server, &$client, $logger) {
+$t = $loop->addPeriodicTimer(5, function (Loop $loop) use ($server, &$client, $logger, &$t) {
     if (!$client) {
         return;
     }
     $logger->log(LogLevel::DEBUG, 'SEND');
-    $client->sendData('TEST');
+
+    $num = $client->sendData('TEST');
+    $res = $client->readData(1024);
+    if ($num === 0 || '' === $res) {
+        $logger->log(LogLevel::DEBUG, 'CLOSE CLIENT');
+        $loop->removeTimer($t);
+        return;
+    }
+    $logger->log(LogLevel::DEBUG, 'RESP: ' . $res);
 });
 $loop->run();
