@@ -141,6 +141,14 @@ final class Stream
     }
 
     /**
+     * @return resource
+     */
+    public function getResource()
+    {
+        return $this->resource;
+    }
+
+    /**
      * Set read/write timeout
      *
      * @param int $seconds
