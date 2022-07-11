@@ -266,6 +266,11 @@ final class Stream
         }
     }
 
+    public function isEOF(): bool
+    {
+        return feof($this->resource);
+    }
+
     /**
      * Accept a connection on a socket
      *
@@ -313,6 +318,15 @@ final class Stream
         $string = fgets($this->resource, $length);
         if (false === $string) {
             throw new StreamException('Cannot read line from stream');
+        }
+        return $string;
+    }
+
+    public function recvData(int $length): string
+    {
+        $string = stream_get_contents($this->resource, $length);
+        if (false === $string) {
+            throw new StreamException('Cannot read data from stream');
         }
         return $string;
     }

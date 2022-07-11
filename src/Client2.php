@@ -4,6 +4,7 @@ namespace PE\SMPP;
 
 use PE\SMPP\PDU\BindTransmitter;
 use PE\SMPP\PDU\PDU;
+use PE\SMPP\Util\Buffer;
 use PE\SMPP\Util\Stream;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
@@ -61,9 +62,10 @@ final class Client2
         $r = [$this->stream];
         $w = [$this->stream];
         $n = [];
-        Stream::select($r, $w, $n, 0.05);
+        Stream::select($r, $w, $n, 0);
 
-        if (!empty($r)) {
+        if (!empty($r) || !empty($w)) {
+            $this->readPDU();
             //$this->handleReceive($this->session);
         }
 
@@ -74,5 +76,45 @@ final class Client2
         if ($this->session) {
             //$this->handlePending($this->session);
         }
+    }
+
+    private function readPDU()
+    {
+        //TODO try use react-loop or copy logic & extend base loop interface
+        $head = $this->stream->recvData(16);
+
+        if ($this->stream->isEOF() || '' === $head) {
+            return null;
+        }
+var_dump($head);
+        $buffer = new Buffer($head);
+        if ($buffer->bytesLeft() < 16) {
+            throw new \RuntimeException('Malformed PDU header');
+        }
+
+        $length        = $buffer->shiftInt32();
+        $commandID     = $buffer->shiftInt32();
+        $commandStatus = $buffer->shiftInt32();
+        $sequenceNum   = $buffer->shiftInt32();
+
+        $body = $this->stream->readData($length);
+        if (strlen($body) < $length - 16) {
+            throw new \RuntimeException('Malformed PDU body');
+        }
+
+        /* @var $pdu PDU */
+        $cls = PDU::CLASS_MAP[$commandID];
+        $pdu = new $cls($body);
+        $pdu->setCommandStatus($commandStatus);
+        $pdu->setSequenceNum($sequenceNum);
+
+        $this->log(LogLevel::DEBUG, sprintf('readPDU(0x%08X)', $pdu->getCommandID()));
+        foreach ($this->sentPDUs as $key => $packet) {
+            if ($packet->getExpectedResp() === $commandID && $packet->getPDU()->getSequenceNum() === $sequenceNum) {
+                unset($this->sentPDUs[$key]);
+            }
+        }
+
+        return $pdu;
     }
 }
