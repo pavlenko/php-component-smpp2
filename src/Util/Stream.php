@@ -356,7 +356,7 @@ final class Stream
      */
     public function sendData(string $data, int $length = null): int
     {
-        $num = @fwrite($this->resource, $data, $length ?: strlen($data));
+        $num = StreamException::try(fn() => fwrite($this->resource, $data, $length ?: strlen($data)));
         if (false === $num) {
             throw new StreamException('Cannot send data to stream');
         }
