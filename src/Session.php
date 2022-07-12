@@ -136,7 +136,7 @@ final class Session
             'res' => null === $expectedResp ? 'NULL' : sprintf('0x%08X', $expectedResp),
             'tim' => null === $timeout ? 'NULL' : $timeout,
         ]);
-        $this->sentPDUs[] = new Packet((string) $this->getSystemID(), $pdu, $expectedResp, time() + $timeout);
+        $this->sentPDUs[] = new Packet($pdu, $expectedResp, time() + $timeout);
         return (bool) $this->stream->sendData($pdu);
     }
 

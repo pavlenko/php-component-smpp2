@@ -6,22 +6,15 @@ use PE\SMPP\PDU\PDU;
 
 final class Packet
 {
-    private string $systemID;
     private PDU $pdu;
     private ?int $expectedResp;
     private ?int $expectedTime;
 
-    public function __construct(string $systemID, PDU $pdu, int $expectedResp = null, int $expectedTime = null)
+    public function __construct(PDU $pdu, int $expectedResp = null, int $expectedTime = null)
     {
-        $this->systemID     = $systemID;
         $this->pdu          = $pdu;
         $this->expectedResp = $expectedResp;
         $this->expectedTime = $expectedTime;
-    }
-
-    public function getSystemID(): string
-    {
-        return $this->systemID;
     }
 
     public function getPDU(): PDU
