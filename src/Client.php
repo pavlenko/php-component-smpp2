@@ -49,7 +49,7 @@ final class Client
         $pdu->setSystemID($this->systemID);
         $pdu->setPassword($this->password ?: "\0");
 
-        $this->session->sendPDU($pdu, PDU::BIND_TRANSMITTER_RESP, Session::TIMEOUT_RESPONSE);
+        $this->waitPDUs[] = new Packet($pdu, PDU::BIND_TRANSMITTER_RESP, Session::TIMEOUT_RESPONSE);
     }
 
     public function send(Address $src, Address $dst, string $text): void
@@ -96,7 +96,7 @@ final class Client
 
     private function handleReceive(Session $session): void
     {
-        $this->logger && $this->logger->log($this, LogLevel::DEBUG, __FUNCTION__);
+        $this->logger->log($this, LogLevel::DEBUG, __FUNCTION__);
         $pdu = $session->readPDU();
         if (null === $pdu) {
             $this->detachSession($session, 'NO RESPOND');
@@ -121,7 +121,7 @@ final class Client
 
     private function handleTimeout(Session $session): void
     {
-        $this->logger && $this->logger->log($this, LogLevel::DEBUG, __FUNCTION__);
+        $this->logger->log($this, LogLevel::DEBUG, __FUNCTION__);
         $sent = $session->getSentPDUs();
         foreach ($sent as $packet) {
             if (time() > $packet->getExpectedTime()) {
@@ -133,7 +133,7 @@ final class Client
 
     private function handlePending(Session $session): void
     {
-        $this->logger && $this->logger->log($this, LogLevel::DEBUG, __FUNCTION__);
+        $this->logger->log($this, LogLevel::DEBUG, __FUNCTION__);
         foreach ($this->waitPDUs as $key => $packet) {
             $session->sendPDU($packet->getPDU(), $packet->getExpectedResp(), $packet->getExpectedTime());
             unset($this->waitPDUs[$key]);
@@ -142,7 +142,9 @@ final class Client
 
     public function stop(): void
     {
-        $this->logger && $this->logger->log($this, LogLevel::DEBUG, 'stop');
-        $this->detachSession($this->session, 'STOP SERVER');
+        $this->logger->log($this, LogLevel::DEBUG, 'stop');
+        if ($this->session) {
+            $this->detachSession($this->session, 'STOP SERVER');
+        }
     }
 }

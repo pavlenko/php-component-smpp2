@@ -27,9 +27,6 @@ use Psr\Log\LogLevel;
 
 final class Server
 {
-    use Logger;
-    //TODO server events for allow communicate with other apps
-
     private string $address;
     private LoggerInterface $logger;
     private ?Stream $master = null;
@@ -50,7 +47,7 @@ final class Server
 
     public function init(): void
     {
-        $this->log(LogLevel::DEBUG, 'Listen to ' . $this->address);
+        $this->logger->log($this, LogLevel::DEBUG, 'Listen to ' . $this->address);
         $this->master = Stream::createServer($this->address);
         $this->master->setBlocking(false);
 
@@ -69,12 +66,7 @@ final class Server
 
         if (in_array($this->master, $r)) {
             unset($r[array_search($this->master, $r)]);
-
-            $stream  = $this->master->accept();
-            $session = new Session($stream, $this->logger);
-
-            $this->sessions->attach($stream, $session);
-            $this->logger->log(LogLevel::DEBUG, 'Accepted new connection from ' . $session->getPeerName());
+            $this->acceptSession(new Session($this->master->accept(), $this->logger));
         }
 
         foreach ($r as $client) {
@@ -82,21 +74,26 @@ final class Server
         }
 
         foreach ($this->sessions as $stream) {
-            $this->handleTimeout($stream);
+            //$this->handleTimeout($stream);
         }
 
         foreach ($this->sessions as $stream) {
-            $this->handleEnquire($stream);
+            //$this->handleEnquire($stream);
         }
 
         foreach ($this->sessions as $stream) {
-            $this->handlePending($stream);
+            //$this->handlePending($stream);
         }
+    }
+
+    private function acceptSession(Session $session): void
+    {
+        $this->logger->log($this, LogLevel::DEBUG, 'Accepted new connection from ' . $session->getPeerName());
+        $this->sessions->attach($session->getStream(), $session);
     }
 
     private function handleReceive(Stream $stream): void
     {
-        //TODO maybe add special processors per pdu request type
         $sess = $this->sessions[$stream];
         $pdu  = $sess->readPDU();
 
@@ -153,7 +150,7 @@ final class Server
 
     private function handleTimeout(Stream $stream): void
     {
-        $this->logger->log(LogLevel::DEBUG, 'Process timeouts from ' . $this->sessions[$stream]->getPeerName());
+        $this->logger->log($this, LogLevel::DEBUG, 'Process timeouts from ' . $this->sessions[$stream]->getPeerName());
         $sent = $this->sessions[$stream]->getSentPDUs();
         foreach ($sent as $packet) {
             if (time() > $packet->getExpectedTime()) {
@@ -189,7 +186,7 @@ final class Server
 
     public function stop(): void
     {
-        $this->logger->log(LogLevel::INFO, 'Stopping server ...');
+        $this->logger->log($this, LogLevel::INFO, 'Stopping server ...');
         foreach ($this->sessions as $stream) {
             $this->sessions[$stream]->close();
             $this->sessions->detach($stream);
@@ -199,6 +196,6 @@ final class Server
             $this->master->close();
             $this->master = null;
         }
-        $this->logger->log(LogLevel::INFO, 'Stopping server OK');
+        $this->logger->log($this, LogLevel::INFO, 'Stopping server OK');
     }
 }
