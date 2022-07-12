@@ -88,7 +88,7 @@ final class Client
     private function detachSession(Session $session, string $reason): void
     {
         if ($this->session === $session) {
-            $this->logger && $this->logger->log($this, LogLevel::DEBUG, __FUNCTION__ . ', reason: ' . $reason);
+            $this->logger->log($this, LogLevel::DEBUG, __FUNCTION__ . ', reason: ' . $reason);
             $this->session->close();
             $this->session = null;
         }

@@ -91,6 +91,7 @@ final class Session
     {
         $head = $this->stream->readData(16);
         if ($this->stream->isEOF()) {
+            $this->logger->log($this, LogLevel::WARNING, __FUNCTION__ . ':EOF');
             return null;
         }
 

@@ -70,19 +70,19 @@ final class Server
         }
 
         foreach ($r as $client) {
-            $this->handleReceive($client);
+            $this->handleReceive($this->sessions[$client]);
         }
 
         foreach ($this->sessions as $stream) {
-            //$this->handleTimeout($stream);
+            $this->handleTimeout($stream);
         }
 
         foreach ($this->sessions as $stream) {
-            //$this->handleEnquire($stream);
+            $this->handleEnquire($stream);
         }
 
         foreach ($this->sessions as $stream) {
-            //$this->handlePending($stream);
+            $this->handlePending($stream);
         }
     }
 
@@ -92,31 +92,35 @@ final class Server
         $this->sessions->attach($session->getStream(), $session);
     }
 
-    private function handleReceive(Stream $stream): void
+    private function detachSession(Session $session, string $reason): void
     {
-        $sess = $this->sessions[$stream];
-        $pdu  = $sess->readPDU();
+        $this->logger->log($this, LogLevel::DEBUG, __FUNCTION__ . ', reason: ' . $reason);
+        $this->sessions->detach($session->close());
+    }
 
+    private function handleReceive(Session $session): void
+    {
+        $this->logger->log($this, LogLevel::DEBUG, __FUNCTION__);
+        $pdu = $session->readPDU();//TODO <-- locked here, why?
         if (null === $pdu) {
-            $this->sessions[$stream]->close();
-            $this->sessions->detach($stream);
+            $this->detachSession($session, 'NO RESPOND');
             return;
         }
 
         switch (true) {
             case ($pdu instanceof BindReceiver):
-                $this->sessions[$stream]->setSystemID($pdu->getSystemID());
-                $this->sessions[$stream]->setPassword($pdu->getPassword());
+                $session->setSystemID($pdu->getSystemID());
+                $session->setPassword($pdu->getPassword());
                 $response = new BindReceiverResp();
                 break;
             case ($pdu instanceof BindTransmitter):
-                $this->sessions[$stream]->setSystemID($pdu->getSystemID());
-                $this->sessions[$stream]->setPassword($pdu->getPassword());
+                $session->setSystemID($pdu->getSystemID());
+                $session->setPassword($pdu->getPassword());
                 $response = new BindTransmitterResp();
                 break;
             case ($pdu instanceof BindTransceiver):
-                $this->sessions[$stream]->setSystemID($pdu->getSystemID());
-                $this->sessions[$stream]->setPassword($pdu->getPassword());
+                $session->setSystemID($pdu->getSystemID());
+                $session->setPassword($pdu->getPassword());
                 $response = new BindTransceiverResp();
                 break;
             case ($pdu instanceof Unbind):
@@ -145,17 +149,17 @@ final class Server
         $response->setCommandStatus(CommandStatus::NO_ERROR);
         $response->setSequenceNum($pdu->getSequenceNum());
 
-        $sess->sendPDU($response, null, Session::TIMEOUT_RESPONSE);
+        var_dump($response);
+        //$session->sendPDU($response, null, Session::TIMEOUT_RESPONSE);
     }
 
     private function handleTimeout(Stream $stream): void
     {
-        $this->logger->log($this, LogLevel::DEBUG, 'Process timeouts from ' . $this->sessions[$stream]->getPeerName());
+        $this->logger->log($this, LogLevel::DEBUG, __FUNCTION__);
         $sent = $this->sessions[$stream]->getSentPDUs();
         foreach ($sent as $packet) {
             if (time() > $packet->getExpectedTime()) {
-                $this->sessions[$stream]->close();
-                $this->sessions->detach($stream);
+                $this->detachSession($this->sessions[$stream], 'TIMED OUT');
                 return;
             }
         }
@@ -186,16 +190,14 @@ final class Server
 
     public function stop(): void
     {
-        $this->logger->log($this, LogLevel::INFO, 'Stopping server ...');
+        $this->logger->log($this, LogLevel::INFO, __FUNCTION__);
         foreach ($this->sessions as $stream) {
-            $this->sessions[$stream]->close();
-            $this->sessions->detach($stream);
+            $this->detachSession($this->sessions[$stream], 'STOP SERVER');
         }
 
         if ($this->master) {
             $this->master->close();
             $this->master = null;
         }
-        $this->logger->log($this, LogLevel::INFO, 'Stopping server OK');
     }
 }
