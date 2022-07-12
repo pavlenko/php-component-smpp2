@@ -58,7 +58,7 @@ final class Server
 
     public function tick(): void
     {
-        $this->logger->log($this, LogLevel::DEBUG, 'tick');
+        //$this->logger->log($this, LogLevel::DEBUG, 'tick');
 
         $r = array_merge([$this->master], iterator_to_array($this->sessions));
         $n = [];
@@ -95,7 +95,8 @@ final class Server
     private function detachSession(Session $session, string $reason): void
     {
         $this->logger->log($this, LogLevel::DEBUG, __FUNCTION__ . ', reason: ' . $reason);
-        $this->sessions->detach($session->close());
+        $session->close();
+        $this->sessions->detach($session->getStream());
     }
 
     private function handleReceive(Session $session): void
@@ -149,7 +150,7 @@ final class Server
         $response->setCommandStatus(CommandStatus::NO_ERROR);
         $response->setSequenceNum($pdu->getSequenceNum());
 
-        $session->sendPDU($response, null, Session::TIMEOUT_RESPONSE);
+        $session->sendPDU($response);
     }
 
     private function handleTimeout(Stream $stream): void

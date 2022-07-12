@@ -89,8 +89,13 @@ final class Session
 
     public function readPDU(): ?PDU
     {
-        $head = $this->stream->readData(16);
         if ($this->stream->isEOF()) {
+            $this->logger->log($this, LogLevel::WARNING, __FUNCTION__ . ':EOF');
+            return null;
+        }
+
+        $head = $this->stream->readData(16);
+        if ('' === $head) {
             $this->logger->log($this, LogLevel::WARNING, __FUNCTION__ . ':EOF');
             return null;
         }
@@ -137,7 +142,9 @@ final class Session
             '{res}' => null === $expectedResp ? 'NULL' : sprintf('0x%08X', $expectedResp),
             '{tim}' => null === $timeout ? 'NULL' : $timeout,
         ]));
-        $this->sentPDUs[] = new Packet($pdu, $expectedResp, time() + $timeout);
+        if (null !== $expectedResp || null !== $timeout) {
+            $this->sentPDUs[] = new Packet($pdu, $expectedResp, time() + $timeout);
+        }
         return (bool) $this->stream->sendData($pdu);
     }
 

@@ -108,7 +108,7 @@ final class Stream
         $wResources = array_map(fn(Stream $stream) => $stream->resource, $wStreams);
         $eResources = array_map(fn(Stream $stream) => $stream->resource, $eStreams);
 
-        $num = stream_select(
+        $num = @stream_select(
             $rResources,
             $wResources,
             $eResources,

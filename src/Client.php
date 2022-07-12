@@ -3,6 +3,7 @@
 namespace PE\SMPP;
 
 use PE\SMPP\PDU\Address;
+use PE\SMPP\PDU\BindResp;
 use PE\SMPP\PDU\BindTransmitter;
 use PE\SMPP\PDU\DeliverSm;
 use PE\SMPP\PDU\DeliverSmResp;
@@ -64,7 +65,7 @@ final class Client
 
     public function tick(): bool
     {
-        $this->logger && $this->logger->log($this, LogLevel::DEBUG, 'tick');
+        //$this->logger->log($this, LogLevel::DEBUG, 'tick');
         if (!$this->session) {
             return false;
         }
@@ -116,7 +117,9 @@ final class Client
                 $response = new GenericNack();
         }
 
-        $session->sendPDU($response, null, Session::TIMEOUT_RESPONSE);
+        if (!$pdu instanceof BindResp) {
+            $session->sendPDU($response);
+        }
     }
 
     private function handleTimeout(Session $session): void
