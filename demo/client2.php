@@ -2,12 +2,14 @@
 
 use PE\Component\Loop\Loop;
 use PE\SMPP\Client;
+use PE\SMPP\LoggerSTDOUT;
 use Symfony\Component\Console\Logger\ConsoleLogger;
 use Symfony\Component\Console\Output\ConsoleOutput;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-$logger = new ConsoleLogger(new ConsoleOutput(ConsoleOutput::VERBOSITY_DEBUG));
+//$logger = new ConsoleLogger(new ConsoleOutput(ConsoleOutput::VERBOSITY_DEBUG));
+$logger = new LoggerSTDOUT(LoggerSTDOUT::VERBOSITY_DEBUG);
 $client = new Client('127.0.0.1:2775', 'SYSTEM_ID', null, $logger);
 $client->init();
 

@@ -34,6 +34,17 @@ class LoggerSTDOUT implements LoggerInterface
         LogLevel::DEBUG     => STDOUT,
     ];
 
+    private const COLOR_MAP = [
+        LogLevel::EMERGENCY => "\e[0;31m",
+        LogLevel::ALERT     => "\e[0;31m",
+        LogLevel::CRITICAL  => "\e[0;31m",
+        LogLevel::ERROR     => "\e[1;31m",
+        LogLevel::WARNING   => "\e[1;33m",
+        LogLevel::NOTICE    => "\e[0;32m",
+        LogLevel::INFO      => "\e[1;34m",
+        LogLevel::DEBUG     => "\e[38;5;248m",
+    ];
+
     private int $verbosity;
 
     public function __construct(int $verbosity = self::VERBOSITY_NORMAL)
@@ -51,6 +62,11 @@ class LoggerSTDOUT implements LoggerInterface
             return;
         }
 
-        fwrite(self::OUTPUT_MAP[$level], $message);
+        if (self::OUTPUT_MAP[$level] === STDOUT) {
+            //echo "\033[" . self::COLOR_MAP[$level] . $message . "\n";
+            fwrite(STDOUT, self::COLOR_MAP[$level] . $message . "\e[0m\n");
+        } else {
+            fwrite(STDERR, self::COLOR_MAP[$level] . $message . "\e[0m\n");
+        }
     }
 }
