@@ -65,7 +65,6 @@ final class Client
 
     public function tick(): bool
     {
-        //$this->logger->log($this, LogLevel::DEBUG, 'tick');
         if (!$this->session) {
             return false;
         }
@@ -97,7 +96,6 @@ final class Client
 
     private function handleReceive(Session $session): void
     {
-        $this->logger->log($this, LogLevel::DEBUG, __FUNCTION__);
         $pdu = $session->readPDU();
         if (null === $pdu) {
             $this->detachSession($session, 'NO RESPOND');
@@ -107,24 +105,24 @@ final class Client
         switch (true) {
             case ($pdu instanceof DeliverSm):
                 $response = new DeliverSmResp();
-                $response->setSequenceNum($pdu->getSequenceNum());
                 break;
             case ($pdu instanceof EnquireLink):
                 $response = new EnquireLinkResp();
-                $response->setSequenceNum($pdu->getSequenceNum());
                 break;
             default:
-                $response = new GenericNack();
+                //$response = new GenericNack();
         }
 
-        if (!$pdu instanceof BindResp) {
+        if (isset($response)) {
+            $response->setCommandStatus(CommandStatus::NO_ERROR);
+            $response->setSequenceNum($pdu->getSequenceNum());
+
             $session->sendPDU($response);
         }
     }
 
     private function handleTimeout(Session $session): void
     {
-        $this->logger->log($this, LogLevel::DEBUG, __FUNCTION__);
         $sent = $session->getSentPDUs();
         foreach ($sent as $packet) {
             if (time() > $packet->getExpectedTime()) {
@@ -136,7 +134,6 @@ final class Client
 
     private function handlePending(Session $session): void
     {
-        $this->logger->log($this, LogLevel::DEBUG, __FUNCTION__);
         foreach ($this->waitPDUs as $key => $packet) {
             $session->sendPDU($packet->getPDU(), $packet->getExpectedResp(), $packet->getExpectedTime());
             unset($this->waitPDUs[$key]);

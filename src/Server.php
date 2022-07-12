@@ -58,8 +58,6 @@ final class Server
 
     public function tick(): void
     {
-        //$this->logger->log($this, LogLevel::DEBUG, 'tick');
-
         $r = array_merge([$this->master], iterator_to_array($this->sessions));
         $n = [];
         Stream::select($r, $n, $n, 0.05);//<-- here always need timeout, for prevent blocking process
@@ -101,7 +99,6 @@ final class Server
 
     private function handleReceive(Session $session): void
     {
-        $this->logger->log($this, LogLevel::DEBUG, __FUNCTION__);
         $pdu = $session->readPDU();
         if (null === $pdu) {
             $this->detachSession($session, 'NO RESPOND');
@@ -144,13 +141,15 @@ final class Server
                 $response = new EnquireLinkResp();
                 break;
             default:
-                $response = new GenericNack();
+                //$response = new GenericNack();
         }
 
-        $response->setCommandStatus(CommandStatus::NO_ERROR);
-        $response->setSequenceNum($pdu->getSequenceNum());
+        if (isset($response)) {
+            $response->setCommandStatus(CommandStatus::NO_ERROR);
+            $response->setSequenceNum($pdu->getSequenceNum());
 
-        $session->sendPDU($response);
+            $session->sendPDU($response);
+        }
     }
 
     private function handleTimeout(Session $session): void
@@ -188,7 +187,7 @@ final class Server
 
     public function stop(): void
     {
-        $this->logger->log($this, LogLevel::INFO, __FUNCTION__);
+        $this->logger->log($this, LogLevel::DEBUG, __FUNCTION__);
         foreach ($this->sessions as $stream) {
             $this->detachSession($this->sessions[$stream], 'STOP SERVER');
         }
