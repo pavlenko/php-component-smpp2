@@ -5,8 +5,9 @@ namespace PE\SMPP;
 interface LoggerInterface
 {
     /**
+     * @param object $context
      * @param string $level
      * @param string $message
      */
-    public function log(string $level, string $message): void;
+    public function log(object $context, string $level, string $message): void;
 }

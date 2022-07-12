@@ -52,7 +52,7 @@ class LoggerSTDOUT implements LoggerInterface
         $this->verbosity = $verbosity;
     }
 
-    public function log(string $level, string $message): void
+    public function log(object $context, string $level, string $message): void
     {
         if (!array_key_exists($level, self::OUTPUT_MAP)) {
             $level = LogLevel::NOTICE;
@@ -62,8 +62,9 @@ class LoggerSTDOUT implements LoggerInterface
             return;
         }
 
+        $message = '[SMPP\\' . trim(substr(get_class($context), strrpos(self::class, "\\")), "\\") . '] ' . $message;
+
         if (self::OUTPUT_MAP[$level] === STDOUT) {
-            //echo "\033[" . self::COLOR_MAP[$level] . $message . "\n";
             fwrite(STDOUT, self::COLOR_MAP[$level] . $message . "\e[0m\n");
         } else {
             fwrite(STDERR, self::COLOR_MAP[$level] . $message . "\e[0m\n");

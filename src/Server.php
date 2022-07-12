@@ -73,7 +73,7 @@ final class Server
             unset($r[array_search($this->master, $r)]);
 
             $stream  = $this->master->accept();
-            $session = new Session($stream, null);
+            $session = new Session($stream, $this->logger);
 
             $this->sessions->attach($stream, $session);
             $this->logger->log(LogLevel::DEBUG, 'Accepted new connection from ' . $session->getPeerName());

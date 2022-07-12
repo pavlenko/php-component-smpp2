@@ -115,7 +115,7 @@ final class Session
         $pdu->setCommandStatus($commandStatus);
         $pdu->setSequenceNum($sequenceNum);
 
-        $this->logger && $this->logger->log(LogLevel::DEBUG, sprintf('readPDU(0x%08X)', $pdu->getCommandID()));
+        $this->logger && $this->logger->log($this, LogLevel::DEBUG, sprintf('readPDU(0x%08X)', $pdu->getCommandID()));
         foreach ($this->sentPDUs as $key => $packet) {
             if ($packet->getExpectedResp() === $commandID && $packet->getPDU()->getSequenceNum() === $sequenceNum) {
                 unset($this->sentPDUs[$key]);
@@ -127,11 +127,11 @@ final class Session
 
     public function sendPDU(PDU $pdu, int $expectedResp = null, int $timeout = null): bool
     {
-        $this->logger && $this->logger->log(LogLevel::DEBUG, 'sendPDU({pdu}, {res}, {tim})', [
-            'pdu' => sprintf('0x%08X', $pdu->getCommandID()),
-            'res' => null === $expectedResp ? 'NULL' : sprintf('0x%08X', $expectedResp),
-            'tim' => null === $timeout ? 'NULL' : $timeout,
-        ]);
+        $this->logger && $this->logger->log($this, LogLevel::DEBUG, strtr('sendPDU({pdu}, {res}, {tim})', [
+            '{pdu}' => sprintf('0x%08X', $pdu->getCommandID()),
+            '{res}' => null === $expectedResp ? 'NULL' : sprintf('0x%08X', $expectedResp),
+            '{tim}' => null === $timeout ? 'NULL' : $timeout,
+        ]));
         $this->sentPDUs[] = new Packet($pdu, $expectedResp, time() + $timeout);
         return (bool) $this->stream->sendData($pdu);
     }
