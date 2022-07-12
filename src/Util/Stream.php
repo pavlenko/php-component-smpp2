@@ -323,7 +323,7 @@ final class Stream
      */
     public function readLine(int $length = null): string
     {
-        $string = fgets($this->resource, $length);
+        $string = @fgets($this->resource, $length);
         if (false === $string) {
             throw new StreamException('Cannot read line from stream');
         }
@@ -339,7 +339,7 @@ final class Stream
      */
     public function readData(int $length = null): string
     {
-        $string = fread($this->resource, $length ?: PHP_INT_MAX);
+        $string = @fread($this->resource, $length ?: PHP_INT_MAX);
         if (false === $string) {
             throw new StreamException('Cannot read data from stream');
         }
@@ -356,7 +356,7 @@ final class Stream
      */
     public function sendData(string $data, int $length = null): int
     {
-        $num = StreamException::try(fn() => fwrite($this->resource, $data, $length ?: strlen($data)));
+        $num = @fwrite($this->resource, $data, $length ?: strlen($data));
         if (false === $num) {
             throw new StreamException('Cannot send data to stream');
         }
