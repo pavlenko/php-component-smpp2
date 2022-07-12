@@ -69,12 +69,12 @@ final class Server
             $this->acceptSession(new Session($this->master->accept(), $this->logger));
         }
 
-        foreach ($r as $client) {
-            $this->handleReceive($this->sessions[$client]);
+        foreach ($r as $stream) {
+            $this->handleReceive($this->sessions[$stream]);
         }
 
         foreach ($this->sessions as $stream) {
-            $this->handleTimeout($stream);
+            $this->handleTimeout($this->sessions[$stream]);
         }
 
         foreach ($this->sessions as $stream) {
@@ -153,13 +153,11 @@ final class Server
         $session->sendPDU($response);
     }
 
-    private function handleTimeout(Stream $stream): void
+    private function handleTimeout(Session $session): void
     {
-        $this->logger->log($this, LogLevel::DEBUG, __FUNCTION__);
-        $sent = $this->sessions[$stream]->getSentPDUs();
-        foreach ($sent as $packet) {
+        foreach ($session->getSentPDUs() as $packet) {
             if (time() > $packet->getExpectedTime()) {
-                $this->detachSession($this->sessions[$stream], 'TIMED OUT');
+                $this->detachSession($session, 'TIMED OUT');
                 return;
             }
         }
