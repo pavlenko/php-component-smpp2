@@ -23,9 +23,7 @@ use PE\SMPP\PDU\SubmitSmResp;
 use PE\SMPP\PDU\Unbind;
 use PE\SMPP\PDU\UnbindResp;
 use PE\SMPP\Util\Stream;
-use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
-use Psr\Log\NullLogger;
 
 final class Server
 {
@@ -46,7 +44,7 @@ final class Server
     public function __construct(string $address, LoggerInterface $logger = null)
     {
         $this->address  = $address;
-        $this->logger   = $logger ?: new NullLogger();
+        $this->logger   = $logger ?: new LoggerSTDOUT();
         $this->sessions = new \SplObjectStorage();
     }
 
@@ -63,7 +61,7 @@ final class Server
 
     public function tick(): void
     {
-        $this->logger->log(LogLevel::DEBUG, 'tick');
+        $this->logger->log($this, LogLevel::DEBUG, 'tick');
 
         $r = array_merge([$this->master], iterator_to_array($this->sessions));
         $n = [];

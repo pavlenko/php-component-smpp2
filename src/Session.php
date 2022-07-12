@@ -21,7 +21,7 @@ final class Session
     public const TIMEOUT_RESPONSE = 10;
 
     private Stream $stream;
-    private ?LoggerInterface $logger;
+    private LoggerInterface $logger;
 
     /**
      * @var Packet[]
@@ -35,7 +35,7 @@ final class Session
     public function __construct(Stream $stream, LoggerInterface $logger = null)
     {
         $this->stream = $stream;
-        $this->logger = $logger;
+        $this->logger = $logger ?: new LoggerSTDOUT();
         $this->setEnquiredAt();
     }
 
@@ -115,7 +115,7 @@ final class Session
         $pdu->setCommandStatus($commandStatus);
         $pdu->setSequenceNum($sequenceNum);
 
-        $this->logger && $this->logger->log($this, LogLevel::DEBUG, sprintf('readPDU(0x%08X)', $pdu->getCommandID()));
+        $this->logger->log($this, LogLevel::DEBUG, sprintf('readPDU(0x%08X)', $pdu->getCommandID()));
         foreach ($this->sentPDUs as $key => $packet) {
             if ($packet->getExpectedResp() === $commandID && $packet->getPDU()->getSequenceNum() === $sequenceNum) {
                 unset($this->sentPDUs[$key]);
@@ -127,7 +127,7 @@ final class Session
 
     public function sendPDU(PDU $pdu, int $expectedResp = null, int $timeout = null): bool
     {
-        $this->logger && $this->logger->log($this, LogLevel::DEBUG, strtr('sendPDU({pdu}, {res}, {tim})', [
+        $this->logger->log($this, LogLevel::DEBUG, strtr('sendPDU({pdu}, {res}, {tim})', [
             '{pdu}' => sprintf('0x%08X', $pdu->getCommandID()),
             '{res}' => null === $expectedResp ? 'NULL' : sprintf('0x%08X', $expectedResp),
             '{tim}' => null === $timeout ? 'NULL' : $timeout,
