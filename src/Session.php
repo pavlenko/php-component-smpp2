@@ -95,7 +95,7 @@ final class Session
             return null;
         }
 
-        $buffer = new Buffer($head);//TODO handle malformed but do not stop, maybe collect errors count & exit if threshold reached
+        $buffer = new Buffer($head);
         if ($buffer->bytesLeft() < 16) {
             throw new \RuntimeException('Malformed PDU header');
         }
@@ -105,9 +105,12 @@ final class Session
         $commandStatus = $buffer->shiftInt32();
         $sequenceNum   = $buffer->shiftInt32();
 
-        $body = $this->stream->readData($length);
-        if (strlen($body) < $length - 16) {
-            throw new \RuntimeException('Malformed PDU body');
+        $body = '';
+        if ($length - 16 > 0) {
+            $body = $this->stream->readData($length - 16);
+            if (strlen($body) < $length - 16) {
+                throw new \RuntimeException('Malformed PDU body');
+            }
         }
 
         /* @var $pdu PDU */

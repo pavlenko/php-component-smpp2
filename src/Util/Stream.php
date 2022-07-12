@@ -276,7 +276,7 @@ final class Stream
 
     public function isEOF(): bool
     {
-        return feof($this->resource);
+        return @feof($this->resource);
     }
 
     /**

@@ -101,7 +101,7 @@ final class Server
     private function handleReceive(Session $session): void
     {
         $this->logger->log($this, LogLevel::DEBUG, __FUNCTION__);
-        $pdu = $session->readPDU();//TODO <-- locked here, why?
+        $pdu = $session->readPDU();
         if (null === $pdu) {
             $this->detachSession($session, 'NO RESPOND');
             return;
@@ -149,8 +149,7 @@ final class Server
         $response->setCommandStatus(CommandStatus::NO_ERROR);
         $response->setSequenceNum($pdu->getSequenceNum());
 
-        var_dump($response);
-        //$session->sendPDU($response, null, Session::TIMEOUT_RESPONSE);
+        $session->sendPDU($response, null, Session::TIMEOUT_RESPONSE);
     }
 
     private function handleTimeout(Stream $stream): void
