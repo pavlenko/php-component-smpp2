@@ -76,7 +76,7 @@ final class Server
         }
 
         foreach ($this->sessions as $stream) {
-            $this->handleEnquire($stream);
+            $this->handleEnquire($this->sessions[$stream]);
         }
 
         foreach ($this->sessions as $stream) {
@@ -162,11 +162,11 @@ final class Server
         }
     }
 
-    private function handleEnquire(Stream $stream): void
+    private function handleEnquire(Session $session): void
     {
-        if (time() - Session::TIMEOUT_ENQUIRE > $this->sessions[$stream]->getEnquiredAt()) {
-            $this->sessions[$stream]->sendPDU(new EnquireLink(), PDU::ENQUIRE_LINK_RESP, Session::TIMEOUT_RESPONSE);
-            $this->sessions[$stream]->setEnquiredAt();
+        if (time() - Session::TIMEOUT_ENQUIRE > $session->getEnquiredAt()) {
+            $session->sendPDU(new EnquireLink(), PDU::ENQUIRE_LINK_RESP, Session::TIMEOUT_RESPONSE);
+            $session->setEnquiredAt();
         }
     }
 

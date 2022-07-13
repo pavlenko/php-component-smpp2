@@ -10,6 +10,7 @@ use Psr\Log\LogLevel;
 //TODO sequence num processing
 //TODO session status, opened/closed/etc
 //TODO configurable timeouts
+//TODO maybe extract read/send logic outside
 final class Session
 {
     public const MODE_TRANSMITTER = 1;
@@ -96,7 +97,7 @@ final class Session
 
         $head = $this->stream->readData(16);
         if ('' === $head) {
-            $this->logger->log($this, LogLevel::WARNING, __FUNCTION__ . ':EOF');
+            $this->logger->log($this, LogLevel::WARNING, __FUNCTION__ . ':EMPTY');
             return null;
         }
 
@@ -135,6 +136,7 @@ final class Session
         return $pdu;
     }
 
+    //TODO maybe if no timeout - try read response immediately
     public function sendPDU(PDU $pdu, int $expectedResp = null, int $timeout = null): bool
     {
         $this->logger->log($this, LogLevel::DEBUG, strtr('sendPDU({pdu}, {res}, {tim})', [
