@@ -13,12 +13,12 @@ final class Stream
      * Create client socket
      *
      * @param string     $address Address to the socket to connect to.
+     * @param array      $context Stream transport related context
      * @param float|null $timeout Connection timeout
-     * @param resource   $context Stream transport related context
      *
      * @return static
      */
-    public static function createClient(string $address, $context = null, ?float $timeout = null): self
+    public static function createClient(string $address, array $context = [], ?float $timeout = null): self
     {
         $socket = stream_socket_client(
             $address,
@@ -26,7 +26,7 @@ final class Stream
             $errorStr,
             $timeout,
             STREAM_CLIENT_CONNECT|STREAM_CLIENT_ASYNC_CONNECT,
-            $context ?? stream_context_create()//TODO remove pass context or resolve default params or pass params as array to stream_socket_client
+            stream_context_create($context)
         );
         if (false === $socket) {
             throw new StreamException($errorStr ?: 'Cannot connect to socket ' . $address, $errorNum);
@@ -37,19 +37,19 @@ final class Stream
     /**
      * Create server socket
      *
-     * @param string   $address Address to the socket to listen to.
-     * @param resource $context Stream transport related context
+     * @param string $address Address to the socket to listen to.
+     * @param array  $context Stream transport related context
      *
      * @return static
      */
-    public static function createServer(string $address, $context = null): self
+    public static function createServer(string $address, array $context = []): self
     {
         $socket = stream_socket_server(
             $address,
             $errorNum,
             $errorStr,
             STREAM_SERVER_BIND|STREAM_SERVER_LISTEN,
-            $context ?? stream_context_create()//TODO remove pass context or resolve default params or pass params as array to stream_socket_client
+            stream_context_create($context)
         );
         if (false === $socket) {
             throw new StreamException($errorStr ?: 'Cannot connect to socket ' . $address, $errorNum);
@@ -98,7 +98,7 @@ final class Stream
      *
      * @return int
      */
-    public static function select(?array &$rStreams, ?array &$wStreams, ?array &$eStreams, float $timeout = null): int
+    public static function select(array &$rStreams, array &$wStreams, array &$eStreams, float $timeout = null): int
     {
         $us = null !== $timeout
             ? ($timeout - floor($timeout)) * 1_000_000
