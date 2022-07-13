@@ -55,6 +55,17 @@ final class Client
 
     public function send(Address $src, Address $dst, string $text): void
     {
+        //TODO send logic:
+        //TODO --> connect
+        //TODO --> bind
+        //TODO <-- bind_resp
+        //TODO --> submit_sm
+        //TODO <-- submit_sm_resp
+        //TODO repeat for next messages???
+        //TODO --> unbind
+        //TODO <-- unbind_resp
+        //TODO close
+
         $pdu = new SubmitSm();
         $pdu->setSourceAddress($src);
         $pdu->setDestinationAddress($dst);
