@@ -1,9 +1,9 @@
 <?php
 
-namespace PE\SMPP\Tests\Util;
+namespace PE\Component\SMPP\Tests\Util;
 
-use PE\SMPP\Util\Stream;
-use PE\SMPP\Util\StreamException;
+use PE\Component\SMPP\Util\Stream;
+use PE\Component\SMPP\Util\StreamException;
 use phpmock\phpunit\PHPMock;
 use PHPUnit\Framework\TestCase;
 

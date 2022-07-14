@@ -1,6 +1,6 @@
 <?php
 
-namespace PE\SMPP;
+namespace PE\Component\SMPP;
 
 use Psr\Log\LogLevel;
 

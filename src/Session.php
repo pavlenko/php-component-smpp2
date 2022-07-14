@@ -1,10 +1,10 @@
 <?php
 
-namespace PE\SMPP;
+namespace PE\Component\SMPP;
 
-use PE\SMPP\PDU\PDU;
-use PE\SMPP\Util\Buffer;
-use PE\SMPP\Util\Stream;
+use PE\Component\SMPP\PDU\PDU;
+use PE\Component\SMPP\Util\Buffer;
+use PE\Component\SMPP\Util\Stream;
 use Psr\Log\LogLevel;
 
 //TODO sequence num processing

@@ -1,6 +1,6 @@
 <?php
 
-namespace PE\SMPP\PDU;
+namespace PE\Component\SMPP\PDU;
 
 final class EnquireLinkResp extends PDU
 {

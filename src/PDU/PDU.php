@@ -1,8 +1,8 @@
 <?php
 
-namespace PE\SMPP\PDU;
+namespace PE\Component\SMPP\PDU;
 
-use PE\SMPP\Util\Buffer;
+use PE\Component\SMPP\Util\Buffer;
 
 abstract class PDU
 {

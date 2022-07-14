@@ -1,6 +1,6 @@
 <?php
 
-namespace PE\SMPP\Util;
+namespace PE\Component\SMPP\Util;
 
 final class StreamException extends \RuntimeException
 {}

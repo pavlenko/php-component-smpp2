@@ -1,11 +1,11 @@
 <?php
 
-namespace PE\SMPP\Util;
+namespace PE\Component\SMPP\Util;
 
 //TODO w_buffer
 //TODO r_buffer
-use PE\SMPP\PDU\Address;
-use PE\SMPP\PDU\TLV;
+use PE\Component\SMPP\PDU\Address;
+use PE\Component\SMPP\PDU\TLV;
 
 final class Buffer
 {

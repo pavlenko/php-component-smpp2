@@ -1,28 +1,28 @@
 <?php
 
-namespace PE\SMPP;
+namespace PE\Component\SMPP;
 
-use PE\SMPP\PDU\BindReceiver;
-use PE\SMPP\PDU\BindReceiverResp;
-use PE\SMPP\PDU\BindTransceiver;
-use PE\SMPP\PDU\BindTransceiverResp;
-use PE\SMPP\PDU\BindTransmitter;
-use PE\SMPP\PDU\BindTransmitterResp;
-use PE\SMPP\PDU\CancelSm;
-use PE\SMPP\PDU\CancelSmResp;
-use PE\SMPP\PDU\EnquireLink;
-use PE\SMPP\PDU\EnquireLinkResp;
-use PE\SMPP\PDU\GenericNack;
-use PE\SMPP\PDU\PDU;
-use PE\SMPP\PDU\QuerySm;
-use PE\SMPP\PDU\QuerySmResp;
-use PE\SMPP\PDU\ReplaceSm;
-use PE\SMPP\PDU\ReplaceSmResp;
-use PE\SMPP\PDU\SubmitSm;
-use PE\SMPP\PDU\SubmitSmResp;
-use PE\SMPP\PDU\Unbind;
-use PE\SMPP\PDU\UnbindResp;
-use PE\SMPP\Util\Stream;
+use PE\Component\SMPP\PDU\BindReceiver;
+use PE\Component\SMPP\PDU\BindReceiverResp;
+use PE\Component\SMPP\PDU\BindTransceiver;
+use PE\Component\SMPP\PDU\BindTransceiverResp;
+use PE\Component\SMPP\PDU\BindTransmitter;
+use PE\Component\SMPP\PDU\BindTransmitterResp;
+use PE\Component\SMPP\PDU\CancelSm;
+use PE\Component\SMPP\PDU\CancelSmResp;
+use PE\Component\SMPP\PDU\EnquireLink;
+use PE\Component\SMPP\PDU\EnquireLinkResp;
+use PE\Component\SMPP\PDU\GenericNack;
+use PE\Component\SMPP\PDU\PDU;
+use PE\Component\SMPP\PDU\QuerySm;
+use PE\Component\SMPP\PDU\QuerySmResp;
+use PE\Component\SMPP\PDU\ReplaceSm;
+use PE\Component\SMPP\PDU\ReplaceSmResp;
+use PE\Component\SMPP\PDU\SubmitSm;
+use PE\Component\SMPP\PDU\SubmitSmResp;
+use PE\Component\SMPP\PDU\Unbind;
+use PE\Component\SMPP\PDU\UnbindResp;
+use PE\Component\SMPP\Util\Stream;
 use Psr\Log\LogLevel;
 
 final class Server

@@ -14,12 +14,12 @@
   },
   "autoload": {
     "psr-4": {
-      "PE\\SMPP\\": "src/"
+      "PE\\Component\\SMPP\\": "src/"
     }
   },
   "autoload-dev": {
     "psr-4": {
-      "PE\\SMPP\\Tests\\": "tests/"
+      "PE\\Component\\SMPP\\Tests\\": "tests/"
     }
   },
   "require-dev": {

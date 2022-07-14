@@ -1,18 +1,18 @@
 <?php
 
-namespace PE\SMPP;
+namespace PE\Component\SMPP;
 
-use PE\SMPP\PDU\Address;
-use PE\SMPP\PDU\BindResp;
-use PE\SMPP\PDU\BindTransmitter;
-use PE\SMPP\PDU\DeliverSm;
-use PE\SMPP\PDU\DeliverSmResp;
-use PE\SMPP\PDU\EnquireLink;
-use PE\SMPP\PDU\EnquireLinkResp;
-use PE\SMPP\PDU\GenericNack;
-use PE\SMPP\PDU\PDU;
-use PE\SMPP\PDU\SubmitSm;
-use PE\SMPP\Util\Stream;
+use PE\Component\SMPP\PDU\Address;
+use PE\Component\SMPP\PDU\BindResp;
+use PE\Component\SMPP\PDU\BindTransmitter;
+use PE\Component\SMPP\PDU\DeliverSm;
+use PE\Component\SMPP\PDU\DeliverSmResp;
+use PE\Component\SMPP\PDU\EnquireLink;
+use PE\Component\SMPP\PDU\EnquireLinkResp;
+use PE\Component\SMPP\PDU\GenericNack;
+use PE\Component\SMPP\PDU\PDU;
+use PE\Component\SMPP\PDU\SubmitSm;
+use PE\Component\SMPP\Util\Stream;
 use Psr\Log\LogLevel;
 
 final class Client
