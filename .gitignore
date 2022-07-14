@@ -60,3 +60,4 @@ composer.lock
 
 ### Project
 coverage/
+.phpunit.result.cache
