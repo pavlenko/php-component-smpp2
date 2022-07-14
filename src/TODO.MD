@@ -13,3 +13,14 @@ optimize server/client class methods for valid algorithm
 - Maybe can create session class for store sent packets
   and sequence number, alo maybe use sub-packets for
   allow to send chunked messages
+
+```php
+<?php
+//TODO try check status if read more than exists
+$bytes_to_read = 2048;
+while ($chunk = fread($connection, $bytes_to_read)) {
+  $response .= $chunk;
+  $status = socket_get_status ($connection);
+  $bytes_to_read = $status["unread_bytes"];
+}
+ ```
