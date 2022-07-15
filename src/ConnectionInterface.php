@@ -21,7 +21,7 @@ interface ConnectionInterface
     public function sendPDU(int $id, int $seqNum, string $body): void;
 
     // Wait PDU (and check expected response)
-    public function waitPDU(int $id, int $seqNum): string;
+    public function waitPDU(int $id, int $seqNum): string;//timeout?
 
     public function exit(): void;
 }
