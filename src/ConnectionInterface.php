@@ -14,9 +14,14 @@ interface ConnectionInterface
 
     public function bind();//TODO <-- server/client/sender specific
 
-    public function readPDU();
+    // Read PDU (any)
+    public function readPDU(): string;
 
-    public function sendPDU($pduData);
+    // Send PDU
+    public function sendPDU(int $id, int $seqNum, string $body): void;
+
+    // Wait PDU (and check expected response)
+    public function waitPDU(int $id, int $seqNum): string;
 
     public function exit(): void;
 }

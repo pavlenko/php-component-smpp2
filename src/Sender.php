@@ -2,6 +2,7 @@
 
 namespace PE\Component\SMPP;
 
+use PE\Component\SMPP\PDU\PDU;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
@@ -16,7 +17,8 @@ final class Sender
 
     private ConnectionInterface $connection;
 
-    private string $status;
+    private bool $bound = false;
+    private int $seqNum = 0;
 
     public function __construct(
         string $address,
@@ -45,11 +47,9 @@ final class Sender
 
     public function exit()
     {
-        if ($this->connection->getStatus() !== ConnectionInterface::STATUS_EXIT) {
-            //readPDU(): body
-            //sendPDU(id, sequenceNum, body): bool
-            //waitPDU(id, sequenceNum): body
-            $this->connection->sendPDU('UNBIND');
+        if ($this->bound) {
+            $this->bound = false;
+            $this->connection->sendPDU(PDU::UNBIND, $this->seqNum++, 'BODY');
             $this->connection->readPDU('UNBIND_RESP');
             $this->connection->exit();//<-- may be reset here for allow re-connect
             $this->connection->setStatus(ConnectionInterface::STATUS_EXIT);
