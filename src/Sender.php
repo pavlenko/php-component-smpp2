@@ -16,6 +16,8 @@ final class Sender
 
     private ConnectionInterface $connection;
 
+    private string $status;
+
     public function __construct(
         string $address,
         string $systemID,
@@ -43,8 +45,14 @@ final class Sender
 
     public function exit()
     {
-        $this->connection->sendPDU('UNBIND');
-        $this->connection->readPDU('UNBIND_RESP');
-        $this->connection->exit();//<-- may be reset here for allow re-connect
+        if ($this->connection->getStatus() !== ConnectionInterface::STATUS_EXIT) {
+            //readPDU(): body
+            //sendPDU(id, sequenceNum, body): bool
+            //waitPDU(id, sequenceNum): body
+            $this->connection->sendPDU('UNBIND');
+            $this->connection->readPDU('UNBIND_RESP');
+            $this->connection->exit();//<-- may be reset here for allow re-connect
+            $this->connection->setStatus(ConnectionInterface::STATUS_EXIT);
+        }
     }
 }
