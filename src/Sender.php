@@ -32,6 +32,8 @@ final class Sender
         $this->password = $password;
         $this->logger   = $logger ?: new NullLogger();
         $this->storage  = $storage ?: new StorageNull();
+
+        $this->seqNum = random_int(0x001, 0x7FF) << 20;
     }
 
     public function send($from, $to, string $message): string
@@ -52,7 +54,6 @@ final class Sender
             $this->connection->sendPDU(PDU::UNBIND, $this->seqNum++, 'BODY');
             $this->connection->readPDU('UNBIND_RESP');
             $this->connection->exit();//<-- may be reset here for allow re-connect
-            $this->connection->setStatus(ConnectionInterface::STATUS_EXIT);
         }
     }
 }
