@@ -3,6 +3,7 @@
 namespace PE\Component\SMPP;
 
 use PE\Component\SMPP\PDU\PDU;
+use PE\Component\SMPP\V3\StorageInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
