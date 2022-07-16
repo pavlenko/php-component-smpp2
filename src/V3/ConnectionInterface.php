@@ -10,6 +10,13 @@ interface ConnectionInterface
 {
     public const INTERFACE_VER = 0x34;
 
+    public const STATUS_CREATED   = 0x0000;
+    public const STATUS_OPENED    = 0x0001;
+    public const STATUS_BOUND_TX  = 0x0010;
+    public const STATUS_BOUND_RX  = 0x0100;
+    public const STATUS_BOUND_TRX = 0x0110;
+    public const STATUS_CLOSED    = 0x1000;
+
     /**
      * Open new stream connection as server or as client (maybe need some child class or pass argument as type)
      *
@@ -43,9 +50,9 @@ interface ConnectionInterface
     /**
      * Send PDU
      *
-     * @param int          $commandID
-     * @param int          $seqNum
-     * @param PDUInterface $pdu
+     * @param int $commandID
+     * @param int $seqNum
+     * @param PDUInterface|null $pdu
      *
      * @throws ConnectionException
      */
@@ -56,11 +63,11 @@ interface ConnectionInterface
      *
      * @param int $commandID
      * @param int $seqNum
-     * @param int $timeout
+     * @param float $timeout
      *
      * @return PDUInterface
      */
-    public function waitPDU(int $commandID, int $seqNum, int $timeout = 0): PDUInterface;
+    public function waitPDU(int $commandID, int $seqNum, float $timeout = 0): PDUInterface;
 
     /**
      * Send UNBIND command and close stream connection
