@@ -18,30 +18,30 @@ that are not implemented in this version.
 
 */
 
-define('CM_BIND_RECEIVER', 0x00000001);
-define('CM_BIND_TRANSMITTER', 0x00000002);
-define('CM_BIND_TRANSCEIVER', 0x00000009);
+const CM_BIND_RECEIVER = 0x00000001;
+const CM_BIND_TRANSMITTER = 0x00000002;
+const CM_BIND_TRANSCEIVER = 0x00000009;
 
-define('CM_SUBMIT_SM', 0x00000004);
-define('CM_SUBMIT_MULTI', 0x00000021);
+const CM_SUBMIT_SM = 0x00000004;
+const CM_SUBMIT_MULTI = 0x00000021;
 
-define('CM_ENQUIRELINK', 0x00000015);
-define('CM_QUERY_SM',0x00000003);
+const CM_ENQUIRELINK = 0x00000015;
+const CM_QUERY_SM    = 0x00000003;
 
-define('CM_DELIVER_SM',0x00000005);
+const CM_DELIVER_SM = 0x00000005;
 
-define('CM_UNBIND', 0x00000006);
+const CM_UNBIND = 0x00000006;
 
-define('CT_TRANSMITTER', 2);
-define('CT_TRANSCEIVER', 9);
-define('CT_RECEIVER', 1);
+const CT_TRANSMITTER = 2;
+const CT_TRANSCEIVER = 9;
+const CT_RECEIVER    = 1;
 
 class SMPPClass {
 
 
-	private  $_sended_sms = array();
+	private array $_sended_sms;
 
-	private $_delivered_sms = array();
+	private array $_delivered_sms = [];
 // public members:
 	/*
 	Constructor.
@@ -50,11 +50,25 @@ class SMPPClass {
 	Example:
 		$smpp = new SMPPClass();
 	*/
+	/**
+	 * @var false
+	 */
+	private bool $_debug;
+	private bool $first_output;
+	/**
+	 * @var resource|null
+	 */
+	private $_socket;
+	private int $_command_status;
+	private int $_sequence_number;
+	private string $_source_address;
+	private int $_message_sequence;
+
 	function __construct()
 	{
 		/* seed random generator */
-		list($usec, $sec) = explode(' ', microtime());
-		$seed = (float) $sec + ((float) $usec * 100000);
+		list($us, $sec) = explode(' ', microtime());
+		$seed = (float) $sec + ((float) $us * 100000);
 		srand($seed);
 
 		/* initialize member variables */
@@ -67,19 +81,6 @@ class SMPPClass {
 		$this->_message_sequence = rand(1,255);
 
 		$this -> _sended_sms = array();
-
-	}
-
-	function getSendedSms() {
-
-		return $this -> _sended_sms;
-
-	}
-
-	function getStatusesSms() {
-
-		return $this -> _delivered_sms;
-
 	}
 
 	/*
@@ -101,19 +102,19 @@ class SMPPClass {
 
 	/*
 	This method initiates an SMPP session.
-	It is to be called BEFORE using the Send() method.
+	It is to be called BEFORE using Send() method.
 	Parameters:
 		$host		: SMPP ip to connect to.
 		$port		: port # to connect to.
 		$username	: SMPP system ID
-		$password	: SMPP passord.
+		$password	: SMPP password.
 		$system_type	: SMPP System type
 	Returns:
 		true if successful, otherwise false
 	Example:
 		$smpp->Start("smpp.chimit.nl", 2345, "chimit", "my_password", "client01");
 	*/
-	function Start($connection_type, $host, $port, $username, $password, $system_type)
+	public function Start($connection_type, $host, $port, $username, $password, $system_type): bool
 	{
 
 		$this -> _sended_sms = array();
@@ -123,7 +124,7 @@ class SMPPClass {
 		if (!$this->_socket) {
 			$this->debug("Error opening SMPP session.<br/>");
 			$this->debug("Error was: $errstr.<br/>");
-			return;
+			return false;
 		}
 		socket_set_timeout($this->_socket, 0, 1000000);
 
@@ -145,16 +146,16 @@ class SMPPClass {
 		$text	: text of message to send.
 		$data_coding: int
 	Returns:
-		true if messages sent successfull, otherwise false.
+		true if messages sent successful, otherwise false.
 	Example:
 		$smpp->Send("31649072766", "This is an SMPP Test message.");
 		$smpp->Send("31648072766", "&#1589;&#1576;&#1575;&#1581;&#1575;&#1604;&#1582;&#1610;&#1585;", true);
 	*/
-	function Send($id, $to, $text, $data_coding = 244)
+	public function Send($id, $to, $text, $data_coding = 244): bool
 	{
 		if (strlen($to) > 20) {
 			$this->debug("to-address too long.<br/>");
-			return;
+			return false;
 		}
 		if (!$this->_socket) {
 			$this->debug("Not connected, while trying to send SUBMIT_SM.<br/>");
@@ -244,30 +245,30 @@ class SMPPClass {
 		$udh: array()
 		$data_coding: int
 	Returns:
-		true if messages sent successfull, otherwise false.
+		true if messages sent successful, otherwise false.
 	Example:
 		$smpp->Send("31649072766", "This is an SMPP Test message.");
 	*/
 
-	function SendBinary($to, $binary, $udh, $data_coding=4)
+	public function SendBinary($to, $binary, $udh, $data_coding=4): bool
 	{
 		if (strlen($to) > 20) {
 			$this->debug("to-address too long.<br/>");
-			return;
+			return false;
 		}
 		if (!$this->_socket) {
 			$this->debug("Not connected, while trying to send SUBMIT_SM.<br/>");
-			return;
+			return false;
 		}
 
 		if(!is_array($binary)) {
 			$this->debug("binary must be array<br/>");
-			return;
+			return false;
 		}
 
 		if(!is_array($udh)) {
 			$this->debug("udh must be array<br/>");
-			return;
+			return false;
 		}
 
 		$udh_packed = '';
@@ -277,7 +278,7 @@ class SMPPClass {
 
 			if(!is_numeric($u)) {
 				$this->debug("udh must be array of integers<br/>");
-				return;
+				return false;
 			}
 
 			$udh_packed .= pack("c", $u);
@@ -287,7 +288,7 @@ class SMPPClass {
 
 			if(!is_numeric($b)) {
 				$this->debug("binary must be array of integers<br/>");
-				return;
+				return false;
 			}
 
 			$binary_packed .= pack("c", $b);
@@ -378,11 +379,11 @@ class SMPPClass {
 		true if successful, otherwise false
 	Example: $smpp->End();
 	*/
-	function End()
+	public function End(): bool
 	{
 		if (!$this->_socket) {
 			// not connected
-			return;
+			return false;
 		}
 		$status = $this->SendUnbind();
 		if ($status != 0) {
@@ -395,112 +396,9 @@ class SMPPClass {
 		return ($status == 0);
 	}
 
-	/*
-	This method sends an enquire_link PDU to the server and waits for a response.
-	Parameters:
-		none
-	Returns:
-		true if successfull, otherwise false.
-	Example: $smpp->TestLink()
-	*/
-	function TestLink()
-	{
-		$pdu = "";
-		$status = $this->SendPDU(CM_ENQUIRELINK, $pdu);
-		return ($status == 0);
-	}
-
-	/*
-	This method sends a single message to a comma separated list of phone numbers.
-	There is no limit to the number of messages to send.
-	Parameters:
-		$tolist		: comma seperated list of phone numbers
-		$text		: text of message to send
-		$data_coding: int
-	Returns:
-		true if messages received by smpp server, otherwise false.
-	Example:
-		$smpp->SendMulti("31777110204,31649072766,...,...", "This is an SMPP Test message.");
-	*/
-	function SendMulti($tolist, $text, $data_coding = 244)
-	{
-		if (!$this->_socket) {
-			$this->debug("Not connected, while trying to send SUBMIT_MULTI.<br/>");
-			// return;
-		}
-		$service_type = "";
-		$source_addr = $this->_source_address;
-		//default source TON and NPI for international sender
-		$source_addr_ton = 1;
-		$source_addr_npi = 1;
-		$source_addr = $this->_source_address;
-		if (preg_match('/\D/', $source_addr)) //alphanumeric sender
-		{
-			$source_addr_ton = 5;
-			$source_addr_npi = 0;
-		}
-		elseif (strlen($source_addr) < 11) //national or shortcode sender
-		{
-			$source_addr_ton = 2;
-			$source_addr_npi = 1;
-		}
-		$dest_addr_ton = 1;
-		$dest_addr_npi = 1;
-		$destination_arr = explode(",", $tolist);
-		$esm_class = 3;
-		$protocol_id = 0;
-		$priority_flag = 0;
-		$schedule_delivery_time = "";
-		$validity_period = "";
-		$registered_delivery_flag = 0;
-		$replace_if_present_flag = 0;
-		$sm_default_msg_id = 0;
-		if ($data_coding == 8) {
-			$text = mb_convert_encoding($text, "UCS-2BE", "HTML-ENTITIES");
-			$multi = $this->split_message_unicode($text);
-		} else {
-			$multi = $this->split_message($text);
-		}
-		$multiple = (count($multi) > 1);
-		if ($multiple) {
-			$esm_class += 0x00000040;
-		}
-		$result = true;
-		reset($multi);
-		while (list(, $part) = each($multi)) {
-			$short_message = $part;
-			$sm_length = strlen($short_message);
-			$status = $this->SendSubmitMulti(
-                $service_type,
-                $source_addr_ton,
-                $source_addr_npi,
-                $source_addr,
-                $dest_addr_ton,
-                $dest_addr_npi,
-                $destination_arr,
-                $esm_class,
-                $protocol_id,
-                $priority_flag,
-                $schedule_delivery_time,
-                $validity_period,
-                $registered_delivery_flag,
-                $replace_if_present_flag,
-                $data_coding,
-                $sm_default_msg_id,
-                $sm_length,
-                $short_message
-            );
-			if ($status != 0) {
-				$this->debug("SMPP server returned error $status.<br/>");
-				$result = false;
-			}
-		}
-		return $result;
-	}
-
 // private members (not documented):
 
-	function ExpectPDU($our_sequence_number = NULL)
+	private function ExpectPDU($our_sequence_number = NULL): int
 	{
 		if( !empty($our_sequence_number) )
 		{
@@ -512,7 +410,7 @@ class SMPPClass {
 				$elength = fread($this->_socket, 4);
 				if (empty($elength)) {
 					$this->debug("Connection lost.<br/>");
-					return;
+					return false;
 				}
 				extract(unpack("Nlength", $elength));
 				$this->debug("Reading PDU     : $length bytes.<br/>");
@@ -544,9 +442,7 @@ class SMPPClass {
 					extract($this->unpack2($spec, $pdu));
 					$this->debug("system id       : $system_id.<br/>");
 
-						return $this ->ExpectPDU();
-
-					break;
+					return $this ->ExpectPDU();
 				case CM_UNBIND:
 					$this->debug("Got CM_UNBIND_RESP.<br/>");
 					break;
@@ -570,20 +466,17 @@ class SMPPClass {
 					$this->debug("no_unsuccess    : $no_unsuccess.<br/>");
 					break;
 				case CM_DELIVER_SM:
+					$spec = "atemp/ctemp/ctemp/atemp/ctemp/ctemp/atemp/ctemp" .
+							"/ctemp/ctemp/atemp/atemp/ctemp/ctemp/ctemp/" .
+							"ctemp/ctemp/amessage";
 
-						$spec = "atemp/ctemp/ctemp/atemp/ctemp/ctemp/atemp/ctemp" .
-								"/ctemp/ctemp/atemp/atemp/ctemp/ctemp/ctemp/" .
-								"ctemp/ctemp/amessage";
+					extract($this->unpack2($spec,$pdu));
 
-						extract($this->unpack2($spec,$pdu));
+					$this -> _delivered_sms[] = $message;
 
-						$this -> _delivered_sms[] = $message;
+					$this -> debug($message . '<br/>');
 
-						$this -> debug($message . '<br/>');
-
-						return $this ->ExpectPDU();
-
-					break;
+					return $this ->ExpectPDU();
 				case CM_ENQUIRELINK:
 					$this->debug("GOT CM_ENQUIRELINK_RESP.<br/>");
 					break;
@@ -676,8 +569,6 @@ class SMPPClass {
 					$this -> debug($message . '<br/>');
 
 					return $this -> ExpectPDU();
-
-					break;
 				case CM_ENQUIRELINK:
 					$this->debug("GOT CM_ENQUIRELINK_RESP.<br/>");
 					break;
@@ -700,7 +591,7 @@ class SMPPClass {
 		return $command_status;
 	}
 
-	function SendPDU($command_id, $pdu)
+	private function SendPDU($command_id, $pdu): int
 	{
 		$length = strlen($pdu) + 16;
 		$header = pack("NNNN", $length, $command_id, $this->_command_status, $this->_sequence_number);
@@ -714,32 +605,28 @@ class SMPPClass {
 		return $status;
 	}
 
-	function SendBind($connection_type, $system_id, $smpppassword, $system_type)
+	private function SendBind($connection_type, $system_id, $smpppassword): int
 	{
 		$system_id = $system_id . chr(0);
 		$system_id_len = strlen($system_id);
 		$smpppassword = $smpppassword . chr(0);
 		$smpppassword_len = strlen($smpppassword);
-		$system_type = $system_type . chr(0);
-		$system_type_len = strlen($system_type);
 		$pdu = pack("a{$system_id_len}a{$smpppassword_len}aCCCa1", $system_id, $smpppassword, chr(0), 0x34, 0, 0, chr(0));
 		$this->debug("Bind Transmitter PDU: ");
 		for ($i = 0; $i < strlen($pdu); $i++) {
 			$this->debug(ord($pdu[$i]) . " ");
 		}
 		$this->debug("<br/>");
-		$status = $this->SendPDU($connection_type, $pdu);
-		return $status;
+		return $this->SendPDU($connection_type, $pdu);
 	}
 
-	function SendUnbind()
+	private function SendUnbind(): int
 	{
 		$pdu = "";
-		$status = $this->SendPDU(CM_UNBIND, $pdu);
-		return $status;
+		return $this->SendPDU(CM_UNBIND, $pdu);
 	}
 
-	function SendSubmitSM(
+	private function SendSubmitSM(
         $service_type,
         $source_addr_ton,
         $source_addr_npi,
@@ -758,7 +645,7 @@ class SMPPClass {
         $sm_default_msg_id,
         $sm_length,
         $short_message
-    ) {
+    ):int {
 
 		// Если $data_coding = 1111xxxx, то это GSM 03.38
 		if((240 & $data_coding) == 240)
@@ -808,29 +695,10 @@ class SMPPClass {
 			$sm_default_msg_id,
 			$sm_length,
 			$short_message);
-		$status = $this->SendPDU(CM_SUBMIT_SM, $pdu);
-		return $status;
+		return $this->SendPDU(CM_SUBMIT_SM, $pdu);
 	}
 
-	function SendQuerySM($message_id,  $source_addr_ton, $source_addr_npi, $source_addr) {
-
-		$message_id .= chr(0);
-		$message_id_len = strlen($message_id);
-
-		$source_addr .= chr(0);
-		$source_addr_len = strlen($source_addr);
-
-		$spec = "a{$message_id_len}cca{$source_addr_len}";
-
-		$pdu = pack($spec,$message_id,$source_addr_ton,$source_addr_npi,$source_addr);
-
-		$status = $this->SendPDU(CM_QUERY_SM, $pdu);
-
-		return $status;
-
-	}
-
-	function SendSubmitMulti(
+	private function SendSubmitMulti(
         $service_type,
         $source_addr_ton,
         $source_addr_npi,
@@ -849,7 +717,7 @@ class SMPPClass {
         $sm_default_msg_id,
         $sm_length,
         $short_message
-    ) {
+    ): int {
 		// Если $data_coding = 1111xxxx, то это GSM 03.38
 		if((240 & $data_coding) == 240)
 		{
@@ -862,7 +730,6 @@ class SMPPClass {
 		$source_addr = $source_addr . chr(0);
 		$source_addr_len = strlen($source_addr);
 		$number_destinations = count($destination_arr);
-		$dest_flag = 1;
 		$spec = "a{$service_type_len}cca{$source_addr_len}c";
 		$pdu = pack($spec,
 			$service_type,
@@ -874,7 +741,7 @@ class SMPPClass {
 
 		$dest_flag = 1;
 		reset($destination_arr);
-		while (list(, $destination_addr) = each($destination_arr)) {
+		foreach ($destination_arr as $destination_addr) {
 			$destination_addr .= chr(0);
 			$dest_len = strlen($destination_addr);
 			$spec = "ccca{$dest_len}";
@@ -906,11 +773,10 @@ class SMPPClass {
 		}
 		$this->debug("<br/>");
 
-		$status = $this->SendPDU(CM_SUBMIT_MULTI, $pdu);
-		return $status;
+		return $this->SendPDU(CM_SUBMIT_MULTI, $pdu);
 	}
 
-	function split_message($text)
+	private function split_message($text): array
 	{
 		$this->debug("In split_message.<br/>");
 		$max_len = 153;
@@ -940,7 +806,7 @@ class SMPPClass {
 		return $res;
 	}
 
-	function split_message_unicode($text)
+	private function split_message_unicode($text):array
 	{
 		$this->debug("In split_message.<br/>");
 		$max_len = 134;
@@ -970,13 +836,12 @@ class SMPPClass {
 		return $res;
 	}
 
-	function unpack2($spec, $data)
+	private function unpack2($spec, $data): array
 	{
 		$res = array();
 		$specs = explode("/", $spec);
 		$pos = 0;
-		reset($specs);
-		while (list(, $sp) = each($specs)) {
+		foreach ($specs as $sp) {
 			$subject = substr($data, $pos);
 			$type = substr($sp, 0, 1);
 			$var = substr($sp, 1);
@@ -1002,7 +867,7 @@ class SMPPClass {
 		return $res;
 	}
 
-	function convert_to_7bit($string)
+	private function convert_to_7bit($string): string
 	{
 		$replace_chr = array(
             '@','?','$','?','?','?','?','?','?','?',"\n",'?','?',"\r",'?','?',null,'_',null,null,null,null,null,null,
@@ -1026,46 +891,28 @@ class SMPPClass {
 		return str_replace($replace_chr,$replace_by,$string);
 	}
 
-	function debug($str)
+	private function debug($str): void
 	{
-
 		if ($this->_debug) {
-
-			if( $this->first_output ) {
-
+			if ($this->first_output) {
 				$this->first_output = false;
 				$this->startHtml();
-
 			}
-
 			echo $str;
-
-			if( $str == 'end' ) {
-
-				$this -> stopHtml();
-
+			if ($str == 'end') {
+				$this->stopHtml();
 			}
-
 		}
-
 	}
 
-	function startHtml()
+	private function startHtml(): void
 	{
-		$str = "<html><head>Debug messages</head><body>";
+		$str = '<html lang="en"><head><title>Debug messages</title></head><body>';
 		echo $str;
-
 	}
 
-	function stopHtml()
+	private function stopHtml(): void
 	{
-
 		echo '</body></html>';
-
 	}
-
-
-
-};
-
-?>
+}
