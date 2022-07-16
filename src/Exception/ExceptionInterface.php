@@ -2,5 +2,5 @@
 
 namespace PE\Component\SMPP\Exception;
 
-interface ExceptionInterface
+interface ExceptionInterface extends \Throwable
 {}
