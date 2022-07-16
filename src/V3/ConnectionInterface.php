@@ -25,9 +25,9 @@ interface ConnectionInterface
      */
     public function bind(int $type, string $systemID, string $password = null, Address $address = null): void;
 
-    public function readPDU(): PDUInterface;
-    public function sendPDU(PDUInterface $pdu);
-    public function waitPDU(): PDUInterface;
+    public function readPDU(int $timeout = 0): string;
+    public function sendPDU(int $commandID, int $seqNum, string $pdu);
+    public function waitPDU(int $commandID, int $seqNum, int $timeout = 0): string;
 
     /**
      * Send UNBIND command and close stream connection
