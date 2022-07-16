@@ -9,14 +9,14 @@ use PE\Component\SMPP\PDU\Address;
 interface SenderInterface
 {
     /**
-     * Send SMS
+     * Send a SMS
      *
-     * @param Address $from
-     * @param Address $to
-     * @param string  $message
+     * @param Address      $recipient Recipient address
+     * @param string       $message   SMS Message
+     * @param Address|null $sender    Sender address, this override default one
      * @return string
      * @throws InvalidPDUException
      * @throws TimeoutException
      */
-    public function send(Address $from, Address $to, string $message): string;
+    public function send(Address $recipient, string $message, Address $sender = null): string;
 }
