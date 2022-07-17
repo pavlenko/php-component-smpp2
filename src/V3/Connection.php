@@ -36,21 +36,15 @@ class Connection implements ConnectionInterface
     public function bind(int $type, string $systemID, string $password = null, Address $address = null): void
     {
         if ($this->status === self::STATUS_OPENED) {
-            switch ($type) {
-                case PDUInterface::ID_BIND_RECEIVER:
-                    $resp = PDUInterface::ID_BIND_RECEIVER_RESP;
-                    break;
-                case PDUInterface::ID_BIND_TRANSMITTER:
-                    $resp = PDUInterface::ID_BIND_TRANSMITTER_RESP;
-                    break;
-                case PDUInterface::ID_BIND_TRANSCEIVER:
-                    $resp = PDUInterface::ID_BIND_TRANSCEIVER_RESP;
-                    break;
-                default:
-                    throw new \UnexpectedValueException('Invalid bind type');
+            if (!array_key_exists($type, self::BOUND_MAP)) {
+                throw new \UnexpectedValueException('Invalid bind type');
             }
-            $this->sendPDU(new PDU(/*[$systemID, $password, $address]*/));
-            if (PDUInterface::STATUS_NO_ERROR !== $this->waitPDU(0)->getStatus()) {
+
+            $this->status = self::BOUND_MAP[$type];
+            $this->seqNum++;
+            $this->sendPDU(new PDU($type, 0, $this->seqNum, /*[$systemID, $password, $address]*/));
+
+            if (PDUInterface::STATUS_NO_ERROR !== $this->waitPDU($this->seqNum)->getStatus()) {
                 throw new ConnectionException();
             }
         }
@@ -104,6 +98,8 @@ class Connection implements ConnectionInterface
     public function exit(): void
     {
         if ($this->status !== self::STATUS_CLOSED) {
+            $this->status = self::STATUS_CLOSED;
+
             $this->seqNum++;
             $this->sendPDU(new PDU(PDUInterface::ID_UNBIND, 0, $this->seqNum));
 
@@ -113,7 +109,6 @@ class Connection implements ConnectionInterface
 
             $this->stream->close();
             $this->stream = null;
-            $this->status = self::STATUS_CLOSED;
         }
     }
 }

@@ -18,6 +18,12 @@ interface ConnectionInterface
     public const STATUS_BOUND_TRX = 0x0110;
     public const STATUS_CLOSED    = 0x1000;
 
+    public const BOUND_MAP = [
+        PDUInterface::ID_BIND_RECEIVER    => self::STATUS_BOUND_TX,
+        PDUInterface::ID_BIND_TRANSMITTER => self::STATUS_BOUND_RX,
+        PDUInterface::ID_BIND_TRANSCEIVER => self::STATUS_BOUND_TRX,
+    ];
+
     /**
      * Open new stream connection as server or as client (maybe need some child class or pass argument as type)
      *
