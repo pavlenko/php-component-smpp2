@@ -83,4 +83,5 @@ interface PDUInterface
 
     public function getID(): int;
     public function getStatus(): int;
+    public function getSeqNum(): int;
 }

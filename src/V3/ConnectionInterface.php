@@ -51,25 +51,23 @@ interface ConnectionInterface
     /**
      * Send PDU
      *
-     * @param int $seqNum
      * @param PDUInterface|null $pdu
      *
      * @throws ConnectionException
      */
-    public function sendPDU(int $seqNum, PDUInterface $pdu): void;
+    public function sendPDU(PDUInterface $pdu): void;
 
     /**
      * Wait PDU by specific type & sequence number
      *
      * @param int $seqNum
-     * @param int $commandID
      * @param float $timeout
      *
      * @return PDUInterface
      *
      * @throws TimeoutException
      */
-    public function waitPDU(int $seqNum, int $commandID, float $timeout = 0): PDUInterface;
+    public function waitPDU(int $seqNum, float $timeout = 0): PDUInterface;
 
     /**
      * Send UNBIND command and close stream connection

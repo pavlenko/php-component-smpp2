@@ -11,12 +11,18 @@ use PE\Component\SMPP\Util\StreamException;
 class Connection implements ConnectionInterface
 {
     private FactoryInterface $factory;
+    private StorageInterface $storage;
     private int $status;
+    private int $seqNum;
     private ?Stream $stream = null;
 
-    public function __construct(FactoryInterface $factory)
+    public function __construct(FactoryInterface $factory, StorageInterface $storage)
     {
         $this->factory = $factory;
+        $this->storage = $storage;
+
+        // Generate random sequence number for make connection more unique
+        $this->seqNum = random_int(0x001, 0x7FF) << 20;
     }
 
     public function open(): void
@@ -43,8 +49,8 @@ class Connection implements ConnectionInterface
                 default:
                     throw new \UnexpectedValueException('Invalid bind type');
             }
-            $this->sendPDU(0, new PDU(/*[$systemID, $password, $address]*/));
-            if (PDUInterface::STATUS_NO_ERROR !== $this->waitPDU(0, $resp)->getStatus()) {
+            $this->sendPDU(new PDU(/*[$systemID, $password, $address]*/));
+            if (PDUInterface::STATUS_NO_ERROR !== $this->waitPDU(0)->getStatus()) {
                 throw new ConnectionException();
             }
         }
@@ -68,21 +74,24 @@ class Connection implements ConnectionInterface
         }
     }
 
-    public function sendPDU(int $seqNum, PDUInterface $pdu): void
+    public function sendPDU(PDUInterface $pdu): void
     {
         try {
-            //TODO how to convert pdu without add method - serializer?
-            $this->stream->sendData($pdu->encode($seqNum));
+            $this->stream->sendData($pdu);
         } catch (StreamException $exception) {
             throw new ConnectionException($exception->getMessage(), $exception->getCode(), $exception);
         }
     }
 
-    public function waitPDU(int $seqNum, int $commandID, float $timeout = 0.01): PDUInterface
+    public function waitPDU(int $seqNum, float $timeout = 0.01): PDUInterface
     {
         do {
-            if ($pdu = $this->readPDU()) {
-                return $pdu;
+            $pdu = $this->readPDU();
+            if (null !== $pdu) {
+                if ($pdu->getSeqNum() === $seqNum) {
+                    return $pdu;
+                }
+                $this->storage->add($pdu);
             }
 
             $timeout -= 0.001;
@@ -95,9 +104,10 @@ class Connection implements ConnectionInterface
     public function exit(): void
     {
         if ($this->status !== self::STATUS_CLOSED) {
-            $this->sendPDU(0, new PDU(PDUInterface::ID_UNBIND));
+            $this->seqNum++;
+            $this->sendPDU(new PDU(PDUInterface::ID_UNBIND, 0, $this->seqNum));
 
-            if (PDUInterface::STATUS_NO_ERROR !== $this->waitPDU(0, PDUInterface::ID_UNBIND_RESP)->getStatus()) {
+            if (PDUInterface::STATUS_NO_ERROR !== $this->waitPDU($this->seqNum)->getStatus()) {
                 echo "Unexpectedly unbind result - but just close\n";
             }
 
