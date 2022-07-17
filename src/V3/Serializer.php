@@ -39,9 +39,6 @@ class Serializer implements SerializerInterface
             case PDUInterface::ID_BIND_TRANSMITTER_RESP:
             case PDUInterface::ID_BIND_TRANSCEIVER_RESP:
                 $params = ['system_id' => $buffer->shiftString(16)];
-                try {
-                    $params['sc_interface_version'] = $buffer->shiftTLV();
-                } catch (\Throwable $e) { /* DO NOTHING */ }
                 break;
             case PDUInterface::ID_CANCEL_SM:
                 $params = [
@@ -62,13 +59,7 @@ class Serializer implements SerializerInterface
                     'source_address' => $buffer->shiftAddress(65),
                     'esme_address'   => $buffer->shiftAddress(65),
                 ];
-                try {
-                    $params['ms_availability_status'] = $buffer->shiftTLV();
-                } catch (\Throwable $e) { /* DO NOTHING */ }
                 break;
-
-
-
             case PDUInterface::ID_DELIVER_SM:
             case PDUInterface::ID_SUBMIT_SM:
                 $params = [
@@ -87,50 +78,7 @@ class Serializer implements SerializerInterface
                     'sm_length'               => $buffer->shiftInt8(),
                     'short_message'           => $buffer->shiftString(254)
                 ];
-
-                while (true) {
-                    try {
-                        $tlv = $buffer->shiftTLV();
-                        $params[$tlv->getTag()] = $tlv->getValue();
-                    } catch (\Throwable $e) {
-                        break;
-                    }
-                }
-                /*
-                try {
-                    $params['user_message_reference'] = $buffer->shiftTLV();
-                    $params['source_port']            = $buffer->shiftTLV();
-                    $params['source_addr_subunit']    = $buffer->shiftTLV();
-                    $params['destination_port']       = $buffer->shiftTLV();
-                    $params['dest_addr_subunit']      = $buffer->shiftTLV();
-                    $params['sar_msg_ref_num']        = $buffer->shiftTLV();
-                    $params['sar_total_segments']     = $buffer->shiftTLV();
-                    $params['sar_segment_seqnum']     = $buffer->shiftTLV();
-                    $params['payload_type']           = $buffer->shiftTLV();
-                    $params['message_payload']        = $buffer->shiftTLV();
-                    $params['privacy_indicator']      = $buffer->shiftTLV();
-                    $params['callback_num']           = $buffer->shiftTLV();
-                    $params['callback_num_pres_ind']  = $buffer->shiftTLV();
-                    $params['callback_num_atag']      = $buffer->shiftTLV();
-                    $params['source_subaddress']      = $buffer->shiftTLV();
-                    $params['dest_subaddress']        = $buffer->shiftTLV();
-                    $params['user_response_code']     = $buffer->shiftTLV();
-                    $params['display_time']           = $buffer->shiftTLV();
-                    $params['sms_signal']             = $buffer->shiftTLV();
-                    $params['ms_validity']            = $buffer->shiftTLV();
-                    $params['ms_msg_wait_facilities'] = $buffer->shiftTLV();
-                    $params['number_of_messages']     = $buffer->shiftTLV();
-                    $params['alert_on_msg_delivery']  = $buffer->shiftTLV();
-                    $params['language_indicator']     = $buffer->shiftTLV();
-                    $params['its_reply_type']         = $buffer->shiftTLV();
-                    $params['its_session_info']       = $buffer->shiftTLV();
-                    $params['ussd_service_op']        = $buffer->shiftTLV();
-                    $params['language_indicator']     = $buffer->shiftTLV();
-                } catch (\Throwable $e) {}
-                */
                 break;
-
-
             case PDUInterface::ID_DELIVER_SM_RESP:
             case PDUInterface::ID_SUBMIT_SM_RESP:
                 $params = ['message_id' => $buffer->shiftString(65)];
@@ -139,7 +87,14 @@ class Serializer implements SerializerInterface
                 throw new \UnexpectedValueException('Unexpected PDU id');
         }
 
-        //TODO read tlv here, because common parse logic
+        while (!$buffer->isEOF()) {
+            try {
+                $tlv = $buffer->shiftTLV();
+                $params[$tlv->getTag()] = $tlv->getValue();
+            } catch (\Throwable $e) {
+                break;
+            }
+        }
 
         return new PDU($id, $status, $seqNum, $params ?? []);
     }
