@@ -87,6 +87,16 @@ class Serializer implements SerializerInterface
                     'sm_length'               => $buffer->shiftInt8(),
                     'short_message'           => $buffer->shiftString(254)
                 ];
+
+                while (true) {
+                    try {
+                        $tlv = $buffer->shiftTLV();
+                        $params[$tlv->getTag()] = $tlv->getValue();
+                    } catch (\Throwable $e) {
+                        break;
+                    }
+                }
+                /*
                 try {
                     $params['user_message_reference'] = $buffer->shiftTLV();
                     $params['source_port']            = $buffer->shiftTLV();
@@ -117,6 +127,7 @@ class Serializer implements SerializerInterface
                     $params['ussd_service_op']        = $buffer->shiftTLV();
                     $params['language_indicator']     = $buffer->shiftTLV();
                 } catch (\Throwable $e) {}
+                */
                 break;
 
 
@@ -127,6 +138,8 @@ class Serializer implements SerializerInterface
             default:
                 throw new \UnexpectedValueException('Unexpected PDU id');
         }
+
+        //TODO read tlv here, because common parse logic
 
         return new PDU($id, $status, $seqNum, $params ?? []);
     }
