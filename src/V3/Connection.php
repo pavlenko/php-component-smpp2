@@ -7,19 +7,24 @@ use PE\Component\SMPP\Exception\TimeoutException;
 use PE\Component\SMPP\PDU\Address;
 use PE\Component\SMPP\Util\Stream;
 use PE\Component\SMPP\Util\StreamException;
+use Psr\Log\LoggerInterface;
+use Psr\Log\LogLevel;
+use Psr\Log\NullLogger;
 
 class Connection implements ConnectionInterface
 {
     private SerializerInterface $serializer;
     private StorageInterface $storage;
+    private LoggerInterface $logger;
     private int $status;
     private int $seqNum;
     private ?Stream $stream = null;
 
-    public function __construct(SerializerInterface $serializer, StorageInterface $storage)
+    public function __construct(SerializerInterface $serializer, StorageInterface $storage, LoggerInterface $logger = null)
     {
         $this->serializer = $serializer;
         $this->storage    = $storage;
+        $this->logger     = $logger ?: new NullLogger();
 
         // Generate random sequence number for make connection more unique
         $this->seqNum = random_int(0x001, 0x7FF) << 20;
@@ -29,7 +34,7 @@ class Connection implements ConnectionInterface
     {
         if ($this->status === self::STATUS_CREATED || $this->status === self::STATUS_CLOSED) {
             $this->status = self::STATUS_CREATED;
-            $this->stream = Stream::createServer('127.0.0.1:2775');
+            $this->stream = Stream::createServer('127.0.0.1:2775');// specific by server/sender/client, how to???
         }
     }
 
@@ -42,10 +47,10 @@ class Connection implements ConnectionInterface
 
             $this->status = self::BOUND_MAP[$type];
             $this->seqNum++;
-            $this->sendPDU(new PDU($type, 0, $this->seqNum, /*[$systemID, $password, $address]*/));
+            $this->sendPDU(new PDU($type, PDUInterface::STATUS_NO_ERROR, $this->seqNum, /*[$systemID, $password, $address]*/));
 
             if (PDUInterface::STATUS_NO_ERROR !== $this->waitPDU($this->seqNum)->getStatus()) {
-                throw new ConnectionException();
+                throw new ConnectionException('Unexpected response status');
             }
         }
     }
@@ -54,11 +59,13 @@ class Connection implements ConnectionInterface
     {
         try {
             if ($this->stream->isEOF()) {
+                $this->logger->log(LogLevel::WARNING, 'Connection closed by remote');
                 return null;
             }
 
             $length = $this->stream->readData(4);
             if ('' === $length) {
+                $this->logger->log(LogLevel::WARNING, 'Unexpected data length');
                 return null;
             }
 
@@ -85,7 +92,8 @@ class Connection implements ConnectionInterface
                 if ($pdu->getSeqNum() === $seqNum) {
                     return $pdu;
                 }
-                $this->storage->add($pdu);
+                // Add pdu to waiting for process list
+                $this->storage->insert(0, $pdu);
             }
 
             $timeout -= 0.001;
@@ -101,10 +109,10 @@ class Connection implements ConnectionInterface
             $this->status = self::STATUS_CLOSED;
 
             $this->seqNum++;
-            $this->sendPDU(new PDU(PDUInterface::ID_UNBIND, 0, $this->seqNum));
+            $this->sendPDU(new PDU(PDUInterface::ID_UNBIND, PDUInterface::STATUS_NO_ERROR, $this->seqNum));
 
             if (PDUInterface::STATUS_NO_ERROR !== $this->waitPDU($this->seqNum)->getStatus()) {
-                echo "Unexpectedly unbind result - but just close\n";
+                $this->logger->log(LogLevel::WARNING, 'Unexpected response status, but just close');
             }
 
             $this->stream->close();
