@@ -4,6 +4,7 @@ namespace PE\Component\SMPP\V3;
 
 use PE\Component\SMPP\Exception\ConnectionException;
 use PE\Component\SMPP\Exception\InvalidPDUException;
+use PE\Component\SMPP\Exception\TimeoutException;
 use PE\Component\SMPP\PDU\Address;
 
 interface ConnectionInterface
@@ -50,24 +51,25 @@ interface ConnectionInterface
     /**
      * Send PDU
      *
-     * @param int $commandID
      * @param int $seqNum
      * @param PDUInterface|null $pdu
      *
      * @throws ConnectionException
      */
-    public function sendPDU(int $commandID, int $seqNum, PDUInterface $pdu): void;
+    public function sendPDU(int $seqNum, PDUInterface $pdu): void;
 
     /**
      * Wait PDU by specific type & sequence number
      *
-     * @param int $commandID
      * @param int $seqNum
+     * @param int $commandID
      * @param float $timeout
      *
      * @return PDUInterface
+     *
+     * @throws TimeoutException
      */
-    public function waitPDU(int $commandID, int $seqNum, float $timeout = 0): PDUInterface;
+    public function waitPDU(int $seqNum, int $commandID, float $timeout = 0): PDUInterface;
 
     /**
      * Send UNBIND command and close stream connection

@@ -81,7 +81,6 @@ interface PDUInterface
     public const STATUS_DELIVERY_FAILURE             = 0x000000FE;
     public const STATUS_UNKNOWN_ERROR                = 0x000000FF;
 
+    public function getID(): int;
     public function getStatus(): int;
-
-    public function encode(int $commandID, int $seqNum): string;
 }

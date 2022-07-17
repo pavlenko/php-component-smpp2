@@ -43,8 +43,8 @@ class Connection implements ConnectionInterface
                 default:
                     throw new \UnexpectedValueException('Invalid bind type');
             }
-            $this->sendPDU($type, 0, new PDU(/*[$systemID, $password, $address]*/));
-            if (PDUInterface::STATUS_NO_ERROR !== $this->waitPDU($resp, 0)->getStatus()) {
+            $this->sendPDU(0, new PDU(/*[$systemID, $password, $address]*/));
+            if (PDUInterface::STATUS_NO_ERROR !== $this->waitPDU(0, $resp)->getStatus()) {
                 throw new ConnectionException();
             }
         }
@@ -68,16 +68,17 @@ class Connection implements ConnectionInterface
         }
     }
 
-    public function sendPDU(int $commandID, int $seqNum, PDUInterface $pdu): void
+    public function sendPDU(int $seqNum, PDUInterface $pdu): void
     {
         try {
-            $this->stream->sendData($pdu->encode($commandID, $seqNum));
+            //TODO how to convert pdu without add method - serializer?
+            $this->stream->sendData($pdu->encode($seqNum));
         } catch (StreamException $exception) {
             throw new ConnectionException($exception->getMessage(), $exception->getCode(), $exception);
         }
     }
 
-    public function waitPDU(int $commandID, int $seqNum, float $timeout = 0.01): PDUInterface
+    public function waitPDU(int $seqNum, int $commandID, float $timeout = 0.01): PDUInterface
     {
         do {
             if ($pdu = $this->readPDU()) {
@@ -94,9 +95,9 @@ class Connection implements ConnectionInterface
     public function exit(): void
     {
         if ($this->status !== self::STATUS_CLOSED) {
-            $this->sendPDU(PDUInterface::ID_UNBIND, 0, new PDU());
+            $this->sendPDU(0, new PDU(PDUInterface::ID_UNBIND));
 
-            if (PDUInterface::STATUS_NO_ERROR !== $this->waitPDU(PDUInterface::ID_UNBIND_RESP, 0)->getStatus()) {
+            if (PDUInterface::STATUS_NO_ERROR !== $this->waitPDU(0, PDUInterface::ID_UNBIND_RESP)->getStatus()) {
                 echo "Unexpectedly unbind result - but just close\n";
             }
 
