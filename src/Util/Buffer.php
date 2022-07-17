@@ -2,8 +2,6 @@
 
 namespace PE\Component\SMPP\Util;
 
-//TODO w_buffer
-//TODO r_buffer
 use PE\Component\SMPP\PDU\Address;
 use PE\Component\SMPP\PDU\TLV;
 
@@ -135,7 +133,7 @@ final class Buffer
         $this->writeString($dateTime ? $dateTime->format('ymdHis') . '000+' : '');
     }
 
-    public function shiftAddress(int $maxLength = 21): Address
+    public function shiftAddress(int $maxLength): Address
     {
         return new Address($this->shiftInt8(), $this->shiftInt8(), $this->shiftString($maxLength));
     }
