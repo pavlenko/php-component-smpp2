@@ -10,16 +10,16 @@ use PE\Component\SMPP\Util\StreamException;
 
 class Connection implements ConnectionInterface
 {
-    private FactoryInterface $factory;
+    private SerializerInterface $serializer;
     private StorageInterface $storage;
     private int $status;
     private int $seqNum;
     private ?Stream $stream = null;
 
-    public function __construct(FactoryInterface $factory, StorageInterface $storage)
+    public function __construct(SerializerInterface $serializer, StorageInterface $storage)
     {
-        $this->factory = $factory;
-        $this->storage = $storage;
+        $this->serializer = $serializer;
+        $this->storage    = $storage;
 
         // Generate random sequence number for make connection more unique
         $this->seqNum = random_int(0x001, 0x7FF) << 20;
@@ -62,7 +62,7 @@ class Connection implements ConnectionInterface
                 return null;
             }
 
-            return $this->factory->createPDU($this->stream->readData($length - 4));
+            return $this->serializer->decode($this->stream->readData($length - 4));
         } catch (StreamException $exception) {
             throw new ConnectionException($exception->getMessage(), $exception->getCode(), $exception);
         }
@@ -71,7 +71,7 @@ class Connection implements ConnectionInterface
     public function sendPDU(PDUInterface $pdu): void
     {
         try {
-            $this->stream->sendData($pdu);
+            $this->stream->sendData($this->serializer->encode($pdu));
         } catch (StreamException $exception) {
             throw new ConnectionException($exception->getMessage(), $exception->getCode(), $exception);
         }
