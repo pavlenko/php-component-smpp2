@@ -2,11 +2,9 @@
 
 namespace PE\Component\SMPP\V3;
 
-use PE\Component\SMPP\Exception\ConnectionException;
 use PE\Component\SMPP\Exception\TimeoutException;
 use PE\Component\SMPP\PDU\Address;
 use PE\Component\SMPP\Util\Stream;
-use PE\Component\SMPP\Util\StreamException;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 use Psr\Log\NullLogger;
@@ -42,7 +40,7 @@ class Connection implements ConnectionInterface
     {
         if ($this->status === self::STATUS_OPENED) {
             if (!array_key_exists($type, self::BOUND_MAP)) {
-                throw new \UnexpectedValueException('Invalid bind type');
+                throw new \UnexpectedValueException('Unexpected bind type');
             }
 
             $this->status = self::BOUND_MAP[$type];
@@ -50,38 +48,30 @@ class Connection implements ConnectionInterface
             $this->sendPDU(new PDU($type, PDUInterface::STATUS_NO_ERROR, $this->seqNum, /*[$systemID, $password, $address]*/));
 
             if (PDUInterface::STATUS_NO_ERROR !== $this->waitPDU($this->seqNum)->getStatus()) {
-                throw new ConnectionException('Unexpected response status');
+                throw new \UnexpectedValueException('Unexpected bind response');
             }
         }
     }
 
     public function readPDU(): ?PDUInterface
     {
-        try {
-            if ($this->stream->isEOF()) {
-                $this->logger->log(LogLevel::WARNING, 'Connection closed by remote');
-                return null;
-            }
-
-            $length = $this->stream->readData(4);
-            if ('' === $length) {
-                $this->logger->log(LogLevel::WARNING, 'Unexpected data length');
-                return null;
-            }
-
-            return $this->serializer->decode($this->stream->readData($length - 4));
-        } catch (StreamException $exception) {
-            throw new ConnectionException($exception->getMessage(), $exception->getCode(), $exception);
+        if ($this->stream->isEOF()) {
+            $this->logger->log(LogLevel::WARNING, 'Connection closed by remote');
+            return null;
         }
+
+        $length = $this->stream->readData(4);
+        if ('' === $length) {
+            $this->logger->log(LogLevel::WARNING, 'Unexpected data length');
+            return null;
+        }
+
+        return $this->serializer->decode($this->stream->readData($length - 4));
     }
 
     public function sendPDU(PDUInterface $pdu): void
     {
-        try {
-            $this->stream->sendData($this->serializer->encode($pdu));
-        } catch (StreamException $exception) {
-            throw new ConnectionException($exception->getMessage(), $exception->getCode(), $exception);
-        }
+        $this->stream->sendData($this->serializer->encode($pdu));
     }
 
     public function waitPDU(int $seqNum, float $timeout = 0.01): PDUInterface
@@ -92,8 +82,9 @@ class Connection implements ConnectionInterface
                 if ($pdu->getSeqNum() === $seqNum) {
                     return $pdu;
                 }
-                // Add pdu to waiting for process list
-                $this->storage->insert(0, $pdu);
+                if ($this->status & self::STATUS_BOUND_TRX) {
+                    $this->storage->insert(0, $pdu);
+                }
             }
 
             $timeout -= 0.001;
