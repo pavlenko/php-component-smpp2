@@ -2,6 +2,7 @@
 
 namespace PE\Component\SMPP\V3;
 
+use PE\Component\SMPP\PDU\TLV;
 use PE\Component\SMPP\Util\Buffer;
 
 class Serializer implements SerializerInterface
@@ -69,14 +70,14 @@ class Serializer implements SerializerInterface
                     'esm_class'               => $buffer->shiftInt8(),
                     'protocol_id'             => $buffer->shiftInt8(),
                     'priority_flag'           => $buffer->shiftInt8(),
-                    'schedule_delivery_time'  => $buffer->shiftDateTime(),
-                    'validity_period'         => $buffer->shiftDateTime(),
+                    'schedule_delivery_time'  => $buffer->shiftDateTime(),//->NULL ID_DELIVER_SM
+                    'validity_period'         => $buffer->shiftDateTime(),//->NULL ID_DELIVER_SM
                     'registered_delivery'     => $buffer->shiftInt8(),
-                    'replace_if_present_flag' => $buffer->shiftInt8(),
+                    'replace_if_present_flag' => $buffer->shiftInt8(),//->NULL ID_DELIVER_SM
                     'data_coding'             => $buffer->shiftInt8(),
-                    'sm_default_msg_id'       => $buffer->shiftInt8(),
+                    'sm_default_msg_id'       => $buffer->shiftInt8(),//->NULL ID_DELIVER_SM
                     'sm_length'               => $buffer->shiftInt8(),
-                    'short_message'           => $buffer->shiftString(254)
+                    'short_message'           => $buffer->shiftString(254),
                 ];
                 break;
             case PDUInterface::ID_DELIVER_SM_RESP:
@@ -149,12 +150,43 @@ class Serializer implements SerializerInterface
                     $body->writeTLV($pdu->get('ms_availability_status'));
                 }
                 break;
+
+
+            case PDUInterface::ID_DELIVER_SM:
+            case PDUInterface::ID_SUBMIT_SM:
+                $params = [
+                    'service_type'            => $buffer->shiftString(6),
+                    'source_address'          => $buffer->shiftAddress(21),
+                    'dest_address'            => $buffer->shiftAddress(21),
+                    'esm_class'               => $buffer->shiftInt8(),
+                    'protocol_id'             => $buffer->shiftInt8(),
+                    'priority_flag'           => $buffer->shiftInt8(),
+                    'schedule_delivery_time'  => $buffer->shiftDateTime(),//->NULL ID_DELIVER_SM
+                    'validity_period'         => $buffer->shiftDateTime(),//->NULL ID_DELIVER_SM
+                    'registered_delivery'     => $buffer->shiftInt8(),
+                    'replace_if_present_flag' => $buffer->shiftInt8(),//->NULL ID_DELIVER_SM
+                    'data_coding'             => $buffer->shiftInt8(),
+                    'sm_default_msg_id'       => $buffer->shiftInt8(),//->NULL ID_DELIVER_SM
+                    'sm_length'               => $buffer->shiftInt8(),
+                    'short_message'           => $buffer->shiftString(254),
+                ];
+                break;
+
+
             case PDUInterface::ID_DELIVER_SM_RESP:
+                $body->writeString('');//<-- message_id = NULL
+                break;
             case PDUInterface::ID_SUBMIT_SM_RESP:
                 $body->writeString($pdu->get('message_id'));
                 break;
             default:
                 throw new \UnexpectedValueException('Unexpected PDU id');
+        }
+
+        foreach ($pdu->getParams() as $key => $val) {
+            if (!is_string($key)) {
+                $body->writeTLV(new TLV($key, $val));
+            }
         }
 
         $head->writeInt32(strlen($body) + 16);
