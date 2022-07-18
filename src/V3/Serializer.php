@@ -23,6 +23,7 @@ class Serializer implements SerializerInterface
             case PDUInterface::ID_ENQUIRE_LINK:
             case PDUInterface::ID_ENQUIRE_LINK_RESP:
             case PDUInterface::ID_CANCEL_SM_RESP:
+            case PDUInterface::ID_REPLACE_SM_RESP:
                 /* DO NOTHING JUST KNOWN ID */
                 break;
             case PDUInterface::ID_BIND_RECEIVER:
@@ -85,6 +86,18 @@ class Serializer implements SerializerInterface
             case PDUInterface::ID_SUBMIT_SM_RESP:
                 $params = ['message_id' => $buffer->shiftString(65)];
                 break;
+            case PDUInterface::ID_REPLACE_SM:
+                $params = [
+                    'message_id'              => $buffer->shiftString(65),
+                    'source_address'          => $buffer->shiftAddress(21),
+                    'schedule_delivery_time'  => $buffer->shiftDateTime(),
+                    'validity_period'         => $buffer->shiftDateTime(),
+                    'registered_delivery'     => $buffer->shiftInt8(),
+                    'sm_default_msg_id'       => $buffer->shiftInt8(),
+                    'sm_length'               => $buffer->shiftInt8(),
+                    'short_message'           => $buffer->shiftString(254),
+                ];
+                break;
             default:
                 throw new \UnexpectedValueException('Unexpected PDU id');
         }
@@ -115,6 +128,7 @@ class Serializer implements SerializerInterface
             case PDUInterface::ID_ENQUIRE_LINK:
             case PDUInterface::ID_ENQUIRE_LINK_RESP:
             case PDUInterface::ID_CANCEL_SM_RESP:
+            case PDUInterface::ID_REPLACE_SM_RESP:
                 /* DO NOTHING JUST KNOWN ID */
                 break;
             case PDUInterface::ID_BIND_RECEIVER:
@@ -146,6 +160,21 @@ class Serializer implements SerializerInterface
                 $body->writeAddress($pdu->get('esme_address'));
                 break;
             case PDUInterface::ID_DELIVER_SM:
+                $body->writeString($pdu->get('service_type'));
+                $body->writeAddress($pdu->get('source_address'));
+                $body->writeAddress($pdu->get('dest_address'));
+                $body->writeInt8($pdu->get('esm_class'));
+                $body->writeInt8($pdu->get('protocol_id'));
+                $body->writeInt8($pdu->get('priority_flag'));
+                $body->writeDateTime(null);
+                $body->writeDateTime(null);
+                $body->writeInt8($pdu->get('registered_delivery'));
+                $body->writeInt8(0);
+                $body->writeInt8($pdu->get('data_coding'));
+                $body->writeInt8(0);
+                $body->writeInt8($pdu->get('sm_length'));
+                $body->writeString($pdu->get('short_message'));
+                break;
             case PDUInterface::ID_SUBMIT_SM:
                 $body->writeString($pdu->get('service_type'));
                 $body->writeAddress($pdu->get('source_address'));
@@ -167,6 +196,16 @@ class Serializer implements SerializerInterface
                 break;
             case PDUInterface::ID_SUBMIT_SM_RESP:
                 $body->writeString($pdu->get('message_id'));
+                break;
+            case PDUInterface::ID_REPLACE_SM:
+                $body->writeString($pdu->get('message_id'));
+                $body->writeAddress($pdu->get('source_address'));
+                $body->writeDateTime($pdu->get('schedule_delivery_time'));
+                $body->writeDateTime($pdu->get('validity_period'));
+                $body->writeInt8($pdu->get('registered_delivery'));
+                $body->writeInt8($pdu->get('sm_default_msg_id'));
+                $body->writeInt8($pdu->get('sm_length'));
+                $body->writeString($pdu->get('short_message'));
                 break;
             default:
                 throw new \UnexpectedValueException('Unexpected PDU id');
