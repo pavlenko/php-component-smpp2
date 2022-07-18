@@ -63,6 +63,7 @@ class Serializer implements SerializerInterface
                 break;
             case PDUInterface::ID_DELIVER_SM:
             case PDUInterface::ID_SUBMIT_SM:
+                // how to filter params for deliver sm
                 $params = [
                     'service_type'            => $buffer->shiftString(6),
                     'source_address'          => $buffer->shiftAddress(21),
@@ -129,9 +130,6 @@ class Serializer implements SerializerInterface
             case PDUInterface::ID_BIND_TRANSMITTER_RESP:
             case PDUInterface::ID_BIND_TRANSCEIVER_RESP:
                 $body->writeString($pdu->get('system_id'));
-                if ($pdu->has('sc_interface_version')) {
-                    $body->writeTLV($pdu->get('sc_interface_version'));
-                }
                 break;
             case PDUInterface::ID_CANCEL_SM:
                 $body->writeString($pdu->get('service_type'));
@@ -146,33 +144,24 @@ class Serializer implements SerializerInterface
             case PDUInterface::ID_ALERT_NOTIFICATION:
                 $body->writeAddress($pdu->get('source_address'));
                 $body->writeAddress($pdu->get('esme_address'));
-                if ($pdu->has('ms_availability_status')) {
-                    $body->writeTLV($pdu->get('ms_availability_status'));
-                }
                 break;
-
-
             case PDUInterface::ID_DELIVER_SM:
             case PDUInterface::ID_SUBMIT_SM:
-                $params = [
-                    'service_type'            => $buffer->shiftString(6),
-                    'source_address'          => $buffer->shiftAddress(21),
-                    'dest_address'            => $buffer->shiftAddress(21),
-                    'esm_class'               => $buffer->shiftInt8(),
-                    'protocol_id'             => $buffer->shiftInt8(),
-                    'priority_flag'           => $buffer->shiftInt8(),
-                    'schedule_delivery_time'  => $buffer->shiftDateTime(),//->NULL ID_DELIVER_SM
-                    'validity_period'         => $buffer->shiftDateTime(),//->NULL ID_DELIVER_SM
-                    'registered_delivery'     => $buffer->shiftInt8(),
-                    'replace_if_present_flag' => $buffer->shiftInt8(),//->NULL ID_DELIVER_SM
-                    'data_coding'             => $buffer->shiftInt8(),
-                    'sm_default_msg_id'       => $buffer->shiftInt8(),//->NULL ID_DELIVER_SM
-                    'sm_length'               => $buffer->shiftInt8(),
-                    'short_message'           => $buffer->shiftString(254),
-                ];
+                $body->writeString($pdu->get('service_type'));
+                $body->writeAddress($pdu->get('source_address'));
+                $body->writeAddress($pdu->get('dest_address'));
+                $body->writeInt8($pdu->get('esm_class'));
+                $body->writeInt8($pdu->get('protocol_id'));
+                $body->writeInt8($pdu->get('priority_flag'));
+                $body->writeDateTime($pdu->get('schedule_delivery_time'));
+                $body->writeDateTime($pdu->get('validity_period'));
+                $body->writeInt8($pdu->get('registered_delivery'));
+                $body->writeInt8($pdu->get('replace_if_present_flag'));
+                $body->writeInt8($pdu->get('data_coding'));
+                $body->writeInt8($pdu->get('sm_default_msg_id'));
+                $body->writeInt8($pdu->get('sm_length'));
+                $body->writeString($pdu->get('short_message'));
                 break;
-
-
             case PDUInterface::ID_DELIVER_SM_RESP:
                 $body->writeString('');//<-- message_id = NULL
                 break;
