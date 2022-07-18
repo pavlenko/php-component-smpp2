@@ -11,12 +11,12 @@ interface ConnectionInterface
 {
     public const INTERFACE_VER = 0x34;
 
-    public const STATUS_CREATED   = 0x0000;
-    public const STATUS_OPENED    = 0x0001;
-    public const STATUS_BOUND_TX  = 0x0010;
-    public const STATUS_BOUND_RX  = 0x0100;
-    public const STATUS_BOUND_TRX = 0x0110;
-    public const STATUS_CLOSED    = 0x1000;
+    public const STATUS_CREATED   = 0b0000;
+    public const STATUS_OPENED    = 0b0001;
+    public const STATUS_BOUND_TX  = 0b0010;
+    public const STATUS_BOUND_RX  = 0b0100;
+    public const STATUS_BOUND_TRX = 0b0110;
+    public const STATUS_CLOSED    = 0b1000;
 
     public const BOUND_MAP = [
         PDUInterface::ID_BIND_RECEIVER    => self::STATUS_BOUND_TX,
