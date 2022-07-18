@@ -64,7 +64,6 @@ class Serializer implements SerializerInterface
                 break;
             case PDUInterface::ID_DELIVER_SM:
             case PDUInterface::ID_SUBMIT_SM:
-                // how to filter params for deliver sm
                 $params = [
                     'service_type'            => $buffer->shiftString(6),
                     'source_address'          => $buffer->shiftAddress(21),
@@ -84,6 +83,7 @@ class Serializer implements SerializerInterface
                 break;
             case PDUInterface::ID_DELIVER_SM_RESP:
             case PDUInterface::ID_SUBMIT_SM_RESP:
+            case PDUInterface::ID_DATA_SM_RESP:
                 $params = ['message_id' => $buffer->shiftString(65)];
                 break;
             case PDUInterface::ID_REPLACE_SM:
@@ -96,6 +96,16 @@ class Serializer implements SerializerInterface
                     'sm_default_msg_id'       => $buffer->shiftInt8(),
                     'sm_length'               => $buffer->shiftInt8(),
                     'short_message'           => $buffer->shiftString(254),
+                ];
+                break;
+            case PDUInterface::ID_DATA_SM:
+                $params = [
+                    'service_type'        => $buffer->shiftString(6),
+                    'source_address'      => $buffer->shiftAddress(21),
+                    'dest_address'        => $buffer->shiftAddress(21),
+                    'esm_class'           => $buffer->shiftInt8(),
+                    'registered_delivery' => $buffer->shiftInt8(),
+                    'data_coding'         => $buffer->shiftInt8(),
                 ];
                 break;
             default:
@@ -195,6 +205,7 @@ class Serializer implements SerializerInterface
                 $body->writeString('');//<-- message_id = NULL
                 break;
             case PDUInterface::ID_SUBMIT_SM_RESP:
+            case PDUInterface::ID_DATA_SM_RESP:
                 $body->writeString($pdu->get('message_id'));
                 break;
             case PDUInterface::ID_REPLACE_SM:
@@ -206,6 +217,14 @@ class Serializer implements SerializerInterface
                 $body->writeInt8($pdu->get('sm_default_msg_id'));
                 $body->writeInt8($pdu->get('sm_length'));
                 $body->writeString($pdu->get('short_message'));
+                break;
+            case PDUInterface::ID_DATA_SM:
+                $body->writeString($pdu->get('service_type'));
+                $body->writeAddress($pdu->get('source_address'));
+                $body->writeAddress($pdu->get('dest_address'));
+                $body->writeInt8($pdu->get('esm_class'));
+                $body->writeInt8($pdu->get('registered_delivery'));
+                $body->writeInt8($pdu->get('data_coding'));
                 break;
             default:
                 throw new \UnexpectedValueException('Unexpected PDU id');
