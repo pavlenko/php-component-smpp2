@@ -26,8 +26,8 @@ interface PDUInterface
     public const ID_OUT_BIND              = 0x00_00_00_0B;//<-- no direct response, must reply with bind receiver
     public const ID_ENQUIRE_LINK          = 0x00_00_00_15;
     public const ID_ENQUIRE_LINK_RESP     = 0x80_00_00_15;
-    public const ID_SUBMIT_MULTI          = 0x00_00_00_21;
-    public const ID_SUBMIT_MULTI_RESP     = 0x80_00_00_21;
+    public const ID_SUBMIT_MULTI          = 0x00_00_00_21;//<-- this is complex so implement later
+    public const ID_SUBMIT_MULTI_RESP     = 0x80_00_00_21;//<-- this is complex so implement later
     public const ID_ALERT_NOTIFICATION    = 0x00_00_01_02;
     public const ID_DATA_SM               = 0x00_00_01_03;
     public const ID_DATA_SM_RESP          = 0x80_00_01_03;
