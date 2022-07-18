@@ -45,7 +45,13 @@ class Connection implements ConnectionInterface
 
             $this->status = self::BOUND_MAP[$type];
             $this->seqNum++;
-            $this->sendPDU(new PDU($type, PDUInterface::STATUS_NO_ERROR, $this->seqNum, /*[$systemID, $password, $address]*/));
+            $this->sendPDU(new PDU($type, PDUInterface::STATUS_NO_ERROR, $this->seqNum, [
+                'system_id'         => $systemID,
+                'password'          => $password,
+                'system_type'       => '',
+                'interface_version' => self::INTERFACE_VER,
+                'address'           => $address,
+            ]));
 
             if (PDUInterface::STATUS_NO_ERROR !== $this->waitPDU($this->seqNum)->getStatus()) {
                 throw new \UnexpectedValueException('Unexpected bind response');
