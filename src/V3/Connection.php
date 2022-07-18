@@ -28,6 +28,9 @@ class Connection implements ConnectionInterface
         $this->seqNum = random_int(0x001, 0x7FF) << 20;
     }
 
+    //- client/sender (open + bind + exit + unbind)
+    //- server (open + accept + exit)
+    //- server child (exit + unbind)
     public function open(): void
     {
         if ($this->status === self::STATUS_CREATED || $this->status === self::STATUS_CLOSED) {
