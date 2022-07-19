@@ -5,7 +5,6 @@ namespace PE\Component\SMPP\V3;
 use PE\Component\SMPP\Exception\ConnectionException;
 use PE\Component\SMPP\Exception\InvalidPDUException;
 use PE\Component\SMPP\Exception\TimeoutException;
-use PE\Component\SMPP\PDU\Address;
 
 interface ConnectionInterface
 {
@@ -34,15 +33,10 @@ interface ConnectionInterface
     /**
      * Send BIND_* command
      *
-     * @param int          $type     Bind type: transmitter/transceiver/receiver
-     * @param string       $systemID System ID, can be used as a username
-     * @param string|null  $password Password, for authentication
-     * @param Address|null $address  Default sender address
-     *
-     * @throws ConnectionException
-     * @throws InvalidPDUException
+     * @param int $type Bind type: transmitter/transceiver/receiver
+     * @param SessionInterface $session Session to bind with
      */
-    public function bind(int $type, string $systemID, string $password = null, Address $address = null): void;
+    public function bind(int $type, SessionInterface $session): void;
 
     /**
      * Read PDU

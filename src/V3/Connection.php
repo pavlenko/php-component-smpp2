@@ -3,7 +3,6 @@
 namespace PE\Component\SMPP\V3;
 
 use PE\Component\SMPP\Exception\TimeoutException;
-use PE\Component\SMPP\PDU\Address;
 use PE\Component\SMPP\Util\Stream;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
@@ -39,7 +38,7 @@ class Connection implements ConnectionInterface
         }
     }
 
-    public function bind(int $type, string $systemID, string $password = null, Address $address = null): void
+    public function bind(int $type, SessionInterface $session): void
     {
         if ($this->status === self::STATUS_OPENED) {
             if (!array_key_exists($type, self::BOUND_MAP)) {
@@ -49,11 +48,11 @@ class Connection implements ConnectionInterface
             $this->status = self::BOUND_MAP[$type];
             $this->seqNum++;
             $this->sendPDU(new PDU($type, PDUInterface::STATUS_NO_ERROR, $this->seqNum, [
-                'system_id'         => $systemID,
-                'password'          => $password,
+                'system_id'         => $session->getSystemID(),
+                'password'          => $session->getPassword(),
                 'system_type'       => '',
                 'interface_version' => self::INTERFACE_VER,
-                'address'           => $address,
+                'address'           => $session->getAddress(),
             ]));
 
             if (PDUInterface::STATUS_NO_ERROR !== $this->waitPDU($this->seqNum)->getStatus()) {
