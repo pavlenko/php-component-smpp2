@@ -39,16 +39,14 @@ class Sender implements SenderInterface
     {
         $sequenceNum = $this->sess->newSequenceNum();
 
-        $pdu = new PDU(PDUInterface::ID_SUBMIT_SM, PDUInterface::STATUS_NO_ERROR, $sequenceNum, [
+        $this->conn->sendPDU(new PDU(PDUInterface::ID_SUBMIT_SM, PDUInterface::STATUS_NO_ERROR, $sequenceNum, [
             'short_message'          => $message->getMessage(),
             'dest_address'           => $message->getRecipient(),
             'source_address'         => $message->getSender() ?: $this->sess->getAddress(),
             'data_coding'            => $message->getDataCoding(),
             'schedule_delivery_time' => $message->getScheduleAt(),
             'registered_delivery'    => $message->hasRegisteredDelivery(),
-        ]);
-
-        $this->conn->sendPDU($pdu);
+        ]));
 
         $response = $this->conn->waitPDU($sequenceNum);
         if (PDUInterface::STATUS_NO_ERROR !== $response->getStatus()) {
