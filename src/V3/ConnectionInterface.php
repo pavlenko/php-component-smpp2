@@ -24,21 +24,6 @@ interface ConnectionInterface
     ];
 
     /**
-     * Open new stream connection as server or as client (maybe need some child class or pass argument as type)
-     *
-     * @throws ConnectionException
-     */
-    public function open(): void;
-
-    /**
-     * Send BIND_* command
-     *
-     * @param int $type Bind type: transmitter/transceiver/receiver
-     * @param SessionInterface $session Session to bind with
-     */
-    public function bind(int $type, SessionInterface $session): void;
-
-    /**
      * Read PDU
      *
      * @return PDUInterface|null Returns PDU object on success, null on error (need exception) or no data

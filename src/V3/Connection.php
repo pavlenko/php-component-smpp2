@@ -10,55 +10,16 @@ use Psr\Log\NullLogger;
 
 class Connection implements ConnectionInterface
 {
+    private Stream $stream;
     private SerializerInterface $serializer;
-    private StorageInterface $storage;
     private LoggerInterface $logger;
     private int $status;
-    private int $seqNum;
-    private ?Stream $stream = null;
 
-    public function __construct(SerializerInterface $serializer, StorageInterface $storage, LoggerInterface $logger = null)
+    public function __construct(Stream $stream, SerializerInterface $serializer = null, LoggerInterface $logger = null)
     {
-        $this->serializer = $serializer;
-        $this->storage    = $storage;
+        $this->stream     = $stream;
+        $this->serializer = $serializer ?: new Serializer();
         $this->logger     = $logger ?: new NullLogger();
-
-        // Generate random sequence number for make connection more unique
-        $this->seqNum = random_int(0x001, 0x7FF) << 20;
-    }
-
-    //- client/sender (open + bind + exit + unbind)
-    //- server (open + accept + exit)
-    //- server child (exit + unbind)
-    public function open(): void
-    {
-        if ($this->status === self::STATUS_CREATED || $this->status === self::STATUS_CLOSED) {
-            $this->status = self::STATUS_CREATED;
-            $this->stream = Stream::createServer('127.0.0.1:2775');// specific by server/sender/client, how to???
-        }
-    }
-
-    public function bind(int $type, SessionInterface $session): void
-    {
-        if ($this->status === self::STATUS_OPENED) {
-            if (!array_key_exists($type, self::BOUND_MAP)) {
-                throw new \UnexpectedValueException('Unexpected bind type');
-            }
-
-            $this->status = self::BOUND_MAP[$type];
-            $this->seqNum++;
-            $this->sendPDU(new PDU($type, PDUInterface::STATUS_NO_ERROR, $this->seqNum, [
-                'system_id'         => $session->getSystemID(),
-                'password'          => $session->getPassword(),
-                'system_type'       => '',
-                'interface_version' => self::INTERFACE_VER,
-                'address'           => $session->getAddress(),
-            ]));
-
-            if (PDUInterface::STATUS_NO_ERROR !== $this->waitPDU($this->seqNum)->getStatus()) {
-                throw new \UnexpectedValueException('Unexpected bind response');
-            }
-        }
     }
 
     public function readPDU(): ?PDUInterface
