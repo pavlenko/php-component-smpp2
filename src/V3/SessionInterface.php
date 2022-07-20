@@ -28,4 +28,11 @@ interface SessionInterface
      * @return Address|null
      */
     public function getAddress(): ?Address;
+
+    /**
+     * Get new sequence num for send PDU
+     *
+     * @return int
+     */
+    public function newSequenceNum(): int;
 }

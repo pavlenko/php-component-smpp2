@@ -9,6 +9,7 @@ class Session implements SessionInterface
     private string $systemID;
     private ?string $password;
     private ?Address $address;
+    private int $seqNum;
 
     /**
      * @param string $systemID
@@ -20,6 +21,9 @@ class Session implements SessionInterface
         $this->systemID = $systemID;
         $this->password = $password;
         $this->address  = $address;
+
+        // Generate random sequence number for make connection more unique
+        $this->seqNum = mt_rand(0x001, 0x7FF) << 20;
     }
 
     public function getSystemID(): string
@@ -35,5 +39,10 @@ class Session implements SessionInterface
     public function getAddress(): ?Address
     {
         return $this->address;
+    }
+
+    public function newSequenceNum(): int
+    {
+        return $this->seqNum++;
     }
 }
