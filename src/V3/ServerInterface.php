@@ -10,9 +10,9 @@ interface ServerInterface
     //init
     // `- connect
     //tick
-    // `- select
-    // `- processAccept
-    // `- processReceive($session)
+    // `- select - maybe wrap stream into connection for common usage
+    // `- processAccept - add connection without session
+    // `- processReceive($session) - if bind received - add session to connection
     // `- processTimeout($session, $sentPDUs)
     // `- processWaiting($session, $waitPDUs)
     //exit
