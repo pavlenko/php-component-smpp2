@@ -11,4 +11,12 @@ interface SenderInterface
      * @return string
      */
     public function sendSMS(SMSInterface $message): string;
+
+    //init
+    // `- connect
+    // `- bind session
+    //send
+    //exit
+    // `- unbind session
+    // `- close connection
 }
