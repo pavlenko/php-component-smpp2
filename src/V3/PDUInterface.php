@@ -81,6 +81,20 @@ interface PDUInterface
     public const STATUS_DELIVERY_FAILURE             = 0x000000FE;
     public const STATUS_UNKNOWN_ERROR                = 0x000000FF;
 
+    public const DATA_CODING_DEFAULT      = 0;
+    public const DATA_CODING_IA5          = 1; // IA5 (CCITT T.50)/ASCII (ANSI X3.4)
+    public const DATA_CODING_BINARY_ALIAS = 2;
+    public const DATA_CODING_ISO8859_1    = 3; // Latin 1
+    public const DATA_CODING_BINARY       = 4;
+    public const DATA_CODING_JIS          = 5;
+    public const DATA_CODING_ISO8859_5    = 6; // Cyrillic
+    public const DATA_CODING_ISO8859_8    = 7; // Latin/Hebrew
+    public const DATA_CODING_UCS2         = 8; // UCS-2BE (Big Endian)
+    public const DATA_CODING_PICTOGRAM    = 9;
+    public const DATA_CODING_ISO2022_JP   = 10; // Music codes
+    public const DATA_CODING_KANJI        = 13; // Extended Kanji JIS
+    public const DATA_CODING_KSC5601      = 14;
+
     public function getID(): int;
     public function getStatus(): int;
     public function getSeqNum(): int;
