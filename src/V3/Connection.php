@@ -87,7 +87,7 @@ class Connection implements ConnectionInterface
         do {
             $pdu = $this->readPDU();
             if (null !== $pdu) {
-                if ($pdu->getSeqNum() === $seqNum) {
+                if (0 === $seqNum || $pdu->getSeqNum() === $seqNum) {
                     return $pdu;
                 }
                 if ($this->status & self::STATUS_BOUND_TRX) {

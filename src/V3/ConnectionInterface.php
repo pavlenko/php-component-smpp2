@@ -58,7 +58,7 @@ interface ConnectionInterface
     public function sendPDU(PDUInterface $pdu): void;
 
     /**
-     * Wait PDU by specific type & sequence number
+     * Wait PDU by sequence number (if greater than 0)
      *
      * @param int $seqNum
      * @param float $timeout
