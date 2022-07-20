@@ -7,5 +7,15 @@ namespace PE\Component\SMPP\V3;
 // - handle PDU types via event listeners
 interface ServerInterface
 {
-
+    //init
+    // `- connect
+    //tick
+    // `- select
+    // `- processAccept
+    // `- processReceive($session)
+    // `- processTimeout($session, $sentPDUs)
+    // `- processWaiting($session, $waitPDUs)
+    //exit
+    // `- unbind sessions
+    // `- close connection
 }
