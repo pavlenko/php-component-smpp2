@@ -25,6 +25,11 @@ interface ClientInterface
     public function bind(): void;
 
     /**
+     * Dispatch connection
+     */
+    public function tick(): void;
+
+    /**
      * Disconnects from server and send unbind request with result check
      */
     public function exit(): void;

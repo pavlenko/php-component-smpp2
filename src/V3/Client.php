@@ -4,8 +4,10 @@ namespace PE\Component\SMPP\V3;
 
 use PE\Component\SMPP\Util\Stream;
 
-class Client extends ClientBase
+class Client implements ClientInterface
 {
+    use ClientTrait;
+
     public function tick(): void
     {
         $r = [$this->connection->getStream()];

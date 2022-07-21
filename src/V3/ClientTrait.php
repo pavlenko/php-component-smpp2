@@ -2,7 +2,7 @@
 
 namespace PE\Component\SMPP\V3;
 
-abstract class ClientBase implements ClientInterface
+trait ClientTrait
 {
     protected string $address;
     protected SessionInterface $session;

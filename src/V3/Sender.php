@@ -2,8 +2,10 @@
 
 namespace PE\Component\SMPP\V3;
 
-class Sender extends ClientBase implements SenderInterface
+final class Sender implements SenderInterface
 {
+    use ClientTrait;
+
     public function sendSMS(SMSInterface $message): string
     {
         $sequenceNum = $this->session->newSequenceNum();

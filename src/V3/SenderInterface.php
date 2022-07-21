@@ -2,8 +2,13 @@
 
 namespace PE\Component\SMPP\V3;
 
-interface SenderInterface extends ClientInterface
+interface SenderInterface
 {
+    /**
+     * Connects to server and send bind request with result check
+     */
+    public function bind(): void;
+
     /**
      * Send a SMS
      *
@@ -12,4 +17,9 @@ interface SenderInterface extends ClientInterface
      * @return string
      */
     public function sendSMS(SMSInterface $message): string;
+
+    /**
+     * Disconnects from server and send unbind request with result check
+     */
+    public function exit(): void;
 }
