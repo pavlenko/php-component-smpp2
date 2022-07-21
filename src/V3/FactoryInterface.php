@@ -12,4 +12,13 @@ interface FactoryInterface
      * @return ConnectionInterface
      */
     public function createClientConnection(string $address): ConnectionInterface;
+
+    /**
+     * Create connection for server
+     *
+     * @param string $address
+     *
+     * @return ConnectionInterface
+     */
+    public function createServerConnection(string $address): ConnectionInterface;
 }

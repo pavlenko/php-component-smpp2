@@ -18,4 +18,14 @@ interface ServerInterface
     //exit
     // `- unbind sessions
     // `- close connection
+
+    /**
+     * Connect to socket
+     */
+    public function bind(): void;
+
+    /**
+     * Dispatch connection
+     */
+    public function tick(): void;
 }

@@ -4,16 +4,16 @@ namespace PE\Component\SMPP\V3;
 
 trait ClientTrait
 {
-    protected string $address;
-    protected SessionInterface $session;
-    protected FactoryInterface $factory;
-    protected ConnectionInterface $connection;
+    private string $address;
+    private FactoryInterface $factory;
+    private SessionInterface $session;
+    private ConnectionInterface $connection;
 
-    public function __construct(string $address, SessionInterface $session, FactoryInterface $factory)
+    public function __construct(string $address, FactoryInterface $factory, SessionInterface $session)
     {
         $this->address = $address;
-        $this->session = $session;
         $this->factory = $factory;
+        $this->session = $session;
     }
 
     public function bind(): void

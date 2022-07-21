@@ -4,7 +4,7 @@ namespace PE\Component\SMPP\V3;
 
 use PE\Component\SMPP\PDU\Address;
 
-class Session implements SessionInterface
+final class Session implements SessionInterface
 {
     private string $systemID;
     private ?string $password;
