@@ -18,4 +18,14 @@ interface ClientInterface
     //exit
     // `- unbind session
     // `- close connection
+
+    /**
+     * Connects to server and send bind request with result check
+     */
+    public function bind(): void;
+
+    /**
+     * Disconnects from server and send unbind request with result check
+     */
+    public function exit(): void;
 }

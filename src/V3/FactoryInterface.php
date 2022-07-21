@@ -2,17 +2,14 @@
 
 namespace PE\Component\SMPP\V3;
 
-// create server socket?
-// create client socket?
-// create session?
 interface FactoryInterface
 {
     /**
-     * Create PDU from raw data
+     * Create connection for client
      *
-     * @param string $body
+     * @param string $address
      *
-     * @return PDUInterface
+     * @return ConnectionInterface
      */
-    public function createPDU(string $body): PDUInterface;
+    public function createClientConnection(string $address): ConnectionInterface;
 }

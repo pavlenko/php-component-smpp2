@@ -67,16 +67,7 @@ class Connection implements ConnectionInterface
     {
         if ($this->status !== self::STATUS_CLOSED) {
             $this->status = self::STATUS_CLOSED;
-
-            $this->seqNum++;
-            $this->sendPDU(new PDU(PDUInterface::ID_UNBIND, PDUInterface::STATUS_NO_ERROR, $this->seqNum));
-
-            if (PDUInterface::STATUS_NO_ERROR !== $this->waitPDU($this->seqNum)->getStatus()) {
-                $this->logger->log(LogLevel::WARNING, 'Unexpected response status, but just close');
-            }
-
             $this->stream->close();
-            $this->stream = null;
         }
     }
 }
