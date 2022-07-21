@@ -4,6 +4,8 @@ namespace PE\Component\SMPP\V3;
 
 interface SenderInterface
 {
+    public function connect(int $type): void;
+
     /**
      * Send a SMS
      *
