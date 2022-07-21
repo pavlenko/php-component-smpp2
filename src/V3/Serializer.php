@@ -5,7 +5,7 @@ namespace PE\Component\SMPP\V3;
 use PE\Component\SMPP\PDU\TLV;
 use PE\Component\SMPP\Util\Buffer;
 
-class Serializer implements SerializerInterface
+final class Serializer implements SerializerInterface
 {
     public function decode(string $pdu): PDUInterface
     {

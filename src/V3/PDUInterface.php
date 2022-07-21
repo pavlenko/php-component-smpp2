@@ -102,5 +102,5 @@ interface PDUInterface
 
     public function has(string $name): bool;
     public function get(string $name, $default = null);
-    public function set(string $name, $value);
+    public function set(string $name, $value): void;
 }

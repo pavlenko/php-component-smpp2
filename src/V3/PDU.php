@@ -2,7 +2,7 @@
 
 namespace PE\Component\SMPP\V3;
 
-class PDU implements PDUInterface
+final class PDU implements PDUInterface
 {
     private int $id;
     private int $status;
@@ -35,5 +35,20 @@ class PDU implements PDUInterface
     public function getParams(): array
     {
         return $this->params;
+    }
+
+    public function has(string $name): bool
+    {
+        return array_key_exists($name, $this->params);
+    }
+
+    public function get(string $name, $default = null)
+    {
+        return $this->has($name) ? $this->params[$name] : $default;
+    }
+
+    public function set(string $name, $value): void
+    {
+        $this->params[$name] = $value;
     }
 }

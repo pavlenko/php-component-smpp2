@@ -93,7 +93,7 @@ final class Buffer
         return $value;
     }
 
-    public function writeString(string $value): void
+    public function writeString(?string $value): void
     {
         $this->buffer .= trim($value) . "\0";
     }

@@ -8,7 +8,7 @@ use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 use Psr\Log\NullLogger;
 
-class Connection implements ConnectionInterface
+final class Connection implements ConnectionInterface
 {
     private Stream $stream;
     private SerializerInterface $serializer;
@@ -20,6 +20,11 @@ class Connection implements ConnectionInterface
         $this->stream     = $stream;
         $this->serializer = $serializer ?: new Serializer();
         $this->logger     = $logger ?: new NullLogger();
+    }
+
+    public function getStream(): Stream
+    {
+        return $this->stream;
     }
 
     public function readPDU(): ?PDUInterface
