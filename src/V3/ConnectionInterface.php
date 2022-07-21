@@ -5,6 +5,7 @@ namespace PE\Component\SMPP\V3;
 use PE\Component\SMPP\Exception\ConnectionException;
 use PE\Component\SMPP\Exception\InvalidPDUException;
 use PE\Component\SMPP\Exception\TimeoutException;
+use PE\Component\SMPP\Util\Stream;
 
 interface ConnectionInterface
 {
@@ -22,6 +23,13 @@ interface ConnectionInterface
         PDUInterface::ID_BIND_TRANSMITTER => self::STATUS_BOUND_RX,
         PDUInterface::ID_BIND_TRANSCEIVER => self::STATUS_BOUND_TRX,
     ];
+
+    /**
+     * Get stream
+     *
+     * @return Stream
+     */
+    public function getStream(): Stream;
 
     /**
      * Read PDU
