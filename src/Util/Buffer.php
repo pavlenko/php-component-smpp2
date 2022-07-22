@@ -121,11 +121,11 @@ final class Buffer
         $this->writeBytes($tlv->getValue());
     }
 
-    public function shiftDateTime(): \DateTimeInterface
+    public function shiftDateTime(): ?\DateTimeInterface
     {
         $dateTime = $this->shiftString(17);
         $dateTime = substr($dateTime, 0, 12);
-        return \DateTimeImmutable::createFromFormat('ymdHis', $dateTime);//TODO timezone???
+        return \DateTimeImmutable::createFromFormat('ymdHis', $dateTime) ?: null;
     }
 
     public function writeDateTime(?\DateTimeInterface $dateTime): void
