@@ -32,9 +32,9 @@ final class Buffer
         return $value;
     }
 
-    public function writeInt8(int $value): void
+    public function writeInt8(?int $value): void
     {
-        $this->buffer .= pack('C', $value);
+        $this->buffer .= pack('C', $value ?? 0);
     }
 
     public function shiftInt16(): int
@@ -44,9 +44,9 @@ final class Buffer
         return $value;
     }
 
-    public function writeInt16(int $value): void
+    public function writeInt16(?int $value): void
     {
-        $this->buffer .= pack('n', $value);
+        $this->buffer .= pack('n', $value ?? 0);
     }
 
     public function shiftInt32(): int
@@ -56,9 +56,9 @@ final class Buffer
         return $value;
     }
 
-    public function writeInt32(int $value): void
+    public function writeInt32(?int $value): void
     {
-        $this->buffer .= pack('N', $value);
+        $this->buffer .= pack('N', $value ?? 0);
     }
 
     public function shiftBytes(int $maxLength): string
