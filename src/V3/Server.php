@@ -62,7 +62,12 @@ final class Server implements ServerInterface
     private function attachConnection(Stream $stream): void
     {
         $this->logger->log(LogLevel::INFO, 'Accept new connection');
-        $this->sessions->attach($stream, $this->factory->createStreamConnection($stream));
-        //TODO wait for BIND
+        $connection = $this->factory->createStreamConnection($stream, $this->logger);
+        $this->sessions->attach($stream, $connection);
+
+        $pdu = $connection->waitPDU();
+        if (array_key_exists($pdu->getID(), ConnectionInterface::BOUND_MAP)) {
+            $connection->sendPDU(new PDU(PDUInterface::ID_GENERIC_NACK | $pdu->getID(), 0, $pdu->getSeqNum()));
+        }
     }
 }

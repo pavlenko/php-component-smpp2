@@ -60,7 +60,7 @@ interface ConnectionInterface
      *
      * @throws TimeoutException
      */
-    public function waitPDU(int $seqNum, float $timeout = 0): PDUInterface;
+    public function waitPDU(int $seqNum = 0, float $timeout = 0): PDUInterface;
 
     /**
      * Send UNBIND command and close stream connection

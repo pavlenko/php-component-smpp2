@@ -40,16 +40,20 @@ final class Connection implements ConnectionInterface
             return null;
         }
 
-        return $this->serializer->decode($this->stream->readData($length - 4));
+        $this->logger->log(LogLevel::DEBUG, __FUNCTION__);
+        $buffer = $this->stream->readData(unpack('N', $length)[1] - 4);
+        return $this->serializer->decode($buffer);
     }
 
     public function sendPDU(PDUInterface $pdu): void
     {
+        $this->logger->log(LogLevel::DEBUG, __FUNCTION__);
         $this->stream->sendData($this->serializer->encode($pdu));
     }
 
-    public function waitPDU(int $seqNum, float $timeout = 0.01): PDUInterface
+    public function waitPDU(int $seqNum = 0, float $timeout = 0.01): PDUInterface
     {
+        $this->logger->log(LogLevel::DEBUG, __FUNCTION__);
         do {
             $pdu = $this->readPDU();
             if (null !== $pdu) {
@@ -57,7 +61,7 @@ final class Connection implements ConnectionInterface
                     return $pdu;
                 }
                 if ($this->status & self::STATUS_BOUND_TRX) {
-                    $this->storage->insert(0, $pdu);
+                    //TODO $this->storage->insert(0, $pdu);
                 }
             }
 
