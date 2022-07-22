@@ -16,14 +16,16 @@ final class Server implements ServerInterface
 
     private string $address;
     private FactoryInterface $factory;
+    private SessionInterface $session;
     private LoggerInterface $logger;
     private ConnectionInterface $connection;
     private \SplObjectStorage $sessions;
 
-    public function __construct(string $address, FactoryInterface $factory, LoggerInterface $logger = null)
+    public function __construct(string $address, FactoryInterface $factory, SessionInterface $session, LoggerInterface $logger = null)
     {
         $this->address = $address;
         $this->factory = $factory;
+        $this->session = $session;
         $this->logger  = $logger ?: new NullLogger();
 
         $this->sessions = new \SplObjectStorage();
@@ -79,8 +81,14 @@ final class Server implements ServerInterface
     {
         $this->logger->log(LogLevel::INFO, 'Detach connection');
 
-        //TODO send unbind
+        if ($unbind) {
+            $sequenceNum = $this->session->newSequenceNum();
 
+            $this->connection->sendPDU(new PDU(PDUInterface::ID_UNBIND, PDUInterface::STATUS_NO_ERROR, $sequenceNum));
+            $this->connection->waitPDU($sequenceNum);
+        }
+
+        $connection->exit();
         $this->sessions->detach($connection->getStream());
     }
 
@@ -96,4 +104,7 @@ final class Server implements ServerInterface
         }
         $this->emit(self::EVENT_RECEIVE, $connection, $pdu);
     }
+
+    public function exit(): void
+    {}
 }

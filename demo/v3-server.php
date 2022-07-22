@@ -9,9 +9,10 @@ use Symfony\Component\Console\Output\ConsoleOutput;
 require_once __DIR__ . '/../vendor/autoload.php';
 
 $factory = new Factory();
+$session = new Session('SERVER');
 $logger  = new ConsoleLogger(new ConsoleOutput(ConsoleOutput::VERBOSITY_DEBUG));
 
-$server = new Server('127.0.0.1:2775', $factory, $logger);
+$server = new Server('127.0.0.1:2775', $factory, $session, $logger);
 $server->on(Server::EVENT_RECEIVE, fn($c, $p) => var_dump($p));
 $server->bind();
 

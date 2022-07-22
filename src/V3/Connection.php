@@ -80,9 +80,9 @@ final class Connection implements ConnectionInterface
 
     public function exit(): void
     {
-        if ($this->status !== self::STATUS_CLOSED) {
-            $this->status = self::STATUS_CLOSED;
+//        if ($this->status !== self::STATUS_CLOSED) {
+//            $this->status = self::STATUS_CLOSED;
             $this->stream->close();
-        }
+//        }
     }
 }
