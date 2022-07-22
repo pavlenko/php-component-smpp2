@@ -14,11 +14,11 @@ final class Factory implements FactoryInterface
 
     public function createClientConnection(string $address, LoggerInterface $logger = null): ConnectionInterface
     {
-        return $this->createStreamConnection(Stream::createClient($address));
+        return $this->createStreamConnection(Stream::createClient($address), $logger);
     }
 
     public function createServerConnection(string $address, LoggerInterface $logger = null): ConnectionInterface
     {
-        return $this->createStreamConnection(Stream::createServer($address));
+        return $this->createStreamConnection(Stream::createServer($address), $logger);
     }
 }

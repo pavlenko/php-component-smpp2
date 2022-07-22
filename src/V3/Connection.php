@@ -55,13 +55,19 @@ final class Connection implements ConnectionInterface
     {
         $this->logger->log(LogLevel::DEBUG, __FUNCTION__);
         do {
-            $pdu = $this->readPDU();
-            if (null !== $pdu) {
-                if (0 === $seqNum || $pdu->getSeqNum() === $seqNum) {
-                    return $pdu;
-                }
-                if ($this->status & self::STATUS_BOUND_TRX) {
-                    //TODO $this->storage->insert(0, $pdu);
+            $r = [$this->stream];
+            $n = [];
+            Stream::select($r, $n, $n, 0.01);
+
+            if (!empty($r)) {
+                $pdu = $this->readPDU();
+                if (null !== $pdu) {
+                    if (0 === $seqNum || $pdu->getSeqNum() === $seqNum) {
+                        return $pdu;
+                    }
+                    if ($this->status & self::STATUS_BOUND_TRX) {
+                        //TODO $this->storage->insert(0, $pdu);
+                    }
                 }
             }
 

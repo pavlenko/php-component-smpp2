@@ -2,25 +2,30 @@
 
 namespace PE\Component\SMPP\V3;
 
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
+
 trait ClientTrait
 {
     private string $address;
     private FactoryInterface $factory;
     private SessionInterface $session;
+    private LoggerInterface $logger;
     private ConnectionInterface $connection;
 
-    public function __construct(string $address, FactoryInterface $factory, SessionInterface $session)
+    public function __construct(string $address, FactoryInterface $factory, SessionInterface $session, LoggerInterface $logger = null)
     {
         $this->address = $address;
         $this->factory = $factory;
         $this->session = $session;
+        $this->logger  = $logger ?: new NullLogger();
     }
 
     public function bind(): void
     {
         $sequenceNum = $this->session->newSequenceNum();
 
-        $this->connection = $this->factory->createClientConnection($this->address);
+        $this->connection = $this->factory->createClientConnection($this->address, $this->logger);
         $this->connection->sendPDU(new PDU(PDUInterface::ID_BIND_TRANSMITTER, PDUInterface::STATUS_NO_ERROR, $sequenceNum, [
             'system_id'         => $this->session->getSystemID(),
             'password'          => $this->session->getPassword(),
