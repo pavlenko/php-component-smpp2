@@ -102,7 +102,15 @@ final class Server implements ServerInterface
         if (PDUInterface::STATUS_NO_ERROR !== $pdu->getStatus()) {
             throw new \UnexpectedValueException('Error', $pdu->getStatus());
         }
-        $this->emit(self::EVENT_RECEIVE, $connection, $pdu);
+
+        switch ($pdu->getID()) {
+            case PDUInterface::ID_UNBIND:
+                $connection->sendPDU(new PDU(PDUInterface::ID_UNBIND_RESP, 0, $pdu->getSeqNum()));
+                $this->detachConnection($connection, false);
+                break;
+            default:
+                $this->emit(self::EVENT_RECEIVE, $connection, $pdu);
+        }
     }
 
     public function exit(): void
