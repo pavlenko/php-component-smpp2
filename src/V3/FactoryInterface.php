@@ -2,8 +2,19 @@
 
 namespace PE\Component\SMPP\V3;
 
+use PE\Component\SMPP\Util\Stream;
+
 interface FactoryInterface
 {
+    /**
+     * Create connection for stream
+     *
+     * @param Stream $stream
+     *
+     * @return ConnectionInterface
+     */
+    public function createStreamConnection(Stream $stream): ConnectionInterface;
+
     /**
      * Create connection for client
      *

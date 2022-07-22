@@ -6,13 +6,18 @@ use PE\Component\SMPP\Util\Stream;
 
 final class Factory implements FactoryInterface
 {
+    public function createStreamConnection(Stream $stream): ConnectionInterface
+    {
+        return new Connection($stream);
+    }
+
     public function createClientConnection(string $address): ConnectionInterface
     {
-        return new Connection(Stream::createClient($address));
+        return $this->createStreamConnection(Stream::createClient($address));
     }
 
     public function createServerConnection(string $address): ConnectionInterface
     {
-        return new Connection(Stream::createServer($address));
+        return $this->createStreamConnection(Stream::createServer($address));
     }
 }
