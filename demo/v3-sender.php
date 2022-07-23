@@ -15,4 +15,5 @@ $logger  = new ConsoleLogger(new ConsoleOutput(ConsoleOutput::VERBOSITY_DEBUG));
 $sender = new Sender('127.0.0.1:2775', $factory, $session, $logger);
 $sender->bind();
 $sender->sendSMS(new SMS('HELLO', new Address(0, 0, '+38(066)0660660')));
+sleep(60);
 $sender->exit();

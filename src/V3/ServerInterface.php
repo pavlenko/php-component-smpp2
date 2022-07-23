@@ -28,4 +28,9 @@ interface ServerInterface
      * Dispatch connection
      */
     public function tick(): void;
+
+    /**
+     * Close all sessions & stop server
+     */
+    public function exit(): void;
 }

@@ -43,4 +43,7 @@ $server->bind();
 
 $loop = new Loop();
 $loop->addPeriodicTimer(0.01, fn() => $server->tick());
+$loop->addSingularTimer(60, fn() => $loop->stop());
 $loop->run();
+
+$server->exit();

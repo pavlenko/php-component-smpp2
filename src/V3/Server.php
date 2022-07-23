@@ -114,5 +114,10 @@ final class Server implements ServerInterface
     }
 
     public function exit(): void
-    {}
+    {
+        foreach ($this->sessions as $stream) {
+            $this->detachConnection($this->sessions[$stream]);
+        }
+        $this->connection->exit();
+    }
 }
