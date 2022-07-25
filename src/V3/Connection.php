@@ -27,6 +27,16 @@ final class Connection implements ConnectionInterface
         return $this->stream;
     }
 
+    public function getStatus(): int
+    {
+        return $this->status;
+    }
+
+    public function setStatus(int $status): void
+    {
+        $this->status = $status;
+    }
+
     public function readPDU(): ?PDUInterface
     {
         if ($this->stream->isEOF()) {

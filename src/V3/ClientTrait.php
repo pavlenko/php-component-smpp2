@@ -3,6 +3,7 @@
 namespace PE\Component\SMPP\V3;
 
 use Psr\Log\LoggerInterface;
+use Psr\Log\LogLevel;
 use Psr\Log\NullLogger;
 
 trait ClientTrait
@@ -30,7 +31,7 @@ trait ClientTrait
             'system_id'         => $this->session->getSystemID(),
             'password'          => $this->session->getPassword(),
             'system_type'       => '',
-            'interface_version' => 0x34,
+            'interface_version' => ConnectionInterface::INTERFACE_VER,
             'address'           => $this->session->getAddress(),
         ]));
 
@@ -48,7 +49,7 @@ trait ClientTrait
 
         $response = $this->connection->waitPDU($sequenceNum);
         if (PDUInterface::STATUS_NO_ERROR !== $response->getStatus()) {
-            throw new \UnexpectedValueException('Error', $response->getStatus());//maybe bot need
+            $this->logger->log(LogLevel::WARNING, 'UNBIND failed: ' . $response->getStatus());
         }
 
         $this->connection->exit();

@@ -32,6 +32,20 @@ interface ConnectionInterface
     public function getStream(): Stream;
 
     /**
+     * Get status code
+     *
+     * @return int
+     */
+    public function getStatus(): int;
+
+    /**
+     * Set status code
+     *
+     * @param int $status
+     */
+    public function setStatus(int $status): void;
+
+    /**
      * Read PDU
      *
      * @return PDUInterface|null Returns PDU object on success, null on error (need exception) or no data
