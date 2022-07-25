@@ -10,7 +10,7 @@ use Psr\Log\NullLogger;
 
 final class Server implements ServerInterface
 {
-    use Events;//TODO as dispatcher
+    use Events;
 
     public const EVENT_RECEIVE = 'server.receive';
 
