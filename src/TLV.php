@@ -1,8 +1,8 @@
 <?php
 
-namespace PE\Component\SMPP\PDU;
+namespace PE\Component\SMPP;
 
-final class TLV
+final class TLV implements TLVInterface
 {
     private int $tag;
     private string $value;

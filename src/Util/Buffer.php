@@ -3,7 +3,7 @@
 namespace PE\Component\SMPP\Util;
 
 use PE\Component\SMPP\PDU\Address;
-use PE\Component\SMPP\PDU\TLV;
+use PE\Component\SMPP\TLV;
 
 final class Buffer
 {
