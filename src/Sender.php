@@ -1,9 +1,9 @@
 <?php
 
-namespace PE\Component\SMPP\V3;
+namespace PE\Component\SMPP;
 
-use PE\Component\SMPP\ClientTrait;
-use PE\Component\SMPP\SMSInterface;
+use PE\Component\SMPP\V3\PDU;
+use PE\Component\SMPP\V3\PDUInterface;
 
 final class Sender implements SenderInterface
 {

@@ -1,8 +1,6 @@
 <?php
 
-namespace PE\Component\SMPP\V3;
-
-use PE\Component\SMPP\SMSInterface;
+namespace PE\Component\SMPP;
 
 interface SenderInterface
 {
