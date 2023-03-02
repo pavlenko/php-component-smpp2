@@ -3,14 +3,14 @@
 namespace PE\Component\SMPP;
 
 use PE\Component\SMPP\DTO\Address;
-use PE\Component\SMPP\DTO\PDUInterface;
+use PE\Component\SMPP\DTO\PDU;
 
 final class SMS implements SMSInterface
 {
     private string $message;
     private Address $recipient;
     private ?Address $sender = null;
-    private int $dataCoding = PDUInterface::DATA_CODING_DEFAULT;
+    private int $dataCoding = PDU::DATA_CODING_DEFAULT;
     private ?\DateTimeImmutable $scheduleAt = null;
     private bool $registeredDelivery = false;
 

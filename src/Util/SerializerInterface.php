@@ -2,21 +2,21 @@
 
 namespace PE\Component\SMPP\Util;
 
-use PE\Component\SMPP\DTO\PDUInterface;
+use PE\Component\SMPP\DTO\PDU;
 
 interface SerializerInterface
 {
     /**
      * @param string $pdu
      *
-     * @return PDUInterface
+     * @return PDU
      */
-    public function decode(string $pdu): PDUInterface;
+    public function decode(string $pdu): PDU;
 
     /**
-     * @param PDUInterface $pdu
+     * @param PDU $pdu
      *
      * @return string
      */
-    public function encode(PDUInterface $pdu): string;
+    public function encode(PDU $pdu): string;
 }

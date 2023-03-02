@@ -2,7 +2,7 @@
 
 namespace PE\Component\SMPP;
 
-use PE\Component\SMPP\DTO\PDUInterface;
+use PE\Component\SMPP\DTO\PDU;
 use PE\Component\SMPP\Exception\TimeoutException;
 use PE\Component\SMPP\Util\Serializer;
 use PE\Component\SMPP\Util\SerializerInterface;
@@ -40,7 +40,7 @@ final class Connection implements ConnectionInterface
         $this->status = $status;
     }
 
-    public function readPDU(): ?PDUInterface
+    public function readPDU(): ?PDU
     {
         if ($this->stream->isEOF()) {
             $this->logger->log(LogLevel::WARNING, 'Connection closed by remote');
@@ -59,13 +59,13 @@ final class Connection implements ConnectionInterface
         return $pdu;
     }
 
-    public function sendPDU(PDUInterface $pdu): void
+    public function sendPDU(PDU $pdu): void
     {
         $this->logger->log(LogLevel::DEBUG, sprintf('sendPDU(0x%08X, 0x%08X, %d)', $pdu->getID(), $pdu->getStatus(), $pdu->getSeqNum()));
         $this->stream->sendData($this->serializer->encode($pdu));
     }
 
-    public function waitPDU(int $seqNum = 0, float $timeout = 0.01): PDUInterface
+    public function waitPDU(int $seqNum = 0, float $timeout = 0.01): PDU
     {
         $this->logger->log(LogLevel::DEBUG, __FUNCTION__);
         do {

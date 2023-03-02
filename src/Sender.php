@@ -3,7 +3,6 @@
 namespace PE\Component\SMPP;
 
 use PE\Component\SMPP\DTO\PDU;
-use PE\Component\SMPP\DTO\PDUInterface;
 
 final class Sender implements SenderInterface
 {
@@ -13,7 +12,7 @@ final class Sender implements SenderInterface
     {
         $sequenceNum = $this->session->newSequenceNum();
 
-        $this->connection->sendPDU(new PDU(PDUInterface::ID_SUBMIT_SM, PDUInterface::STATUS_NO_ERROR, $sequenceNum, [
+        $this->connection->sendPDU(new PDU(PDU::ID_SUBMIT_SM, PDU::STATUS_NO_ERROR, $sequenceNum, [
             'short_message'          => $message->getMessage(),
             'dest_address'           => $message->getRecipient(),
             'source_address'         => $message->getSender() ?: $this->session->getAddress(),
@@ -23,7 +22,7 @@ final class Sender implements SenderInterface
         ]));
 
         $response = $this->connection->waitPDU($sequenceNum);
-        if (PDUInterface::STATUS_NO_ERROR !== $response->getStatus()) {
+        if (PDU::STATUS_NO_ERROR !== $response->getStatus()) {
             throw new \UnexpectedValueException('Error', $response->getStatus());
         }
 

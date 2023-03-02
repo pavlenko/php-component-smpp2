@@ -2,7 +2,7 @@
 
 namespace PE\Component\SMPP;
 
-use PE\Component\SMPP\DTO\PDUInterface;
+use PE\Component\SMPP\DTO\PDU;
 use PE\Component\SMPP\Util\Stream;
 
 final class Client implements ClientInterface
@@ -32,7 +32,7 @@ final class Client implements ClientInterface
             //TODO $this->detachConnection($connection, false);
             return;
         }
-        if (PDUInterface::STATUS_NO_ERROR !== $pdu->getStatus()) {
+        if (PDU::STATUS_NO_ERROR !== $pdu->getStatus()) {
             throw new \UnexpectedValueException('Error', $pdu->getStatus());
         }
         $this->events->trigger(self::EVENT_RECEIVE, $connection, $pdu);

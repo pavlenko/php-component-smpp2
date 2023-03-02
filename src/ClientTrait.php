@@ -3,7 +3,6 @@
 namespace PE\Component\SMPP;
 
 use PE\Component\SMPP\DTO\PDU;
-use PE\Component\SMPP\DTO\PDUInterface;
 use PE\Component\SMPP\Util\EventsInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
@@ -32,7 +31,7 @@ trait ClientTrait
         $sequenceNum = $this->session->newSequenceNum();
 
         $this->connection = $this->factory->createClientConnection($this->address, $this->logger);
-        $this->connection->sendPDU(new PDU(PDUInterface::ID_BIND_TRANSMITTER, PDUInterface::STATUS_NO_ERROR, $sequenceNum, [
+        $this->connection->sendPDU(new PDU(PDU::ID_BIND_TRANSMITTER, PDU::STATUS_NO_ERROR, $sequenceNum, [
             'system_id'         => $this->session->getSystemID(),
             'password'          => $this->session->getPassword(),
             'system_type'       => '',
@@ -41,7 +40,7 @@ trait ClientTrait
         ]));
 
         $response = $this->connection->waitPDU($sequenceNum);
-        if (PDUInterface::STATUS_NO_ERROR !== $response->getStatus()) {
+        if (PDU::STATUS_NO_ERROR !== $response->getStatus()) {
             throw new \UnexpectedValueException('Error', $response->getStatus());
         }
     }
@@ -50,10 +49,10 @@ trait ClientTrait
     {
         $sequenceNum = $this->session->newSequenceNum();
 
-        $this->connection->sendPDU(new PDU(PDUInterface::ID_UNBIND, PDUInterface::STATUS_NO_ERROR, $sequenceNum));
+        $this->connection->sendPDU(new PDU(PDU::ID_UNBIND, PDU::STATUS_NO_ERROR, $sequenceNum));
 
         $response = $this->connection->waitPDU($sequenceNum);
-        if (PDUInterface::STATUS_NO_ERROR !== $response->getStatus()) {
+        if (PDU::STATUS_NO_ERROR !== $response->getStatus()) {
             $this->logger->log(LogLevel::WARNING, 'UNBIND failed: ' . $response->getStatus());
         }
 

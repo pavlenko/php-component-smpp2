@@ -6,7 +6,6 @@ use PE\Component\Loop\Loop;
 use PE\Component\SMPP\ConnectionInterface;
 use PE\Component\SMPP\DTO\PDU;
 use PE\Component\SMPP\Factory;
-use PE\Component\SMPP\DTO\PDUInterface;
 use PE\Component\SMPP\Server;
 use PE\Component\SMPP\Session;
 use PE\Component\SMPP\Util\Events;
@@ -21,10 +20,10 @@ $events  = new Events();
 $logger  = new ConsoleLogger(new ConsoleOutput(ConsoleOutput::VERBOSITY_DEBUG));
 
 $server = new Server('127.0.0.1:2775', $factory, $session, $events, $logger);
-$events->attach(Server::EVENT_RECEIVE, function (ConnectionInterface $connection, PDUInterface $pdu) {
+$events->attach(Server::EVENT_RECEIVE, function (ConnectionInterface $connection, PDU $pdu) {
     var_dump($pdu);
-    if ($pdu->getID() === PDUInterface::ID_SUBMIT_SM) {
-        $connection->sendPDU(new PDU(PDUInterface::ID_SUBMIT_SM_RESP, 0, $pdu->getSeqNum(), [
+    if ($pdu->getID() === PDU::ID_SUBMIT_SM) {
+        $connection->sendPDU(new PDU(PDU::ID_SUBMIT_SM_RESP, 0, $pdu->getSeqNum(), [
             'message_id' => sprintf(//<-- simple UUID generator
                 '%04X%04X%04X%04X%04X%04X%04X%04X',
                 // 32 bits for "time_low"

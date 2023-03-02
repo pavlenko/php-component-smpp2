@@ -2,7 +2,7 @@
 
 namespace PE\Component\SMPP;
 
-use PE\Component\SMPP\DTO\PDUInterface;
+use PE\Component\SMPP\DTO\PDU;
 use PE\Component\SMPP\Exception\ConnectionException;
 use PE\Component\SMPP\Exception\InvalidPDUException;
 use PE\Component\SMPP\Exception\TimeoutException;
@@ -20,9 +20,9 @@ interface ConnectionInterface
     public const STATUS_CLOSED    = 0b1000;
 
     public const BOUND_MAP = [
-        PDUInterface::ID_BIND_RECEIVER    => self::STATUS_BOUND_TX,
-        PDUInterface::ID_BIND_TRANSMITTER => self::STATUS_BOUND_RX,
-        PDUInterface::ID_BIND_TRANSCEIVER => self::STATUS_BOUND_TRX,
+        PDU::ID_BIND_RECEIVER    => self::STATUS_BOUND_TX,
+        PDU::ID_BIND_TRANSMITTER => self::STATUS_BOUND_RX,
+        PDU::ID_BIND_TRANSCEIVER => self::STATUS_BOUND_TRX,
     ];
 
     /**
@@ -49,21 +49,21 @@ interface ConnectionInterface
     /**
      * Read PDU
      *
-     * @return PDUInterface|null Returns PDU object on success, null on error (need exception) or no data
+     * @return PDU|null Returns PDU object on success, null on error (need exception) or no data
      *
      * @throws ConnectionException
      * @throws InvalidPDUException
      */
-    public function readPDU(): ?PDUInterface;
+    public function readPDU(): ?PDU;
 
     /**
      * Send PDU
      *
-     * @param PDUInterface|null $pdu
+     * @param PDU|null $pdu
      *
      * @throws ConnectionException
      */
-    public function sendPDU(PDUInterface $pdu): void;
+    public function sendPDU(PDU $pdu): void;
 
     /**
      * Wait PDU by sequence number (if greater than 0)
@@ -71,11 +71,11 @@ interface ConnectionInterface
      * @param int $seqNum
      * @param float $timeout
      *
-     * @return PDUInterface
+     * @return PDU
      *
      * @throws TimeoutException
      */
-    public function waitPDU(int $seqNum = 0, float $timeout = 0): PDUInterface;
+    public function waitPDU(int $seqNum = 0, float $timeout = 0): PDU;
 
     /**
      * Send UNBIND command and close stream connection

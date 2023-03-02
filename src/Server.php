@@ -3,7 +3,6 @@
 namespace PE\Component\SMPP;
 
 use PE\Component\SMPP\DTO\PDU;
-use PE\Component\SMPP\DTO\PDUInterface;
 use PE\Component\SMPP\Util\EventsInterface;
 use PE\Component\SMPP\Util\Stream;
 use Psr\Log\LoggerInterface;
@@ -75,7 +74,7 @@ final class Server implements ServerInterface
 
         $pdu = $connection->waitPDU();
         if (array_key_exists($pdu->getID(), ConnectionInterface::BOUND_MAP)) {
-            $connection->sendPDU(new PDU(PDUInterface::ID_GENERIC_NACK | $pdu->getID(), 0, $pdu->getSeqNum()));
+            $connection->sendPDU(new PDU(PDU::ID_GENERIC_NACK | $pdu->getID(), 0, $pdu->getSeqNum()));
         }
     }
 
@@ -86,7 +85,7 @@ final class Server implements ServerInterface
         if ($unbind) {
             $sequenceNum = $this->session->newSequenceNum();
 
-            $this->connection->sendPDU(new PDU(PDUInterface::ID_UNBIND, PDUInterface::STATUS_NO_ERROR, $sequenceNum));
+            $this->connection->sendPDU(new PDU(PDU::ID_UNBIND, PDU::STATUS_NO_ERROR, $sequenceNum));
             $this->connection->waitPDU($sequenceNum);
         }
 
@@ -101,13 +100,13 @@ final class Server implements ServerInterface
             $this->detachConnection($connection, false);
             return;
         }
-        if (PDUInterface::STATUS_NO_ERROR !== $pdu->getStatus()) {
+        if (PDU::STATUS_NO_ERROR !== $pdu->getStatus()) {
             throw new \UnexpectedValueException('Error', $pdu->getStatus());
         }
 
         switch ($pdu->getID()) {
-            case PDUInterface::ID_UNBIND:
-                $connection->sendPDU(new PDU(PDUInterface::ID_UNBIND_RESP, 0, $pdu->getSeqNum()));
+            case PDU::ID_UNBIND:
+                $connection->sendPDU(new PDU(PDU::ID_UNBIND_RESP, 0, $pdu->getSeqNum()));
                 $this->detachConnection($connection, false);
                 break;
             default:
