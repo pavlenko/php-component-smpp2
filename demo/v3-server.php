@@ -6,6 +6,7 @@ use PE\Component\Loop\Loop;
 use PE\Component\SMPP\ConnectionInterface;
 use PE\Component\SMPP\Factory;
 use PE\Component\SMPP\Server;
+use PE\Component\SMPP\Session;
 use Symfony\Component\Console\Logger\ConsoleLogger;
 use Symfony\Component\Console\Output\ConsoleOutput;
 
