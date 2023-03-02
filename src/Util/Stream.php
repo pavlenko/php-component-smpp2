@@ -2,6 +2,8 @@
 
 namespace PE\Component\SMPP\Util;
 
+use PE\Component\SMPP\Exception\StreamException;
+
 final class Stream
 {
     /**

@@ -3,7 +3,7 @@
 namespace PE\Component\SMPP\Tests\Util;
 
 use PE\Component\SMPP\Util\Stream;
-use PE\Component\SMPP\Util\StreamException;
+use PE\Component\SMPP\Exception\StreamException;
 use phpmock\phpunit\PHPMock;
 use PHPUnit\Framework\TestCase;
 
