@@ -28,6 +28,13 @@ interface SessionInterface
     public function getAddress(): ?Address;
 
     /**
+     * Get current sequence number
+     *
+     * @return int
+     */
+    public function getSequenceNum(): int;
+
+    /**
      * Get new sequence num for send PDU
      *
      * @return int

@@ -41,6 +41,11 @@ final class Session implements SessionInterface
         return $this->address;
     }
 
+    public function getSequenceNum(): int
+    {
+        return $this->seqNum;
+    }
+
     public function newSequenceNum(): int
     {
         return $this->seqNum++;
