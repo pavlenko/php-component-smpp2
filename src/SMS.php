@@ -3,7 +3,6 @@
 namespace PE\Component\SMPP;
 
 use PE\Component\SMPP\PDU\Address;
-use PE\Component\SMPP\V3\PDUInterface;
 
 final class SMS implements SMSInterface
 {

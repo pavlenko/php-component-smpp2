@@ -4,8 +4,6 @@ namespace PE\Component\SMPP;
 
 use PE\Component\SMPP\PDU\TLV;
 use PE\Component\SMPP\Util\Buffer;
-use PE\Component\SMPP\V3\PDU;
-use PE\Component\SMPP\V3\PDUInterface;
 
 final class Serializer implements SerializerInterface
 {

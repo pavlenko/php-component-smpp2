@@ -2,9 +2,6 @@
 
 namespace PE\Component\SMPP;
 
-use PE\Component\SMPP\V3\PDU;
-use PE\Component\SMPP\V3\PDUInterface;
-
 final class Sender implements SenderInterface
 {
     use ClientTrait;

@@ -2,8 +2,6 @@
 
 namespace PE\Component\SMPP;
 
-use PE\Component\SMPP\V3\PDU;
-use PE\Component\SMPP\V3\PDUInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 use Psr\Log\NullLogger;
