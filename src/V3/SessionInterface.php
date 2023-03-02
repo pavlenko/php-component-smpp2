@@ -1,6 +1,7 @@
 <?php
 
 namespace PE\Component\SMPP\V3;
+
 use PE\Component\SMPP\PDU\Address;
 
 interface SessionInterface

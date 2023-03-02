@@ -3,6 +3,7 @@
 namespace PE\Component\SMPP\V3;
 
 use PE\Component\SMPP\PDU\Address;
+use PE\Component\SMPP\SMS;
 use Symfony\Component\Console\Logger\ConsoleLogger;
 use Symfony\Component\Console\Output\ConsoleOutput;
 

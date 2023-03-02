@@ -2,6 +2,8 @@
 
 namespace PE\Component\SMPP\V3;
 
+use PE\Component\SMPP\SMSInterface;
+
 interface SenderInterface
 {
     /**

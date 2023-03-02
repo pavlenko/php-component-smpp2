@@ -1,6 +1,6 @@
 <?php
 
-namespace PE\Component\SMPP\V3;
+namespace PE\Component\SMPP;
 
 interface TLVInterface
 {
