@@ -221,16 +221,18 @@ final class Stream
     /**
      * Retrieve the name of the remote socket
      *
+     * TEMPORARY COMMENTED OUT
+     *
      * @return string
      */
-    public function getPeerName(): string
-    {
-        $name = stream_socket_get_name($this->resource, true);
-        if (false === $name) {
-            throw new StreamException('Cannot retrieve the name of socket');
-        }
-        return $name;
-    }
+//    public function getPeerName(): string
+//    {
+//        $name = stream_socket_get_name($this->resource, true);
+//        if (false === $name) {
+//            throw new StreamException('Cannot retrieve the name of socket');
+//        }
+//        return $name;
+//    }
 
     /**
      * Retrieves header/metadata
@@ -276,6 +278,11 @@ final class Stream
         }
     }
 
+    /**
+     * Check if stream closed by remote
+     *
+     * @return bool
+     */
     public function isEOF(): bool
     {
         return @feof($this->resource);

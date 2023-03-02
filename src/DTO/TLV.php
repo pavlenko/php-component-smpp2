@@ -2,6 +2,9 @@
 
 namespace PE\Component\SMPP\DTO;
 
+/**
+ * @codeCoverageIgnore
+ */
 final class TLV
 {
     public const TAG_DEST_ADDR_SUBUNIT           = 0x0005;

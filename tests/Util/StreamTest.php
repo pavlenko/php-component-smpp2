@@ -133,6 +133,15 @@ final class StreamTest extends TestCase
         self::assertSame($s2, current($r));
     }
 
+    public function testResource(): void
+    {
+        $resource = $this->getResource();
+        $stream   = new Stream($resource);
+
+        self::assertSame($resource, $stream->getResource());
+        self::assertFalse($stream->isEOF());
+    }
+
     public function testSetTimeoutFailure(): void
     {
         $this->expectException(StreamException::class);

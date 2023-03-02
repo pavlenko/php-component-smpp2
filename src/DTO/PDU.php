@@ -2,7 +2,9 @@
 
 namespace PE\Component\SMPP\DTO;
 
-//TODO phpdoc
+/**
+ * @codeCoverageIgnore
+ */
 final class PDU
 {
     public const ID_GENERIC_NACK          = 0x80_00_00_00;//<-- this is response

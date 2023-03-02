@@ -2,6 +2,9 @@
 
 namespace PE\Component\SMPP\DTO;
 
+/**
+ * @codeCoverageIgnore
+ */
 final class Address
 {
     public const TON_UNKNOWN           = 0b00000000;
