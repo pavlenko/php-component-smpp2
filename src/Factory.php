@@ -2,14 +2,23 @@
 
 namespace PE\Component\SMPP;
 
+use PE\Component\SMPP\Util\Serializer;
+use PE\Component\SMPP\Util\SerializerInterface;
 use PE\Component\SMPP\Util\Stream;
 use Psr\Log\LoggerInterface;
 
 final class Factory implements FactoryInterface
 {
+    private SerializerInterface $serializer;
+
+    public function __construct(SerializerInterface $serializer = null)
+    {
+        $this->serializer = $serializer ?: new Serializer();
+    }
+
     public function createStreamConnection(Stream $stream, LoggerInterface $logger = null): ConnectionInterface
     {
-        return new Connection($stream, null, $logger);
+        return new Connection($stream, $this->serializer, $logger);
     }
 
     public function createClientConnection(string $address, LoggerInterface $logger = null): ConnectionInterface

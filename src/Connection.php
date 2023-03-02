@@ -18,10 +18,10 @@ final class Connection implements ConnectionInterface
     private LoggerInterface $logger;
     private int $status;
 
-    public function __construct(Stream $stream, SerializerInterface $serializer = null, LoggerInterface $logger = null)
+    public function __construct(Stream $stream, SerializerInterface $serializer, LoggerInterface $logger = null)
     {
         $this->stream     = $stream;
-        $this->serializer = $serializer ?: new Serializer();
+        $this->serializer = $serializer;
         $this->logger     = $logger ?: new NullLogger();
     }
 
@@ -54,7 +54,7 @@ final class Connection implements ConnectionInterface
         }
 
         $buffer = $this->stream->readData(unpack('N', $length)[1] - 4);
-        $pdu    =  $this->serializer->decode($buffer);
+        $pdu    = $this->serializer->decode($buffer);
         $this->logger->log(LogLevel::DEBUG, sprintf('readPDU(0x%08X, 0x%08X, %d)', $pdu->getID(), $pdu->getStatus(), $pdu->getSeqNum()));
         return $pdu;
     }
