@@ -2,6 +2,7 @@
 
 namespace PE\Component\SMPP;
 
+use PE\Component\SMPP\Util\EventsInterface;
 use PE\Component\SMPP\Util\Stream;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
@@ -9,22 +10,22 @@ use Psr\Log\NullLogger;
 
 final class Server implements ServerInterface
 {
-    use Events;
-
     public const EVENT_RECEIVE = 'server.receive';
 
     private string $address;
     private FactoryInterface $factory;
     private SessionInterface $session;
+    private EventsInterface $events;
     private LoggerInterface $logger;
     private ConnectionInterface $connection;
     private \SplObjectStorage $sessions;
 
-    public function __construct(string $address, FactoryInterface $factory, SessionInterface $session, LoggerInterface $logger = null)
+    public function __construct(string $address, FactoryInterface $factory, SessionInterface $session, EventsInterface $events, LoggerInterface $logger = null)
     {
         $this->address = $address;
         $this->factory = $factory;
         $this->session = $session;
+        $this->events  = $events;
         $this->logger  = $logger ?: new NullLogger();
 
         $this->sessions = new \SplObjectStorage();
@@ -108,7 +109,7 @@ final class Server implements ServerInterface
                 $this->detachConnection($connection, false);
                 break;
             default:
-                $this->emit(self::EVENT_RECEIVE, $connection, $pdu);
+                $this->events->trigger(self::EVENT_RECEIVE, $connection, $pdu);
         }
     }
 

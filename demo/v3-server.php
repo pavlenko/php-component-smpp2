@@ -9,6 +9,7 @@ use PE\Component\SMPP\Body;
 use PE\Component\SMPP\PDUInterface;
 use PE\Component\SMPP\Server;
 use PE\Component\SMPP\Session;
+use PE\Component\SMPP\Util\Events;
 use Symfony\Component\Console\Logger\ConsoleLogger;
 use Symfony\Component\Console\Output\ConsoleOutput;
 
@@ -16,10 +17,11 @@ require_once __DIR__ . '/../vendor/autoload.php';
 
 $factory = new Factory();
 $session = new Session('SERVER');
+$events  = new Events();
 $logger  = new ConsoleLogger(new ConsoleOutput(ConsoleOutput::VERBOSITY_DEBUG));
 
-$server = new Server('127.0.0.1:2775', $factory, $session, $logger);
-$server->on(Server::EVENT_RECEIVE, function (ConnectionInterface $connection, PDUInterface $pdu) {
+$server = new Server('127.0.0.1:2775', $factory, $session, $events, $logger);
+$events->attach(Server::EVENT_RECEIVE, function (ConnectionInterface $connection, PDUInterface $pdu) {
     var_dump($pdu);
     if ($pdu->getID() === PDUInterface::ID_SUBMIT_SM) {
         $connection->sendPDU(new PDU(PDUInterface::ID_SUBMIT_SM_RESP, 0, $pdu->getSeqNum(), [

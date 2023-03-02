@@ -1,29 +1,20 @@
 <?php
 
-namespace PE\Component\SMPP;
+namespace PE\Component\SMPP\Util;
 
-trait Events
+final class Events implements EventsInterface
 {
     /**
-     * @var array
+     * @var array<string, array<int, callable>>
      */
     private array $listeners = [];
 
-    /**
-     * @param string   $event
-     * @param callable $listener
-     * @param int      $priority
-     */
-    public function on(string $event, callable $listener, int $priority = 0): void
+    public function attach(string $event, callable $listener, int $priority = 0): void
     {
         $this->listeners[$event][$priority][] = $listener;
     }
 
-    /**
-     * @param string   $event
-     * @param callable $listener
-     */
-    public function off(string $event, callable $listener): void
+    public function detach(string $event, callable $listener): void
     {
         if (empty($this->listeners[$event])) {
             return;
@@ -46,11 +37,7 @@ trait Events
         }
     }
 
-    /**
-     * @param string $event
-     * @param mixed  ...$arguments
-     */
-    public function emit(string $event, ...$arguments): void
+    public function trigger(string $event, ...$arguments): void
     {
         if (empty($this->listeners[$event])) {
             return;

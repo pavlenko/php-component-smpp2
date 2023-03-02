@@ -3,12 +3,10 @@
 namespace PE\Component\SMPP;
 
 use PE\Component\SMPP\Util\Stream;
-use PE\Component\SMPP\PDUInterface;
 
-class Client implements ClientInterface
+final class Client implements ClientInterface
 {
     use ClientTrait;
-    use Events;
 
     public const EVENT_RECEIVE = 'server.receive';
 
@@ -36,6 +34,6 @@ class Client implements ClientInterface
         if (PDUInterface::STATUS_NO_ERROR !== $pdu->getStatus()) {
             throw new \UnexpectedValueException('Error', $pdu->getStatus());
         }
-        $this->emit(self::EVENT_RECEIVE, $connection, $pdu);//TODO extension point
+        $this->events->trigger(self::EVENT_RECEIVE, $connection, $pdu);
     }
 }

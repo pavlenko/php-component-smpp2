@@ -2,6 +2,7 @@
 
 namespace PE\Component\SMPP;
 
+use PE\Component\SMPP\Util\EventsInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 use Psr\Log\NullLogger;
@@ -11,14 +12,16 @@ trait ClientTrait
     private string $address;
     private FactoryInterface $factory;
     private SessionInterface $session;
+    private EventsInterface $events;
     private LoggerInterface $logger;
     private ConnectionInterface $connection;
 
-    public function __construct(string $address, FactoryInterface $factory, SessionInterface $session, LoggerInterface $logger = null)
+    public function __construct(string $address, FactoryInterface $factory, SessionInterface $session, EventsInterface $events, LoggerInterface $logger = null)
     {
         $this->address = $address;
         $this->factory = $factory;
         $this->session = $session;
+        $this->events  = $events;
         $this->logger  = $logger ?: new NullLogger();
     }
 
