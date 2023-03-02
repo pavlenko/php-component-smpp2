@@ -20,37 +20,37 @@ final class Client
     private string $address;
     private string $systemID;
     private ?string $password;
-    private LoggerInterface $logger;
+    private $logger;
 
-    private ?Session $session = null;
+    private $session = null;
 
     /**
      * @var Packet[]
      */
     private array $waitPDUs = [];
 
-    public function __construct(string $address, string $systemID, string $password = null, LoggerInterface $logger = null)
+    public function __construct(string $address, string $systemID, string $password = null, $logger = null)
     {
         $this->address  = $address;
         $this->systemID = $systemID;
         $this->password = $password;
-        $this->logger   = $logger ?: new LoggerSTDOUT();
+        $this->logger   = $logger;
     }
 
     public function init()
     {
         $this->logger && $this->logger->log($this, LogLevel::DEBUG, 'Connect to ' . $this->address);
 
-        $stream = Stream::createClient($this->address, null, Session::TIMEOUT_CONNECT);
+        $stream = Stream::createClient($this->address, null, 30);
         $stream->setBlocking(false);
 
-        $this->session = new Session($stream, $this->logger);
+        $this->session = null;
 
         $pdu = new BindTransmitter();
         $pdu->setSystemID($this->systemID);
         $pdu->setPassword($this->password ?: "\0");
 
-        $this->waitPDUs[] = new Packet($pdu, PDU::BIND_TRANSMITTER_RESP, Session::TIMEOUT_RESPONSE);
+        $this->waitPDUs[] = new Packet($pdu, PDU::BIND_TRANSMITTER_RESP, 30);
     }
 
     public function send(Address $src, Address $dst, string $text): void
@@ -71,7 +71,7 @@ final class Client
         $pdu->setDestinationAddress($dst);
         $pdu->setShortMessage($text);
 
-        $this->session->sendPDU($pdu, PDU::SUBMIT_SM_RESP, Session::TIMEOUT_RESPONSE);
+        $this->session->sendPDU($pdu, PDU::SUBMIT_SM_RESP, 30);
     }
 
     public function tick(): bool
@@ -94,61 +94,6 @@ final class Client
             $this->handlePending($this->session);
         }
         return true;
-    }
-
-    private function detachSession(Session $session, string $reason): void
-    {
-        if ($this->session === $session) {
-            $this->logger->log($this, LogLevel::DEBUG, __FUNCTION__ . ', reason: ' . $reason);
-            $this->session->close();
-            $this->session = null;
-        }
-    }
-
-    private function handleReceive(Session $session): void
-    {
-        $pdu = $session->readPDU();
-        if (null === $pdu) {
-            $this->detachSession($session, 'NO RESPOND');
-            return;
-        }
-
-        switch (true) {
-            case ($pdu instanceof DeliverSm):
-                $response = new DeliverSmResp();
-                break;
-            case ($pdu instanceof EnquireLink):
-                $response = new EnquireLinkResp();
-                break;
-            default:
-                //$response = new GenericNack();
-        }
-
-        if (isset($response)) {
-            $response->setCommandStatus(CommandStatus::NO_ERROR);
-            $response->setSequenceNum($pdu->getSequenceNum());
-
-            $session->sendPDU($response);
-        }
-    }
-
-    private function handleTimeout(Session $session): void
-    {
-        $sent = $session->getSentPDUs();
-        foreach ($sent as $packet) {
-            if (time() > $packet->getExpectedTime()) {
-                $this->detachSession($session, 'TIMED OUT');
-                return;
-            }
-        }
-    }
-
-    private function handlePending(Session $session): void
-    {
-        foreach ($this->waitPDUs as $key => $packet) {
-            $session->sendPDU($packet->getPDU(), $packet->getExpectedResp(), $packet->getExpectedTime());
-            unset($this->waitPDUs[$key]);
-        }
     }
 
     public function stop(): void

@@ -6,8 +6,7 @@ use PE\Component\Loop\Loop;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-$logger = new LoggerSTDOUT(LoggerSTDOUT::VERBOSITY_DEBUG);
-$client = new Client('127.0.0.1:2775', 'SYSTEM_ID', null, $logger);
+$client = new Client('127.0.0.1:2775', 'SYSTEM_ID', null);
 $client->init();
 
 $loop = new Loop(10);

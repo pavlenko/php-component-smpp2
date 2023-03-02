@@ -28,20 +28,20 @@ use Psr\Log\LogLevel;
 final class Server
 {
     private string $address;
-    private LoggerInterface $logger;
+    private $logger;
     private ?Stream $master = null;
 
     /**
-     * @var \SplObjectStorage|Session[]
+     * @var \SplObjectStorage
      */
     private \SplObjectStorage $sessions;
 
     private array $pendings = [];
 
-    public function __construct(string $address, LoggerInterface $logger = null)
+    public function __construct(string $address, $logger = null)
     {
         $this->address  = $address;
-        $this->logger   = $logger ?: new LoggerSTDOUT();
+        $this->logger   = $logger;
         $this->sessions = new \SplObjectStorage();
     }
 
@@ -64,7 +64,7 @@ final class Server
 
         if (in_array($this->master, $r)) {
             unset($r[array_search($this->master, $r)]);
-            $this->acceptSession(new Session($this->master->accept(), $this->logger));
+            //$this->acceptSession(new Session($this->master->accept(), $this->logger));
         }
 
         foreach ($r as $stream) {
@@ -81,92 +81,6 @@ final class Server
 
         foreach ($this->sessions as $stream) {
             $this->handlePending($stream);
-        }
-    }
-
-    private function acceptSession(Session $session): void
-    {
-        $this->logger->log($this, LogLevel::DEBUG, 'Accepted new connection from ' . $session->getPeerName());
-        $this->sessions->attach($session->getStream(), $session);
-    }
-
-    private function detachSession(Session $session, string $reason): void
-    {
-        $this->logger->log($this, LogLevel::DEBUG, __FUNCTION__ . ', reason: ' . $reason);
-        $session->close();
-        $this->sessions->detach($session->getStream());
-    }
-
-    private function handleReceive(Session $session): void
-    {
-        $pdu = $session->readPDU();
-        if (null === $pdu) {
-            $this->detachSession($session, 'NO RESPOND');
-            return;
-        }
-
-        switch (true) {
-            case ($pdu instanceof BindReceiver):
-                $session->setSystemID($pdu->getSystemID());
-                $session->setPassword($pdu->getPassword());
-                $response = new BindReceiverResp();
-                break;
-            case ($pdu instanceof BindTransmitter):
-                $session->setSystemID($pdu->getSystemID());
-                $session->setPassword($pdu->getPassword());
-                $response = new BindTransmitterResp();
-                break;
-            case ($pdu instanceof BindTransceiver):
-                $session->setSystemID($pdu->getSystemID());
-                $session->setPassword($pdu->getPassword());
-                $response = new BindTransceiverResp();
-                break;
-            case ($pdu instanceof Unbind):
-                $response = new UnbindResp();//TODO <-- disconnect client
-                break;
-            case ($pdu instanceof SubmitSm):
-                $response = new SubmitSmResp();
-                $response->setMessageID(uniqid('', true));
-                break;
-            case ($pdu instanceof QuerySm):
-                $response = new QuerySmResp();
-                break;
-            case ($pdu instanceof CancelSm):
-                $response = new CancelSmResp();
-                break;
-            case ($pdu instanceof ReplaceSm)://TODO <-- add fields by spec
-                $response = new ReplaceSmResp();
-                break;
-            case ($pdu instanceof EnquireLink):
-                $response = new EnquireLinkResp();
-                break;
-            default:
-                //$response = new GenericNack();
-        }
-
-        if (isset($response)) {
-            $response->setCommandStatus(CommandStatus::NO_ERROR);
-            $response->setSequenceNum($pdu->getSequenceNum());
-
-            $session->sendPDU($response);
-        }
-    }
-
-    private function handleTimeout(Session $session): void
-    {
-        foreach ($session->getSentPDUs() as $packet) {
-            if (time() > $packet->getExpectedTime()) {
-                $this->detachSession($session, 'TIMED OUT');
-                return;
-            }
-        }
-    }
-
-    private function handleEnquire(Session $session): void
-    {
-        if (time() - Session::TIMEOUT_ENQUIRE > $session->getEnquiredAt()) {
-            $session->sendPDU(new EnquireLink(), PDU::ENQUIRE_LINK_RESP, Session::TIMEOUT_RESPONSE);
-            $session->setEnquiredAt();
         }
     }
 
