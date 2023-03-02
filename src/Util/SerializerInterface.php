@@ -1,6 +1,6 @@
 <?php
 
-namespace PE\Component\SMPP;
+namespace PE\Component\SMPP\Util;
 
 use PE\Component\SMPP\DTO\PDUInterface;
 

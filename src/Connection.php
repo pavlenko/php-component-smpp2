@@ -4,6 +4,8 @@ namespace PE\Component\SMPP;
 
 use PE\Component\SMPP\DTO\PDUInterface;
 use PE\Component\SMPP\Exception\TimeoutException;
+use PE\Component\SMPP\Util\Serializer;
+use PE\Component\SMPP\Util\SerializerInterface;
 use PE\Component\SMPP\Util\Stream;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;

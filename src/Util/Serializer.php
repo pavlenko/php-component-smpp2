@@ -1,11 +1,10 @@
 <?php
 
-namespace PE\Component\SMPP;
+namespace PE\Component\SMPP\Util;
 
 use PE\Component\SMPP\DTO\PDU;
 use PE\Component\SMPP\DTO\PDUInterface;
 use PE\Component\SMPP\DTO\TLV;
-use PE\Component\SMPP\Util\Buffer;
 
 final class Serializer implements SerializerInterface
 {
