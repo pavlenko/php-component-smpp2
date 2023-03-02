@@ -1,6 +1,6 @@
 <?php
 
-namespace PE\Component\SMPP\V3;
+namespace PE\Component\SMPP;
 
 // Server daemon (can be based on client but with multiple sessions)
 // - accept multiple clients

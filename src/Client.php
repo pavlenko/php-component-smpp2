@@ -1,9 +1,10 @@
 <?php
 
-namespace PE\Component\SMPP\V3;
+namespace PE\Component\SMPP;
 
-use PE\Component\SMPP\Events;
 use PE\Component\SMPP\Util\Stream;
+use PE\Component\SMPP\V3\ConnectionInterface;
+use PE\Component\SMPP\V3\PDUInterface;
 
 class Client implements ClientInterface
 {
