@@ -8,7 +8,7 @@ final class Client implements ClientInterface
 {
     use ClientTrait;
 
-    public const EVENT_RECEIVE = 'server.receive';
+    public const EVENT_RECEIVE = 'client.receive';
 
     public function tick(): void
     {
