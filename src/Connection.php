@@ -1,11 +1,10 @@
 <?php
 
-namespace PE\Component\SMPP\V3;
+namespace PE\Component\SMPP;
 
 use PE\Component\SMPP\Exception\TimeoutException;
-use PE\Component\SMPP\Serializer;
-use PE\Component\SMPP\SerializerInterface;
 use PE\Component\SMPP\Util\Stream;
+use PE\Component\SMPP\V3\PDUInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 use Psr\Log\NullLogger;

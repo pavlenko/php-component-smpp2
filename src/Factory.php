@@ -3,8 +3,6 @@
 namespace PE\Component\SMPP;
 
 use PE\Component\SMPP\Util\Stream;
-use PE\Component\SMPP\V3\Connection;
-use PE\Component\SMPP\V3\ConnectionInterface;
 use Psr\Log\LoggerInterface;
 
 final class Factory implements FactoryInterface

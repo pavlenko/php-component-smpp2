@@ -3,7 +3,6 @@
 namespace PE\Component\SMPP;
 
 use PE\Component\SMPP\Util\Stream;
-use PE\Component\SMPP\V3\ConnectionInterface;
 use PE\Component\SMPP\V3\PDU;
 use PE\Component\SMPP\V3\PDUInterface;
 use PE\Component\SMPP\V3\SessionInterface;

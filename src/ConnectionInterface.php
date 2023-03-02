@@ -1,11 +1,12 @@
 <?php
 
-namespace PE\Component\SMPP\V3;
+namespace PE\Component\SMPP;
 
 use PE\Component\SMPP\Exception\ConnectionException;
 use PE\Component\SMPP\Exception\InvalidPDUException;
 use PE\Component\SMPP\Exception\TimeoutException;
 use PE\Component\SMPP\Util\Stream;
+use PE\Component\SMPP\V3\PDUInterface;
 
 interface ConnectionInterface
 {
