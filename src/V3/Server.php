@@ -3,6 +3,7 @@
 namespace PE\Component\SMPP\V3;
 
 use PE\Component\SMPP\Events;
+use PE\Component\SMPP\FactoryInterface;
 use PE\Component\SMPP\Util\Stream;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;

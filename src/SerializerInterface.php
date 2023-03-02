@@ -1,6 +1,8 @@
 <?php
 
-namespace PE\Component\SMPP\V3;
+namespace PE\Component\SMPP;
+
+use PE\Component\SMPP\V3\PDUInterface;
 
 interface SerializerInterface
 {

@@ -3,6 +3,8 @@
 namespace PE\Component\SMPP\V3;
 
 use PE\Component\SMPP\Exception\TimeoutException;
+use PE\Component\SMPP\Serializer;
+use PE\Component\SMPP\SerializerInterface;
 use PE\Component\SMPP\Util\Stream;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;

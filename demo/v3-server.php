@@ -3,6 +3,7 @@
 namespace PE\Component\SMPP\V3;
 
 use PE\Component\Loop\Loop;
+use PE\Component\SMPP\Factory;
 use Symfony\Component\Console\Logger\ConsoleLogger;
 use Symfony\Component\Console\Output\ConsoleOutput;
 
