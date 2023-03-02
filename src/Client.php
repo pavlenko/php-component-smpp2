@@ -24,9 +24,6 @@ final class Client
 
     private $session = null;
 
-    /**
-     * @var Packet[]
-     */
     private array $waitPDUs = [];
 
     public function __construct(string $address, string $systemID, string $password = null, $logger = null)
@@ -50,7 +47,7 @@ final class Client
         $pdu->setSystemID($this->systemID);
         $pdu->setPassword($this->password ?: "\0");
 
-        $this->waitPDUs[] = new Packet($pdu, PDU::BIND_TRANSMITTER_RESP, 30);
+        //$this->waitPDUs[] = new Packet($pdu, PDU::BIND_TRANSMITTER_RESP, 30);
     }
 
     public function send(Address $src, Address $dst, string $text): void
