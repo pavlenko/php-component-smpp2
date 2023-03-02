@@ -1,11 +1,11 @@
 <?php
 
-namespace PE\Component\SMPP;
+namespace PE\Component\SMPP\DTO;
 
-use PE\Component\SMPP\DTO\Address;
-use PE\Component\SMPP\DTO\PDU;
-
-final class SMS implements SMSInterface
+/**
+ * @codeCoverageIgnore
+ */
+final class SMS
 {
     private string $message;
     private Address $recipient;

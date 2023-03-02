@@ -3,12 +3,13 @@
 namespace PE\Component\SMPP;
 
 use PE\Component\SMPP\DTO\PDU;
+use PE\Component\SMPP\DTO\SMS;
 
 final class Sender implements SenderInterface
 {
     use ClientTrait;
 
-    public function sendSMS(SMSInterface $message): string
+    public function sendSMS(SMS $message): string
     {
         $sequenceNum = $this->session->newSequenceNum();
 

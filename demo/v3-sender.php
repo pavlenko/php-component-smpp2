@@ -6,7 +6,7 @@ use PE\Component\SMPP\Factory;
 use PE\Component\SMPP\DTO\Address;
 use PE\Component\SMPP\Sender;
 use PE\Component\SMPP\Session;
-use PE\Component\SMPP\SMS;
+use PE\Component\SMPP\DTO\SMS;
 use PE\Component\SMPP\Util\Events;
 use Symfony\Component\Console\Logger\ConsoleLogger;
 use Symfony\Component\Console\Output\ConsoleOutput;

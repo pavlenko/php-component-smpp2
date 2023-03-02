@@ -2,6 +2,8 @@
 
 namespace PE\Component\SMPP;
 
+use PE\Component\SMPP\DTO\SMS;
+
 interface SenderInterface
 {
     /**
@@ -12,11 +14,11 @@ interface SenderInterface
     /**
      * Send a SMS
      *
-     * @param SMSInterface $message SMS Message
+     * @param SMS $message SMS Message
      *
      * @return string
      */
-    public function sendSMS(SMSInterface $message): string;
+    public function sendSMS(SMS $message): string;
 
     /**
      * Disconnects from server and send unbind request with result check
