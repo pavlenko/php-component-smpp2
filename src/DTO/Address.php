@@ -1,6 +1,6 @@
 <?php
 
-namespace PE\Component\SMPP;
+namespace PE\Component\SMPP\DTO;
 
 final class Address
 {

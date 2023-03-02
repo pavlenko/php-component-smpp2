@@ -4,9 +4,9 @@ namespace PE\Component\SMPP\V3;
 
 use PE\Component\Loop\Loop;
 use PE\Component\SMPP\ConnectionInterface;
+use PE\Component\SMPP\DTO\PDU;
 use PE\Component\SMPP\Factory;
-use PE\Component\SMPP\Body;
-use PE\Component\SMPP\PDUInterface;
+use PE\Component\SMPP\DTO\PDUInterface;
 use PE\Component\SMPP\Server;
 use PE\Component\SMPP\Session;
 use PE\Component\SMPP\Util\Events;

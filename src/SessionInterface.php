@@ -2,6 +2,8 @@
 
 namespace PE\Component\SMPP;
 
+use PE\Component\SMPP\DTO\Address;
+
 interface SessionInterface
 {
     /**

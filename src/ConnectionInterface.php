@@ -2,6 +2,7 @@
 
 namespace PE\Component\SMPP;
 
+use PE\Component\SMPP\DTO\PDUInterface;
 use PE\Component\SMPP\Exception\ConnectionException;
 use PE\Component\SMPP\Exception\InvalidPDUException;
 use PE\Component\SMPP\Exception\TimeoutException;

@@ -1,7 +1,8 @@
 <?php
 
-namespace PE\Component\SMPP;
+namespace PE\Component\SMPP\DTO;
 
+//TODO maybe remove this & move constants
 interface PDUInterface
 {
     public const ID_GENERIC_NACK          = 0x80_00_00_00;//<-- this is response

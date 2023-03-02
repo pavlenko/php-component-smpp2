@@ -2,6 +2,7 @@
 
 namespace PE\Component\SMPP;
 
+use PE\Component\SMPP\DTO\PDUInterface;
 use PE\Component\SMPP\Exception\TimeoutException;
 use PE\Component\SMPP\Util\Stream;
 use Psr\Log\LoggerInterface;

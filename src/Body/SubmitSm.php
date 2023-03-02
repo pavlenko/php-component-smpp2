@@ -2,7 +2,7 @@
 
 namespace PE\Component\SMPP\Body;
 
-use PE\Component\SMPP\Address;
+use PE\Component\SMPP\DTO\Address;
 use PE\Component\SMPP\Util\Buffer;
 
 class SubmitSm extends PDU

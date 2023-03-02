@@ -1,7 +1,8 @@
 <?php
 
-namespace PE\Component\SMPP;
+namespace PE\Component\SMPP\DTO;
 
+//TODO maybe remove this & move constants
 interface TLVInterface
 {
     public const TAG_DEST_ADDR_SUBUNIT           = 0x0005;

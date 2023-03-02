@@ -2,6 +2,9 @@
 
 namespace PE\Component\SMPP;
 
+use PE\Component\SMPP\DTO\Address;
+use PE\Component\SMPP\DTO\PDUInterface;
+
 final class SMS implements SMSInterface
 {
     private string $message;

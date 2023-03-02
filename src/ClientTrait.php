@@ -2,6 +2,8 @@
 
 namespace PE\Component\SMPP;
 
+use PE\Component\SMPP\DTO\PDU;
+use PE\Component\SMPP\DTO\PDUInterface;
 use PE\Component\SMPP\Util\EventsInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;

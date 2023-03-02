@@ -2,8 +2,8 @@
 
 namespace PE\Component\SMPP\Util;
 
-use PE\Component\SMPP\Address;
-use PE\Component\SMPP\TLV;
+use PE\Component\SMPP\DTO\Address;
+use PE\Component\SMPP\DTO\TLV;
 
 final class Buffer
 {

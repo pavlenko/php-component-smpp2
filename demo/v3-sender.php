@@ -3,7 +3,7 @@
 namespace PE\Component\SMPP\V3;
 
 use PE\Component\SMPP\Factory;
-use PE\Component\SMPP\Address;
+use PE\Component\SMPP\DTO\Address;
 use PE\Component\SMPP\Sender;
 use PE\Component\SMPP\Session;
 use PE\Component\SMPP\SMS;
