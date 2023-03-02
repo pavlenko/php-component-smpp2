@@ -1,6 +1,6 @@
 <?php
 
-namespace PE\Component\SMPP\PDU;
+namespace PE\Component\SMPP\Body;
 
 final class BindTransceiverResp extends BindResp
 {

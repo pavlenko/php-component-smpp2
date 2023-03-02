@@ -2,8 +2,6 @@
 
 namespace PE\Component\SMPP;
 
-use PE\Component\SMPP\PDU\Address;
-
 interface SMSInterface
 {
     public function getMessage(): string;

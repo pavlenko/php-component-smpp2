@@ -1,6 +1,6 @@
 <?php
 
-namespace PE\Component\SMPP\PDU;
+namespace PE\Component\SMPP\Body;
 
 use PE\Component\SMPP\Util\Buffer;
 

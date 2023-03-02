@@ -1,8 +1,8 @@
 <?php
 
-namespace PE\Component\SMPP\PDU;
+namespace PE\Component\SMPP\Body;
 
-final class CancelSm extends PDU
+final class CancelSmResp extends PDU
 {
     public function getCommandID(): int
     {
