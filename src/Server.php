@@ -111,7 +111,10 @@ final class Server implements ServerInterface
                 $this->detachConnection($connection, false);
                 break;
             default:
-                $this->events->trigger(self::EVENT_RECEIVE, $connection, $pdu);
+                $triggered = $this->events->trigger(self::EVENT_RECEIVE, $connection, $pdu);
+                if (0 === $triggered) {
+                    $connection->sendPDU(new PDU(PDU::ID_GENERIC_NACK, PDU::STATUS_INVALID_COMMAND_ID, $pdu->getSeqNum()));
+                }
         }
     }
 

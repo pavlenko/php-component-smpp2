@@ -24,7 +24,7 @@ final class Sender implements SenderInterface
 
         $response = $this->connection->waitPDU($sequenceNum);
         if (PDU::STATUS_NO_ERROR !== $response->getStatus()) {
-            throw new \UnexpectedValueException('Error', $response->getStatus());
+            throw new \UnexpectedValueException(sprintf('Error code 0x%08X', $response->getStatus()));
         }
 
         return $response->get('message_id');

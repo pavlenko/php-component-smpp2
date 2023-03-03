@@ -37,21 +37,24 @@ final class Events implements EventsInterface
         }
     }
 
-    public function trigger(string $event, ...$arguments): void
+    public function trigger(string $event, ...$arguments): int
     {
         if (empty($this->listeners[$event])) {
-            return;
+            return 0;
         }
 
         ksort($this->listeners[$event]);
 
+        $triggered = 0;
         foreach ($this->listeners[$event] as $listeners) {
             foreach ($listeners as $listener) {
+                $triggered++;
                 if (false === $listener(...$arguments)) {
                     // For stop event propagation listener must return FALSE
-                    return;
+                    return $triggered;
                 }
             }
         }
+        return $triggered;
     }
 }

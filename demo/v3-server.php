@@ -45,6 +45,7 @@ $events->attach(Server::EVENT_RECEIVE, function (ConnectionInterface $connection
         ]));
     }
 });
+
 $server->bind();
 
 $loop = new Loop();

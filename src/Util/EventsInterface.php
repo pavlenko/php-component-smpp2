@@ -26,6 +26,8 @@ interface EventsInterface
      *
      * @param string $event
      * @param mixed  ...$arguments
+     *
+     * @return int Count of triggered listeners
      */
-    public function trigger(string $event, ...$arguments): void;
+    public function trigger(string $event, ...$arguments): int;
 }
