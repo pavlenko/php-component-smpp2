@@ -30,6 +30,8 @@ trait ClientTrait
     {
         $sequenceNum = $this->session->newSequenceNum();
 
+        $this->logger->log(LogLevel::INFO, "SMPP Client of ($this->address) connecting ...");
+
         $this->connection = $this->factory->createClientConnection($this->address, $this->logger);
         $this->connection->sendPDU(new PDU(PDU::ID_BIND_TRANSMITTER, PDU::STATUS_NO_ERROR, $sequenceNum, [
             'system_id'         => $this->session->getSystemID(),
@@ -43,6 +45,8 @@ trait ClientTrait
         if (PDU::STATUS_NO_ERROR !== $response->getStatus()) {
             throw new \UnexpectedValueException('Error', $response->getStatus());
         }
+
+        $this->logger->log(LogLevel::INFO, "SMPP Client of ($this->address) connected");
     }
 
     public function exit(): void
