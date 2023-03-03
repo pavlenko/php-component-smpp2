@@ -225,14 +225,14 @@ final class Stream
      *
      * @return string
      */
-//    public function getPeerName(): string
-//    {
-//        $name = stream_socket_get_name($this->resource, true);
-//        if (false === $name) {
-//            throw new StreamException('Cannot retrieve the name of socket');
-//        }
-//        return $name;
-//    }
+    public function getPeerName(): string
+    {
+        $name = stream_socket_get_name($this->resource, true);
+        if (false === $name) {
+            throw new StreamException('Cannot retrieve the name of socket');
+        }
+        return $name;
+    }
 
     /**
      * Retrieves header/metadata

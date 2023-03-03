@@ -55,12 +55,14 @@ final class Connection implements ConnectionInterface
 
         $buffer = $this->stream->readData(unpack('N', $length)[1] - 4);
         $pdu    = $this->serializer->decode($buffer);
+        //TODO log constants names instead of values
         $this->logger->log(LogLevel::DEBUG, sprintf('readPDU(0x%08X, 0x%08X, %d)', $pdu->getID(), $pdu->getStatus(), $pdu->getSeqNum()));
         return $pdu;
     }
 
     public function sendPDU(PDU $pdu): void
     {
+        //TODO log constants names instead of values
         $this->logger->log(LogLevel::DEBUG, sprintf('sendPDU(0x%08X, 0x%08X, %d)', $pdu->getID(), $pdu->getStatus(), $pdu->getSeqNum()));
         $this->stream->sendData($this->serializer->encode($pdu));
     }

@@ -21,7 +21,6 @@ $logger  = new ConsoleLogger(new ConsoleOutput(ConsoleOutput::VERBOSITY_DEBUG));
 
 $server = new Server('127.0.0.1:2775', $factory, $session, $events, $logger);
 $events->attach(Server::EVENT_RECEIVE, function (ConnectionInterface $connection, PDU $pdu) {
-    var_dump($pdu);
     if ($pdu->getID() === PDU::ID_SUBMIT_SM) {
         $connection->sendPDU(new PDU(PDU::ID_SUBMIT_SM_RESP, 0, $pdu->getSeqNum(), [
             'message_id' => sprintf(//<-- simple UUID generator

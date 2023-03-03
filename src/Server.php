@@ -35,6 +35,7 @@ final class Server implements ServerInterface
     public function bind(): void
     {
         $this->connection = $this->factory->createServerConnection($this->address);
+        $this->logger->log(LogLevel::INFO, "SMPP Server ($this->address) started");
     }
 
     public function tick(): void
@@ -69,7 +70,7 @@ final class Server implements ServerInterface
 
     private function attachConnection(ConnectionInterface $connection): void
     {
-        $this->logger->log(LogLevel::INFO, 'Accept connection');
+        $this->logger->log(LogLevel::INFO, 'Accept connection from ' . $connection->getStream()->getPeerName());
         $this->sessions->attach($connection->getStream(), $connection);
 
         $pdu = $connection->waitPDU();
@@ -120,5 +121,6 @@ final class Server implements ServerInterface
             $this->detachConnection($this->sessions[$stream]);
         }
         $this->connection->exit();
+        $this->logger->log(LogLevel::INFO, "SMPP Server ($this->address) stopped");
     }
 }
