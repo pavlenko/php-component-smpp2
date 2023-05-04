@@ -2,7 +2,7 @@
 
 namespace PE\Component\SMPP\Socket;
 
-interface ServerInterface
+interface SocketServerInterface
 {
     /**
      * Set handler for input event
