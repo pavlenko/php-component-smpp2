@@ -90,4 +90,27 @@ final class Factory implements FactoryInterface
 
         return new SocketServer($stream, $this->select, $this);
     }
+
+    private function setCrypto(StreamInterface $stream, bool $enabled, int $method = null): void
+    {
+        $error = null;
+        set_error_handler(function ($_, $message) use (&$error) {
+            // @codeCoverageIgnoreStart
+            $error = str_replace(array("\r", "\n"), ' ', $message);
+
+            // remove useless function name from error message
+            $pos = strpos($error, "): ");
+            if ($pos !== false) {
+                $error = substr($error, $pos + 3);
+            }
+            // @codeCoverageIgnoreEnd
+        });
+
+        $success = stream_socket_enable_crypto($stream->getResource(), $enabled, $method);
+        restore_error_handler();
+
+        if (false === $success) {
+            throw new RuntimeException($error ?: 'Cannot set crypto method(s)');
+        }
+    }
 }
