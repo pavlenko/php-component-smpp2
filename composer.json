@@ -10,6 +10,7 @@
     "php": "^7.4",
     "ext-json": "*",
     "pe/component-event": "^1.0",
+    "pe/component-loop": "^1.0",
     "pe/component-stream": "^1.0",
     "psr/log": "^1.1"
   },
@@ -28,7 +29,6 @@
     "clue/socket-raw": "^1.6",
     "edomato/net-smpp": "v0.0.1",
     "edomato/net-smpp-reactphp-client": "0.1.0",
-    "pe/component-loop": "^1.0",
     "php-mock/php-mock": "^2.3",
     "php-mock/php-mock-phpunit": "^2.6",
     "phpunit/phpunit": "~9.0",
