@@ -53,5 +53,6 @@ final class SocketServer implements SocketServerInterface
     public function close(string $message = null): void
     {
         call_user_func($this->onClose, $message);
+        $this->stream->close();
     }
 }

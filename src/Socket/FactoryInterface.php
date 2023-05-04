@@ -14,10 +14,10 @@ interface FactoryInterface
      *
      * @param StreamInterface $master
      * @param float $timeout
-     * @return ClientInterface
+     * @return SocketClientInterface
      * @throws RuntimeException
      */
-    public function acceptClient(StreamInterface $master, float $timeout = 0): ClientInterface;
+    public function acceptClient(StreamInterface $master, float $timeout = 0): SocketClientInterface;
 
     /**
      * Create client socket
@@ -25,11 +25,11 @@ interface FactoryInterface
      * @param string $address Address to the socket to connect to.
      * @param array $context Stream transport related context.
      * @param float|null $timeout Connection timeout.
-     * @return ClientInterface
+     * @return SocketClientInterface
      * @throws InvalidArgumentException
      * @throws RuntimeException
      */
-    public function createClient(string $address, array $context = [], ?float $timeout = null): ClientInterface;
+    public function createClient(string $address, array $context = [], ?float $timeout = null): SocketClientInterface;
 
     /**
      * Create server socket
