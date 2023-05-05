@@ -9,21 +9,21 @@ interface SocketServerInterface
      *
      * @param callable $handler
      */
-    public function onInput(callable $handler): void;
+    public function setInputHandler(callable $handler): void;
 
     /**
      * Set handler for error event
      *
      * @param callable $handler
      */
-    public function onError(callable $handler): void;
+    public function setErrorHandler(callable $handler): void;
 
     /**
      * Set handler for close event
      *
      * @param callable $handler
      */
-    public function onClose(callable $handler): void;
+    public function setCloseHandler(callable $handler): void;
 
     /**
      * Close connection

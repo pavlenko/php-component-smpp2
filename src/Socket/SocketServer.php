@@ -35,17 +35,17 @@ final class SocketServer implements SocketServerInterface
         $this->onClose = fn() => null;// Dummy callback
     }
 
-    public function onInput(callable $handler): void
+    public function setInputHandler(callable $handler): void
     {
         $this->onInput = \Closure::fromCallable($handler);
     }
 
-    public function onError(callable $handler): void
+    public function setErrorHandler(callable $handler): void
     {
         $this->onError = \Closure::fromCallable($handler);
     }
 
-    public function onClose(callable $handler): void
+    public function setCloseHandler(callable $handler): void
     {
         $this->onClose = \Closure::fromCallable($handler);
     }
