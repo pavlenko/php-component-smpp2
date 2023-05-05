@@ -38,10 +38,27 @@ final class Factory implements FactoryInterface
 
     public function createClient(string $address, array $context = [], ?float $timeout = null): SocketClientInterface
     {
-        $address = self::toAddress($address, $scheme);
+        // Ensure scheme
+        $address = false !== strpos($address, '://') ? $address : 'tcp://' . $address;
+
+        // Extract parts
+        ['scheme' => $scheme, 'host' => $host, 'port' => $port] = parse_url($address);
+
+        // Validate parts
+        if (!isset($scheme, $host, $port) || $scheme !== 'tcp' && $scheme !== 'tls') {
+            throw new InvalidArgumentException('Invalid URI "' . $address . '" given (EINVAL)', SOCKET_EINVAL);
+        }
+
+        // Validate host
+        if (false === @inet_pton(trim($host, '[]'))) {
+            throw new InvalidArgumentException(
+                'Given URI "' . $address . '" does not contain a valid host IP (EINVAL)',
+                SOCKET_EINVAL
+            );
+        }
 
         $socket = @stream_socket_client(
-            'tcp://' . $address,
+            'tcp://' . $host . ':' . $port,
             $errno,
             $error,
             $timeout,
@@ -66,10 +83,30 @@ final class Factory implements FactoryInterface
 
     public function createServer(string $address, array $context = []): SocketServerInterface
     {
-        $address = self::toAddress($address, $scheme);
+        // Ensure host
+        $address = $address !== (string)(int)$address ? $address : '0.0.0.0:' . $address;
+
+        // Ensure scheme
+        $address = false !== strpos($address, '://') ? $address : 'tcp://' . $address;
+
+        // Extract parts
+        ['scheme' => $scheme, 'host' => $host, 'port' => $port] = parse_url($address);
+
+        // Validate parts
+        if (!isset($scheme, $host, $port) || $scheme !== 'tcp' && $scheme !== 'tls') {
+            throw new InvalidArgumentException('Invalid URI "' . $address . '" given (EINVAL)', SOCKET_EINVAL);
+        }
+
+        // Validate host
+        if (false === @inet_pton(trim($host, '[]'))) {
+            throw new InvalidArgumentException(
+                'Given URI "' . $address . '" does not contain a valid host IP (EINVAL)',
+                SOCKET_EINVAL
+            );
+        }
 
         $socket = @stream_socket_server(
-            'tcp://' . $address,
+            'tcp://' . $host . ':' . $port,
             $errno,
             $error,
             STREAM_SERVER_BIND|STREAM_SERVER_LISTEN,
