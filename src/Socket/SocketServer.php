@@ -20,7 +20,6 @@ final class SocketServer implements SocketServerInterface
         $this->stream->setBlocking(false);
         $this->stream->setBufferRD(0);
 
-        //TODO this can be moved to factory
         $select->attachStreamRD($stream, function () use ($factory) {
             try {
                 $client = $factory->acceptClient($this->stream);
