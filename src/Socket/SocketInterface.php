@@ -4,9 +4,6 @@ namespace PE\Component\SMPP\Socket;
 
 use PE\Component\Stream\Exception\RuntimeException;
 
-//TODO replacement for Stream(), because last if for other things
-//TODO void setCrypto()
-//TODO bool $encrypted
 interface SocketInterface
 {
     /**
@@ -24,6 +21,14 @@ interface SocketInterface
      * @return string|null
      */
     public function getAddress(bool $remote = false): ?string;
+
+    /**
+     * Enable/disable encryption on socket
+     *
+     * @param bool $enabled
+     * @param int|null $method
+     */
+    public function setCrypto(bool $enabled, int $method = null): void;
 
     /**
      * Set read/write timeout
@@ -53,6 +58,9 @@ interface SocketInterface
      * @param int $size The number of bytes to buffer. If <b>$size</b> is 0 then operations are unbuffered
      */
     public function setBufferWR(int $size): void;
+
+    //TODO maybe here???
+    public function accept(): self;
 
     /**
      * Check if stream closed by remote
