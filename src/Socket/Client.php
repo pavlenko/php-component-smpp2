@@ -6,7 +6,7 @@ use PE\Component\Stream\Exception\RuntimeException;
 use PE\Component\Stream\SelectInterface;
 use PE\Component\Stream\StreamInterface;
 
-final class SocketClient implements SocketClientInterface
+final class Client implements ClientInterface
 {
     private \Closure $onInput;
     private \Closure $onError;
@@ -42,6 +42,42 @@ final class SocketClient implements SocketClientInterface
         $this->onError = fn() => null;// Dummy callback
         $this->onInput = fn() => null;// Dummy callback
         $this->onClose = fn() => null;// Dummy callback
+    }
+
+    public function getClientAddress(): ?string
+    {
+        //TODO to base socket
+        if (!is_resource($this->stream->getResource())) {
+            return null;
+        }
+
+        $address = stream_socket_get_name($this->stream->getResource(), false);
+
+        // check if this is an IPv6 address which includes multiple colons but no square brackets
+        $pos = strrpos($address, ':');
+        if (false !== $pos && strpos($address, ':') < $pos && substr($address, 0, 1) !== '[') {
+            $address = '[' . substr($address, 0, $pos) . ']:' . substr($address, $pos + 1); // @codeCoverageIgnore
+        }
+
+        return 'tcp://' . $address;
+    }
+
+    public function getRemoteAddress(): ?string
+    {
+        //TODO to base socket
+        if (!is_resource($this->stream->getResource())) {
+            return null;
+        }
+
+        $address = stream_socket_get_name($this->stream->getResource(), true);
+
+        // check if this is an IPv6 address which includes multiple colons but no square brackets
+        $pos = strrpos($address, ':');
+        if (false !== $pos && strpos($address, ':') < $pos && substr($address, 0, 1) !== '[') {
+            $address = '[' . substr($address, 0, $pos) . ']:' . substr($address, $pos + 1); // @codeCoverageIgnore
+        }
+
+        return 'tcp://' . $address;
     }
 
     public function setInputHandler(callable $handler): void

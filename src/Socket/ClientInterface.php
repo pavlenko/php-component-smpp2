@@ -2,8 +2,22 @@
 
 namespace PE\Component\SMPP\Socket;
 
-interface SocketClientInterface
+interface ClientInterface
 {
+    /**
+     * Get full client assigned address
+     *
+     * @return string|null
+     */
+    public function getClientAddress(): ?string;
+
+    /**
+     * Get full server address connected to
+     *
+     * @return string|null
+     */
+    public function getRemoteAddress(): ?string;
+
     /**
      * Set handler for input event
      *

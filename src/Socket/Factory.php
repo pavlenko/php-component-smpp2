@@ -17,7 +17,7 @@ final class Factory implements FactoryInterface
         $this->select = $select;
     }
 
-    public function acceptClient(StreamInterface $master, float $timeout = 0): SocketClientInterface
+    public function acceptClient(StreamInterface $master, float $timeout = 0): ClientInterface
     {
         $error = null;
         set_error_handler(function ($_, $message) use (&$error) {
@@ -37,10 +37,10 @@ final class Factory implements FactoryInterface
             throw new RuntimeException($error ?: 'Unable to accept new connection');
         }
 
-        return new SocketClient(new Stream($socket), $this->select);//TODO try unwrap resource
+        return new Client(new Stream($socket), $this->select);//TODO try unwrap resource
     }
 
-    public function createClient(string $address, array $context = [], ?float $timeout = null): SocketClientInterface
+    public function createClient(string $address, array $context = [], ?float $timeout = null): ClientInterface
     {
         // Ensure scheme
         $address = false !== strpos($address, '://') ? $address : 'tcp://' . $address;
@@ -82,7 +82,7 @@ final class Factory implements FactoryInterface
             $this->setCrypto($socket, true, STREAM_CRYPTO_METHOD_TLS_CLIENT);
         }
 
-        return new SocketClient($stream, $this->select);
+        return new Client($stream, $this->select);
     }
 
     public function createServer(string $address, array $context = []): ServerInterface

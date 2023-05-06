@@ -36,6 +36,7 @@ final class Server implements ServerInterface
 
     public function getAddress(): ?string
     {
+        //TODO to base socket
         if (!is_resource($this->stream->getResource())) {
             return null;
         }
