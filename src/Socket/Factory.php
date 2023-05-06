@@ -85,7 +85,7 @@ final class Factory implements FactoryInterface
         return new SocketClient($stream, $this->select);
     }
 
-    public function createServer(string $address, array $context = []): SocketServerInterface
+    public function createServer(string $address, array $context = []): ServerInterface
     {
         // Ensure host
         $address = $address !== (string)(int)$address ? $address : '0.0.0.0:' . $address;
@@ -129,7 +129,7 @@ final class Factory implements FactoryInterface
             $this->setCrypto($socket, true, STREAM_CRYPTO_METHOD_TLS_SERVER);
         }
 
-        return new SocketServer($stream, $this->select, $this);
+        return new Server($stream, $this->select, $this);
     }
 
     public function setCrypto($stream, bool $enabled, int $method = null): void

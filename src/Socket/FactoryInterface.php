@@ -36,11 +36,11 @@ interface FactoryInterface
      *
      * @param string $address Address to the socket to listen to.
      * @param array $context Stream transport related context.
-     * @return SocketServerInterface
+     * @return ServerInterface
      * @throws InvalidArgumentException
      * @throws RuntimeException
      */
-    public function createServer(string $address, array $context = []): SocketServerInterface;
+    public function createServer(string $address, array $context = []): ServerInterface;
 
     /**
      * Turns encryption on/off

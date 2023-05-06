@@ -2,8 +2,15 @@
 
 namespace PE\Component\SMPP\Socket;
 
-interface SocketServerInterface
+interface ServerInterface
 {
+    /**
+     * Get full address of this server listening on
+     *
+     * @return string|null
+     */
+    public function getAddress(): ?string;
+
     /**
      * Set handler for input event
      *
