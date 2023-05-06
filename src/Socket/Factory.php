@@ -19,18 +19,22 @@ final class Factory implements FactoryInterface
 
     public function acceptClient(StreamInterface $master, float $timeout = 0): SocketClientInterface
     {
-        $error = new RuntimeException('Unable to accept new connection');
+        $error = null;
         set_error_handler(function ($_, $message) use (&$error) {
             // @codeCoverageIgnoreStart
-            $error = self::toException($error->getMessage(), \preg_replace('#.*: #', '', $message));
+            foreach (get_defined_constants() as $name => $value) {
+                if (0 === strpos($name, 'SOCKET_E') && socket_strerror($value) === $message) {
+                    $error = \preg_replace('#.*: #', '', $message) . ' (' . \substr($name, 7) . ')';
+                }
+            }
             // @codeCoverageIgnoreEnd
         });
 
-        $socket = stream_socket_accept($master->getResource(), $timeout);
+        $socket = @stream_socket_accept($master->getResource(), $timeout);
         restore_error_handler();
 
         if (false === $socket) {
-            throw $error;
+            throw new RuntimeException($error ?: 'Unable to accept new connection');
         }
 
         return new SocketClient(new Stream($socket), $this->select);//TODO try unwrap resource
@@ -75,7 +79,7 @@ final class Factory implements FactoryInterface
 
         $stream = new Stream($socket);
         if ('tls' === $scheme || !empty($context['ssl'])) {
-            $this->setCrypto($stream, true, STREAM_CRYPTO_METHOD_TLS_CLIENT);
+            $this->setCrypto($socket, true, STREAM_CRYPTO_METHOD_TLS_CLIENT);
         }
 
         return new SocketClient($stream, $this->select);
@@ -122,28 +126,27 @@ final class Factory implements FactoryInterface
 
         $stream = new Stream($socket);
         if ('tls' === $scheme || !empty($context['ssl'])) {
-            $this->setCrypto($stream, true, STREAM_CRYPTO_METHOD_TLS_SERVER);
+            $this->setCrypto($socket, true, STREAM_CRYPTO_METHOD_TLS_SERVER);
         }
 
         return new SocketServer($stream, $this->select, $this);
     }
 
-    private function setCrypto(StreamInterface $stream, bool $enabled, int $method = null): void
+    public function setCrypto($stream, bool $enabled, int $method = null): void
     {
         $error = null;
         set_error_handler(function ($_, $message) use (&$error) {
             // @codeCoverageIgnoreStart
-            $error = str_replace(array("\r", "\n"), ' ', $message);
+            $error = str_replace(["\r", "\n"], ' ', $message);
 
             // remove useless function name from error message
-            $pos = strpos($error, "): ");
-            if ($pos !== false) {
+            if (false !== ($pos = strpos($error, "): "))) {
                 $error = substr($error, $pos + 3);
             }
             // @codeCoverageIgnoreEnd
         });
 
-        $success = stream_socket_enable_crypto($stream->getResource(), $enabled, $method);
+        $success = @stream_socket_enable_crypto($stream, $enabled, $method);
         restore_error_handler();
 
         if (false === $success) {

@@ -41,4 +41,14 @@ interface FactoryInterface
      * @throws RuntimeException
      */
     public function createServer(string $address, array $context = []): SocketServerInterface;
+
+    /**
+     * Turns encryption on/off
+     *
+     * @param resource $stream
+     * @param bool $enabled
+     * @param int|null $method
+     * @throws RuntimeException
+     */
+    public function setCrypto($stream, bool $enabled, int $method = null): void;
 }
