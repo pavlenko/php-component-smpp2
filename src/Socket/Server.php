@@ -12,6 +12,7 @@ final class Server implements ServerInterface
     private \Closure $onError;
     private \Closure $onClose;
 
+    /* @deprecated */
     private StreamInterface $stream;
 
     public function __construct(StreamInterface $stream, SelectInterface $select, FactoryInterface $factory)

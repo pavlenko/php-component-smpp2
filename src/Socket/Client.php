@@ -14,7 +14,9 @@ final class Client implements ClientInterface
 
     private string $buffer;
 
+    /* @deprecated */
     private StreamInterface $stream;
+    /* @deprecated */
     private SelectInterface $select;
 
     public function __construct(StreamInterface $stream, SelectInterface $select)
