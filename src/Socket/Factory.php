@@ -14,11 +14,6 @@ final class Factory implements FactoryInterface
         $this->select = $select;
     }
 
-    public function acceptClient(SocketInterface $master, float $timeout = 0): ClientInterface
-    {
-        return new Client($master->accept($timeout), $this->select);
-    }
-
     public function createClient(string $address, array $context = [], ?float $timeout = null): ClientInterface
     {
         // Ensure scheme
@@ -108,6 +103,6 @@ final class Factory implements FactoryInterface
             $stream->setCrypto(true, STREAM_CRYPTO_METHOD_TLS_SERVER);
         }
 
-        return new Server($stream, $this->select, $this);
+        return new Server($stream, $this->select);
     }
 }

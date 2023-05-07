@@ -11,19 +11,21 @@ final class Server implements ServerInterface
     private \Closure $onClose;
 
     private SocketInterface $stream;
+    private SelectInterface $select;
 
-    public function __construct(SocketInterface $stream, SelectInterface $select, FactoryInterface $factory)
+    public function __construct(SocketInterface $stream, SelectInterface $select)
     {
         $this->stream = $stream;
         $this->stream->setBlocking(false);
         $this->stream->setBufferRD(0);
 
-        $select->attachStreamRD($stream->getResource(), function () use ($factory) {
+        $this->select = $select;
+        $this->select->attachStreamRD($stream->getResource(), function () {
             try {
-                $client = $factory->acceptClient($this->stream);
+                $client = new Client($this->stream->accept(), $this->select);
                 call_user_func($this->onInput, $client);
             } catch (RuntimeException $exception) {
-                call_user_func($this->onError, $exception, $this);
+                call_user_func($this->onError, $exception);
             }
         });
 
