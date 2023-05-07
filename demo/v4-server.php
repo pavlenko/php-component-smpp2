@@ -21,7 +21,7 @@ $server->setInputHandler(function (ClientInterface $socket) use (&$client) {
         echo "$data\n";
     });
     $client->write("WELCOME\n");
-    echo "new connection from {$client->getClientAddress()}\n";
+    echo "new connection from {$client->getRemoteAddress()}\n";
 });
 $server->setErrorHandler(function (\Throwable $throwable) {
     echo $throwable . "\n";
@@ -30,7 +30,9 @@ $server->setCloseHandler(function (string $message) {
     echo $message . "\n";
 });
 
-$loop->addSingularTimer(10, function () use ($client) {
+$loop->addSingularTimer(10, function () use (&$client) {
+    echo "disconnect client {$client->getRemoteAddress()}\n";
     $client->close();
 });
+echo "listen to {$server->getAddress()}\n";
 $loop->run();

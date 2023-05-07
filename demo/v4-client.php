@@ -25,4 +25,5 @@ $client->setCloseHandler(function (string $message) use ($loop) {
     $loop->stop();
 });
 
+echo "connected to {$client->getRemoteAddress()}\n";
 $loop->run();
