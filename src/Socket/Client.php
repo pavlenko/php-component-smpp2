@@ -10,7 +10,7 @@ final class Client implements ClientInterface
     private \Closure $onError;
     private \Closure $onClose;
 
-    private string $buffer;
+    private string $buffer = '';
 
     private SocketInterface $stream;
     private SelectInterface $select;
