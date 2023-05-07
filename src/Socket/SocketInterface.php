@@ -59,8 +59,13 @@ interface SocketInterface
      */
     public function setBufferWR(int $size): void;
 
-    //TODO maybe here???
-    public function accept(): self;
+    /**
+     * Accept new client connection
+     *
+     * @param float|null $timeout
+     * @return self
+     */
+    public function accept(float $timeout = null): self;
 
     /**
      * Check if stream closed by remote

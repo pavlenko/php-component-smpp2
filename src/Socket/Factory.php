@@ -132,6 +132,7 @@ final class Factory implements FactoryInterface
         return new Server($stream, $this->select, $this);
     }
 
+    /* @deprecated */
     public function setCrypto($stream, bool $enabled, int $method = null): void
     {
         $error = null;
