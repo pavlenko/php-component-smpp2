@@ -3,8 +3,6 @@
 namespace PE\Component\SMPP\Socket;
 
 use PE\Component\Stream\Exception\RuntimeException;
-use PE\Component\Stream\SelectInterface;
-use PE\Component\Stream\StreamInterface;
 
 final class Server implements ServerInterface
 {
@@ -12,16 +10,15 @@ final class Server implements ServerInterface
     private \Closure $onError;
     private \Closure $onClose;
 
-    /* @deprecated */
-    private StreamInterface $stream;
+    private SocketInterface $stream;
 
-    public function __construct(StreamInterface $stream, SelectInterface $select, FactoryInterface $factory)
+    public function __construct(SocketInterface $stream, SelectInterface $select, FactoryInterface $factory)
     {
         $this->stream = $stream;
         $this->stream->setBlocking(false);
         $this->stream->setBufferRD(0);
 
-        $select->attachStreamRD($stream, function () use ($factory) {
+        $select->attachStreamRD($stream->getResource(), function () use ($factory) {
             try {
                 $client = $factory->acceptClient($this->stream);
                 call_user_func($this->onInput, $client);
@@ -37,6 +34,7 @@ final class Server implements ServerInterface
 
     public function getAddress(): ?string
     {
+        return $this->stream->getAddress(false);
         //TODO to base socket
         if (!is_resource($this->stream->getResource())) {
             return null;

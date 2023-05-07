@@ -26,7 +26,7 @@ final class Socket implements SocketInterface
         return $this->resource;
     }
 
-    public function getAddress(bool $remote = false): ?string
+    public function getAddress(bool $remote): ?string
     {
         if (!is_resource($this->resource)) {
             return null;

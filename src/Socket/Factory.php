@@ -4,9 +4,6 @@ namespace PE\Component\SMPP\Socket;
 
 use PE\Component\Stream\Exception\InvalidArgumentException;
 use PE\Component\Stream\Exception\RuntimeException;
-use PE\Component\Stream\SelectInterface;
-use PE\Component\Stream\Stream;
-use PE\Component\Stream\StreamInterface;
 
 final class Factory implements FactoryInterface
 {
@@ -17,27 +14,9 @@ final class Factory implements FactoryInterface
         $this->select = $select;
     }
 
-    public function acceptClient(StreamInterface $master, float $timeout = 0): ClientInterface
+    public function acceptClient(SocketInterface $master, float $timeout = 0): ClientInterface
     {
-        $error = null;
-        set_error_handler(function ($_, $message) use (&$error) {
-            // @codeCoverageIgnoreStart
-            foreach (get_defined_constants() as $name => $value) {
-                if (0 === strpos($name, 'SOCKET_E') && socket_strerror($value) === $message) {
-                    $error = \preg_replace('#.*: #', '', $message) . ' (' . \substr($name, 7) . ')';
-                }
-            }
-            // @codeCoverageIgnoreEnd
-        });
-
-        $socket = @stream_socket_accept($master->getResource(), $timeout);
-        restore_error_handler();
-
-        if (false === $socket) {
-            throw new RuntimeException($error ?: 'Unable to accept new connection');
-        }
-
-        return new Client(new Stream($socket), $this->select);//TODO try unwrap resource
+        return new Client($master->accept($timeout), $this->select);
     }
 
     public function createClient(string $address, array $context = [], ?float $timeout = null): ClientInterface
@@ -77,9 +56,9 @@ final class Factory implements FactoryInterface
             );
         }
 
-        $stream = new Stream($socket);
+        $stream = new Socket($socket);
         if ('tls' === $scheme || !empty($context['ssl'])) {
-            $this->setCrypto($socket, true, STREAM_CRYPTO_METHOD_TLS_CLIENT);
+            $stream->setCrypto(true, STREAM_CRYPTO_METHOD_TLS_CLIENT);
         }
 
         return new Client($stream, $this->select);
@@ -124,34 +103,11 @@ final class Factory implements FactoryInterface
             );
         }
 
-        $stream = new Stream($socket);
+        $stream = new Socket($socket);
         if ('tls' === $scheme || !empty($context['ssl'])) {
-            $this->setCrypto($socket, true, STREAM_CRYPTO_METHOD_TLS_SERVER);
+            $stream->setCrypto(true, STREAM_CRYPTO_METHOD_TLS_SERVER);
         }
 
         return new Server($stream, $this->select, $this);
-    }
-
-    /* @deprecated */
-    public function setCrypto($stream, bool $enabled, int $method = null): void
-    {
-        $error = null;
-        set_error_handler(function ($_, $message) use (&$error) {
-            // @codeCoverageIgnoreStart
-            $error = str_replace(["\r", "\n"], ' ', $message);
-
-            // remove useless function name from error message
-            if (false !== ($pos = strpos($error, "): "))) {
-                $error = substr($error, $pos + 3);
-            }
-            // @codeCoverageIgnoreEnd
-        });
-
-        $success = @stream_socket_enable_crypto($stream, $enabled, $method);
-        restore_error_handler();
-
-        if (false === $success) {
-            throw new RuntimeException($error ?: 'Cannot set crypto method(s)');
-        }
     }
 }

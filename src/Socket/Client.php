@@ -3,8 +3,6 @@
 namespace PE\Component\SMPP\Socket;
 
 use PE\Component\Stream\Exception\RuntimeException;
-use PE\Component\Stream\SelectInterface;
-use PE\Component\Stream\StreamInterface;
 
 final class Client implements ClientInterface
 {
@@ -14,21 +12,19 @@ final class Client implements ClientInterface
 
     private string $buffer;
 
-    /* @deprecated */
-    private StreamInterface $stream;
-    /* @deprecated */
+    private SocketInterface $stream;
     private SelectInterface $select;
 
-    public function __construct(StreamInterface $stream, SelectInterface $select)
+    public function __construct(SocketInterface $stream, SelectInterface $select)
     {
         $this->stream = $stream;
         $this->stream->setBlocking(false);
         $this->stream->setBufferRD(0);
 
         $this->select = $select;
-        $this->select->attachStreamRD($stream, function () {
+        $this->select->attachStreamRD($stream->getResource(), function () {
             try {
-                $data = $this->stream->recvData();
+                $data = $this->stream->recv();
             } catch (RuntimeException $exception) {
                 call_user_func($this->onError, $exception);
                 return;
@@ -48,38 +44,12 @@ final class Client implements ClientInterface
 
     public function getClientAddress(): ?string
     {
-        //TODO to base socket
-        if (!is_resource($this->stream->getResource())) {
-            return null;
-        }
-
-        $address = stream_socket_get_name($this->stream->getResource(), false);
-
-        // check if this is an IPv6 address which includes multiple colons but no square brackets
-        $pos = strrpos($address, ':');
-        if (false !== $pos && strpos($address, ':') < $pos && substr($address, 0, 1) !== '[') {
-            $address = '[' . substr($address, 0, $pos) . ']:' . substr($address, $pos + 1); // @codeCoverageIgnore
-        }
-
-        return 'tcp://' . $address;
+        return $this->stream->getAddress(false);
     }
 
     public function getRemoteAddress(): ?string
     {
-        //TODO to base socket
-        if (!is_resource($this->stream->getResource())) {
-            return null;
-        }
-
-        $address = stream_socket_get_name($this->stream->getResource(), true);
-
-        // check if this is an IPv6 address which includes multiple colons but no square brackets
-        $pos = strrpos($address, ':');
-        if (false !== $pos && strpos($address, ':') < $pos && substr($address, 0, 1) !== '[') {
-            $address = '[' . substr($address, 0, $pos) . ']:' . substr($address, $pos + 1); // @codeCoverageIgnore
-        }
-
-        return 'tcp://' . $address;
+        return $this->stream->getAddress(true);
     }
 
     public function setInputHandler(callable $handler): void
@@ -109,9 +79,9 @@ final class Client implements ClientInterface
         }
 
         $this->buffer .= $data;
-        $this->select->attachStreamWR($this->stream, function () {
+        $this->select->attachStreamWR($this->stream->getResource(), function () {
             try {
-                $sent = $this->stream->sendData($this->buffer);
+                $sent = $this->stream->send($this->buffer);
             } catch (RuntimeException $exception) {
                 call_user_func($this->onError, $exception);
                 return;
@@ -119,7 +89,7 @@ final class Client implements ClientInterface
 
             $this->buffer = substr($this->buffer, $sent);
             if (empty($this->buffer)) {
-                $this->select->detachStreamWR($this->stream);
+                $this->select->detachStreamWR($this->stream->getResource());
             }
         });
     }

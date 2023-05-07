@@ -20,7 +20,7 @@ interface SocketInterface
      * @param bool $remote
      * @return string|null
      */
-    public function getAddress(bool $remote = false): ?string;
+    public function getAddress(bool $remote): ?string;
 
     /**
      * Enable/disable encryption on socket

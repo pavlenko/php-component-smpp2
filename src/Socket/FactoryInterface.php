@@ -4,20 +4,18 @@ namespace PE\Component\SMPP\Socket;
 
 use PE\Component\Stream\Exception\InvalidArgumentException;
 use PE\Component\Stream\Exception\RuntimeException;
-use PE\Component\Stream\Stream;
-use PE\Component\Stream\StreamInterface;
 
 interface FactoryInterface
 {
     /**
      * Accept incoming connection on master stream, must be used immediately after stream_select() call
      *
-     * @param StreamInterface $master
+     * @param SocketInterface $master
      * @param float $timeout
      * @return ClientInterface
      * @throws RuntimeException
      */
-    public function acceptClient(StreamInterface $master, float $timeout = 0): ClientInterface;
+    public function acceptClient(SocketInterface $master, float $timeout = 0): ClientInterface;
 
     /**
      * Create client socket
@@ -41,14 +39,4 @@ interface FactoryInterface
      * @throws RuntimeException
      */
     public function createServer(string $address, array $context = []): ServerInterface;
-
-    /**
-     * Turns encryption on/off
-     *
-     * @param resource $stream
-     * @param bool $enabled
-     * @param int|null $method
-     * @throws RuntimeException
-     */
-    public function setCrypto($stream, bool $enabled, int $method = null): void;
 }
