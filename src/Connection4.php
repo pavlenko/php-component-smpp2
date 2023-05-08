@@ -63,9 +63,9 @@ final class Connection4
 
     public function delExpects(int $seqNum, int $id): void
     {
-        foreach ($this->expects as $expect) {
+        foreach ($this->expects as $index => $expect) {
             if ($expect->getSeqNum() === $seqNum || $expect->isExpectPDU($id)) {
-                unset($this->expects[$seqNum]);
+                unset($this->expects[$index]);
             }
         }
     }

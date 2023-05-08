@@ -87,7 +87,7 @@ final class Server4
     {
         $this->logger->log(LogLevel::DEBUG, '< New connection from ' . $connection->getClient()->getRemoteAddress());
         $this->sessions->attach($connection);
-        $connection->wait(3, 0, PDU::ID_BIND_RECEIVER_RESP, PDU::ID_BIND_TRANSMITTER_RESP, PDU::ID_BIND_TRANSCEIVER_RESP);
+        $connection->wait(3, 0, PDU::ID_BIND_RECEIVER, PDU::ID_BIND_TRANSMITTER, PDU::ID_BIND_TRANSCEIVER);
     }
 
     private function detachConnection(Connection4 $connection, string $message = null): void
@@ -104,7 +104,7 @@ final class Server4
     {
         // Remove expects PDU if any (prevents close client connection on timeout)
         $connection->delExpects($pdu->getSeqNum(), $pdu->getID());
-
+        dump($connection->getExpects());
         // Check errored response
         if (PDU::STATUS_NO_ERROR !== $pdu->getStatus()) {
             $this->detachConnection($connection, ': error [' . $pdu->getStatus() . ']');
