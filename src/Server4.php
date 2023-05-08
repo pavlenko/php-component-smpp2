@@ -90,7 +90,7 @@ final class Server4
     private function processReceive(Connection4 $connection, PDU $pdu): void
     {
         // Remove expects PDU if any (prevents close client connection on timeout)
-        $connection->delRequest($pdu->getSeqNum());//TODO allow delete by seq num or id list
+        $connection->delExpects($pdu->getSeqNum(), $pdu->getID());
 
         // Check errored response
         if (PDU::STATUS_NO_ERROR !== $pdu->getStatus()) {
@@ -121,7 +121,7 @@ final class Server4
 
     private function processTimeout(Connection4 $connection): void
     {
-        $requests = $connection->getRequests();
+        $requests = $connection->getExpects();
         foreach ($requests as $request) {
             if ($request->getExpiredAt() < time()) {
                 $connection->close('Timed out');

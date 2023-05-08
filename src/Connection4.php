@@ -56,19 +56,19 @@ final class Connection4
         $this->logger     = $logger ?: new NullLogger();
     }
 
-    public function getRequests(): array
+    public function getExpects(): array
     {
-        //
+        return $this->expects;
     }
 
-    public function delRequest(int $seqNum): void
+    public function delExpects(int $seqNum, int $id): void
     {
-        unset($this->requests[$seqNum]);
+        unset($this->expects[$seqNum]);
     }
 
-    public function wait(int $timeout, int $seqNum, int $expectPDU = null): void
+    public function wait(int $timeout, int $seqNum = 0, int $expectPDU = null): void
     {
-        $this->expects[] = new ExpectsPDU($timeout, $expectPDU);
+        $this->expects[] = new ExpectsPDU($timeout, $seqNum, $expectPDU);
     }
 
     public function send(PDU $pdu): void
