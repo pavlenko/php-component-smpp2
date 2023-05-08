@@ -44,7 +44,6 @@ final class Client4
         $sequenceNum = $this->session->newSequenceNum();
 
         // bind start
-        //$this->logger->log(LogLevel::DEBUG, "SMPP Client of ($address) connecting ...");
         $this->logger->log(LogLevel::DEBUG, "Connecting to {$address} ...");
 
         $this->connection = new Connection4($client, $this->emitter, $this->serializer, $this->logger);
@@ -78,6 +77,7 @@ final class Client4
     {
         $this->select->dispatch();
         $this->processTimeout();
+        $this->processEnquire();
     }
 
     public function processReceive(Connection4 $connection, PDU $pdu): void
@@ -107,6 +107,17 @@ final class Client4
             if ($expect->getExpiredAt() < time()) {
                 $this->connection->close('Timed out');
             }
+        }
+    }
+
+    private function processEnquire()
+    {
+        $overdue = time() - $this->connection->getLastMessageTime() > 15;
+        if ($overdue) {
+            $sequenceNum = $this->session->newSequenceNum();
+
+            $this->connection->send(new PDU(PDU::ID_ENQUIRE_LINK, 0, $sequenceNum));
+            $this->connection->wait(5, $sequenceNum, PDU::ID_ENQUIRE_LINK_RESP);
         }
     }
 }
