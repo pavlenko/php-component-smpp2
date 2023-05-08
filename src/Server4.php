@@ -49,17 +49,26 @@ final class Server4
         //TODO onReceive($stream)
 
         $server->setInputHandler(function (SocketClientInterface $input) {
+            $input->setErrorHandler(fn($error) => $this->logger->log(LogLevel::ERROR, '< E: ' . $error));
+
+            //TODO detach session
+            $input->setCloseHandler(fn($error) => $this->logger->log(LogLevel::DEBUG, '< C: ' . ($error ?: 'Closed')));
+
+            $client = new Connection4($input, $this->emitter, $this->serializer, $this->logger);
+
             $this->logger->log(LogLevel::DEBUG, '> New connection from' . $input->getRemoteAddress());
-            $this->sessions->attach(new Connection4($input, $this->emitter, $this->serializer, $this->logger));
+            $this->sessions->attach($client);
         });
 
         $server->setErrorHandler(function ($error) {
-            echo 'E: ' . $error . "\n";
+            $this->logger->log(LogLevel::ERROR, 'E: ' . $error);
         });
 
         $server->setCloseHandler(function ($error = null) {
-            echo 'C: ' . ($error ?: 'Closed') . "\n";
+            $this->logger->log(LogLevel::DEBUG, 'C: ' . ($error ?: 'Closed'));
         });
+
+        $this->logger->log(LogLevel::DEBUG, 'Listen to ' . $server->getAddress());
 
         $loop->addPeriodicTimer(0.001, fn() => $select->dispatch());
         $loop->run();

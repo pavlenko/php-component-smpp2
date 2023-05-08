@@ -48,15 +48,12 @@ class Connection4
 
             $emitter->dispatch(new Event(self::EVT_INPUT, $pdu));
         });
-        //TODO maybe below handlers move outside
-        $client->setErrorHandler(fn($error) => $emitter->dispatch(new Event(self::EVT_ERROR, $error)));
-        $client->setCloseHandler(fn($error) => $emitter->dispatch(new Event(self::EVT_CLOSE, $error)));
 
         $this->serializer = $serializer;
         $this->logger     = $logger ?: new NullLogger();
     }
 
-    public function send(PDU $pdu): void
+    public function send(PDU $pdu, int $expectPDU = null, int $timeout = null): Request4
     {
         $this->logger->log(LogLevel::DEBUG, sprintf(
             '> PDU(0x%08X, 0x%08X, %d)',
@@ -65,8 +62,8 @@ class Connection4
             $pdu->getSeqNum()
         ));
 
-        //TODO create deferred
         $this->client->write($this->serializer->encode($pdu));
+        return new Request4($pdu, $expectPDU, $timeout);
     }
 
     public function close(): void
