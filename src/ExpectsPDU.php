@@ -2,6 +2,8 @@
 
 namespace PE\Component\SMPP;
 
+use PE\Component\SMPP\DTO\PDU;
+
 final class ExpectsPDU
 {
     private int $expiredAt;
@@ -28,5 +30,14 @@ final class ExpectsPDU
     public function isExpectPDU(int $id): bool
     {
         return in_array($id, $this->expectPDU);
+    }
+
+    public function toLogger(): string
+    {
+        return sprintf(
+            'ExpectsPDU(%s, %d)',
+            implode('|', array_map(fn($id) => PDU::getIdentifiers()[$id] ?? sprintf('0x%08X', $id), $this->expectPDU)),
+            $this->seqNum
+        );
     }
 }

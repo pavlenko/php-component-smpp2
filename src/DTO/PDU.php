@@ -145,4 +145,33 @@ final class PDU
     {
         $this->params[$name] = $value;
     }
+
+    public static function getIdentifiers(): array
+    {
+        $constants = (new \ReflectionClass(__CLASS__))->getConstants();
+        $constants = array_filter($constants, fn($name) => 0 === strpos($name, 'ID_'), ARRAY_FILTER_USE_KEY);
+        $constants = array_flip($constants);
+        return array_map(fn($name) => substr($name, 3), $constants);
+    }
+
+    public static function getStatuses(): array
+    {
+        $constants = (new \ReflectionClass(__CLASS__))->getConstants();
+        $constants = array_filter($constants, fn($name) => 0 === strpos($name, 'STATUS_'), ARRAY_FILTER_USE_KEY);
+        $constants = array_flip($constants);
+        return array_map(fn($name) => substr($name, 7), $constants);
+    }
+
+    public function toLogger(): string
+    {
+        $identifiers = self::getIdentifiers();
+        $statuses    = self::getStatuses();
+
+        return sprintf(
+            'PDU(%s, %s, %d)',
+            $identifiers[$this->getID()] ?? sprintf('0x%08X', $this->getID()),
+            $statuses[$this->getStatus()] ?? sprintf('0x%08X', $this->getStatus()),
+            $this->getSeqNum()
+        );
+    }
 }

@@ -42,13 +42,7 @@ final class Connection4
             $data = $buffer->shiftBytes($length);
             $pdu  = $this->serializer->decode($data);
 
-            $this->logger->log(LogLevel::DEBUG, sprintf(
-                '< PDU(0x%08X, 0x%08X, %d)',
-                $pdu->getID(),
-                $pdu->getStatus(),
-                $pdu->getSeqNum()
-            ));
-
+            $this->logger->log(LogLevel::DEBUG, '< ' . $pdu->toLogger());
             $emitter->dispatch(new Event(self::EVT_INPUT, $this, $pdu));
         });
 
@@ -68,36 +62,28 @@ final class Connection4
 
     public function delExpects(int $seqNum, int $id): void
     {
-        unset($this->expects[$seqNum]);
+        foreach ($this->expects as $expect) {
+            if ($expect->getSeqNum() === $seqNum || $expect->isExpectPDU($id)) {
+                unset($this->expects[$seqNum]);
+            }
+        }
     }
 
     public function wait(int $timeout, int $seqNum = 0, int ...$expectPDU): void
     {
-        $this->logger->log(LogLevel::DEBUG, sprintf(
-            '? PDU(0x%08X, 0x%08X, %d)',
-            implode('|', $expectPDU),
-            0,
-            $seqNum
-        ));
-
-        $this->expects[] = new ExpectsPDU($timeout, $seqNum, ...$expectPDU);
+        $this->expects[] = $expects = new ExpectsPDU($timeout, $seqNum, ...$expectPDU);
+        $this->logger->log(LogLevel::DEBUG, '? ' . $expects->toLogger());
     }
 
     public function send(PDU $pdu): void
     {
-        $this->logger->log(LogLevel::DEBUG, sprintf(
-            '> PDU(0x%08X, 0x%08X, %d)',
-            $pdu->getID(),
-            $pdu->getStatus(),
-            $pdu->getSeqNum()
-        ));
-
+        $this->logger->log(LogLevel::DEBUG, '> ' . $pdu->toLogger());
         $this->client->write($this->serializer->encode($pdu));
     }
 
     public function close(string $message = null): void
     {
-        $this->client->setCloseHandler(fn() => null);//TODO maybe add closed flag to socket lib
+        $this->client->setCloseHandler(fn() => null);
         $this->client->close($message);
     }
 }
