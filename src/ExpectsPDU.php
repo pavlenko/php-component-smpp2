@@ -7,9 +7,9 @@ final class ExpectsPDU
     private ?int $expiredAt;
     private ?int $expectPDU;
 
-    public function __construct(int $timeout = null, int $expectPDU = null)
+    public function __construct(int $timeout, int $expectPDU = null)
     {
-        $this->expiredAt = $timeout > 0 ? time() + $timeout : null;
+        $this->expiredAt = time() + $timeout;
         $this->expectPDU = $expectPDU;//TODO array of integers
     }
 
