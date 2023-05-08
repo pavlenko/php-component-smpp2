@@ -25,6 +25,7 @@ final class Connection4
      * @var ExpectsPDU[]
      */
     private array $expects = [];
+    private int $lastMessageTime = 0;
 
     public function __construct(
         SocketClientInterface $client,
@@ -45,10 +46,13 @@ final class Connection4
 
             $this->logger->log(LogLevel::DEBUG, '< ' . $pdu->toLogger());
             $emitter->dispatch(new Event(self::EVT_INPUT, $this, $pdu));
+            $this->updLastMessageTime();
         });
 
         $this->serializer = $serializer;
         $this->logger     = $logger ?: new NullLogger();
+
+        $this->updLastMessageTime();
     }
 
     public function getClient(): SocketClientInterface
@@ -70,6 +74,16 @@ final class Connection4
         }
     }
 
+    public function getLastMessageTime(): int
+    {
+        return $this->lastMessageTime;
+    }
+
+    public function updLastMessageTime(): void
+    {
+        $this->lastMessageTime = time();
+    }
+
     public function wait(int $timeout, int $seqNum = 0, int ...$expectPDU): void
     {
         $this->expects[] = $expects = new ExpectsPDU($timeout, $seqNum, ...$expectPDU);
@@ -80,6 +94,7 @@ final class Connection4
     {
         $this->logger->log(LogLevel::DEBUG, '> ' . $pdu->toLogger());
         $this->client->write($this->serializer->encode($pdu));
+        $this->updLastMessageTime();
     }
 
     public function close(string $message = null): void

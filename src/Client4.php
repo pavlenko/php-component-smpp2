@@ -89,6 +89,10 @@ final class Client4
             $connection->close('Error [' . $pdu->getStatus() . ']');
             return;
         }
+
+        if (PDU::ID_ENQUIRE_LINK === $pdu->getID()) {
+            $connection->send(new PDU(PDU::ID_ENQUIRE_LINK_RESP, 0, $pdu->getSeqNum()));
+        }
     }
 
     private function processTimeout()

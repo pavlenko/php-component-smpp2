@@ -20,6 +20,7 @@ use Psr\Log\NullLogger;
 
 final class Server4
 {
+    private SessionInterface $session;
     private \SplObjectStorage $sessions;
     private EmitterInterface $emitter;
     private SerializerInterface $serializer;
@@ -27,10 +28,12 @@ final class Server4
     private SocketSelectInterface $select;
 
     public function __construct(
+        SessionInterface $session,
         EmitterInterface $emitter,
         SerializerInterface $serializer,
         LoggerInterface $logger = null
     ) {
+        $this->session    = $session;
         $this->sessions   = new \SplObjectStorage();
         $this->emitter    = $emitter;
         $this->serializer = $serializer;
@@ -78,6 +81,10 @@ final class Server4
         }
 
         foreach ($this->sessions as $session) {
+            $this->processEnquire($session);
+        }
+
+        foreach ($this->sessions as $session) {
             // Request storage for pending PDUs for this connection
             //$this->processPending($this->sessions[$session]);
         }
@@ -87,7 +94,7 @@ final class Server4
     {
         $this->logger->log(LogLevel::DEBUG, '< New connection from ' . $connection->getClient()->getRemoteAddress());
         $this->sessions->attach($connection);
-        $connection->wait(3, 0, PDU::ID_BIND_RECEIVER, PDU::ID_BIND_TRANSMITTER, PDU::ID_BIND_TRANSCEIVER);
+        $connection->wait(5, 0, PDU::ID_BIND_RECEIVER, PDU::ID_BIND_TRANSMITTER, PDU::ID_BIND_TRANSCEIVER);
     }
 
     private function detachConnection(Connection4 $connection, string $message = null): void
@@ -104,7 +111,7 @@ final class Server4
     {
         // Remove expects PDU if any (prevents close client connection on timeout)
         $connection->delExpects($pdu->getSeqNum(), $pdu->getID());
-        dump($connection->getExpects());
+
         // Check errored response
         if (PDU::STATUS_NO_ERROR !== $pdu->getStatus()) {
             $this->detachConnection($connection, ': error [' . $pdu->getStatus() . ']');
@@ -137,6 +144,17 @@ final class Server4
             if ($expect->getExpiredAt() < time()) {
                 $this->detachConnection($connection, ': timed out');
             }
+        }
+    }
+
+    private function processEnquire(Connection4 $connection): void
+    {
+        $overdue = time() - $connection->getLastMessageTime() > 15;
+        if ($overdue) {
+            $sequenceNum = $this->session->newSequenceNum();
+
+            $connection->send(new PDU(PDU::ID_ENQUIRE_LINK, 0, $sequenceNum));
+            $connection->wait(5, $sequenceNum, PDU::ID_ENQUIRE_LINK_RESP);
         }
     }
 
