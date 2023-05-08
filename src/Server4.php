@@ -99,8 +99,6 @@ final class Server4
     {
         $this->logger->log(LogLevel::INFO, '< Close connection from ' . $connection->getClient()->getRemoteAddress());
         $this->sessions->detach($connection);
-        //TODO add reset handler in socket lib
-        $connection->getClient()->setCloseHandler(fn() => null);// this important for prevent infinite loop
         $connection->close();
     }
 
