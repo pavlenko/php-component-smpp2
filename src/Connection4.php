@@ -71,9 +71,16 @@ final class Connection4
         unset($this->expects[$seqNum]);
     }
 
-    public function wait(int $timeout, int $seqNum = 0, int $expectPDU = null): void
+    public function wait(int $timeout, int $seqNum = 0, int ...$expectPDU): void
     {
-        $this->expects[] = new ExpectsPDU($timeout, $seqNum, $expectPDU);
+        $this->logger->log(LogLevel::DEBUG, sprintf(
+            '? PDU(0x%08X, 0x%08X, %d)',
+            implode('|', $expectPDU),
+            0,
+            $seqNum
+        ));
+
+        $this->expects[] = new ExpectsPDU($timeout, $seqNum, ...$expectPDU);
     }
 
     public function send(PDU $pdu): void

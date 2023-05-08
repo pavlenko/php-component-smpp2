@@ -79,7 +79,7 @@ final class Server4
         $this->select->dispatch();
 
         foreach ($this->sessions as $session) {
-            $this->processTimeout($this->sessions[$session]);
+            $this->processTimeout($session);
         }
 
         foreach ($this->sessions as $session) {
@@ -90,7 +90,7 @@ final class Server4
 
     private function attachConnection(Connection4 $connection): void
     {
-        $this->logger->log(LogLevel::DEBUG, '< New connection from' . $connection->getClient()->getRemoteAddress());
+        $this->logger->log(LogLevel::DEBUG, '< New connection from ' . $connection->getClient()->getRemoteAddress());
         $this->sessions->attach($connection);
         $connection->wait(10, 0, ...array_keys(ConnectionInterface::BOUND_MAP));
     }
@@ -99,6 +99,8 @@ final class Server4
     {
         $this->logger->log(LogLevel::INFO, '< Close connection from ' . $connection->getClient()->getRemoteAddress());
         $this->sessions->detach($connection);
+        //TODO add reset handler in socket lib
+        $connection->getClient()->setCloseHandler(fn() => null);// this important for prevent infinite loop
         $connection->close();
     }
 
