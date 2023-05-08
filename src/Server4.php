@@ -3,37 +3,37 @@
 namespace PE\Component\SMPP;
 
 use PE\Component\Loop\Loop;
-use PE\Component\Stream\Select;
-use PE\Component\Stream\Socket;
+use PE\Component\Socket\Factory as SocketFactory;
+use PE\Component\Socket\Select;
 
-class Server4
+final class Server4
 {
     public function __invoke(): void
-    {}
+    {
+    }
 
     public function bind(string $address): void
     {
-        $loop = new Loop();
-        $factory = new \PE\Component\Stream\Factory();
+        $loop    = new Loop();
+        $select  = new Select();
+        $factory = new SocketFactory($select);
 
-        $stream = $factory->createServer($address);
-        $stream->setBlocking(false);
-
-        $select = new Select();
-        $socket = new Socket($stream, $select);//TODO add input processor (for server and client)
+        $server = $factory->createServer($address);
 
         //TODO maybe split onInput into two, or first try to accept connection
         //TODO onConnect($stream)
         //TODO onReceive($stream)
 
-        $socket->onInput(function ($data) use ($stream, $factory) {//<-- this is unusable for server socket
+        $server->setInputHandler(function ($data) {
             var_dump($data);
         });
-        $socket->onError(function ($error) {
+
+        $server->setErrorHandler(function ($error) {
             echo 'E: ' . $error . "\n";
         });
-        $socket->onClose(function ($error) {
-            echo 'C: ' . $error . "\n";
+
+        $server->setCloseHandler(function ($error = null) {
+            echo 'C: ' . ($error ?: 'Closed') . "\n";
         });
 
         $loop->addPeriodicTimer(0.001, fn() => $select->dispatch());
@@ -41,5 +41,6 @@ class Server4
     }
 
     public function stop(): void
-    {}
+    {
+    }
 }
