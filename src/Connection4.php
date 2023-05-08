@@ -20,6 +20,11 @@ final class Connection4
     private SerializerInterface $serializer;
     private LoggerInterface $logger;
 
+    /**
+     * @var ExpectsPDU[]
+     */
+    private array $expects = [];
+
     public function __construct(
         SocketClientInterface $client,
         EmitterInterface $emitter,//TODO maybe pass callback instead of emitter
@@ -51,7 +56,22 @@ final class Connection4
         $this->logger     = $logger ?: new NullLogger();
     }
 
-    public function send(PDU $pdu, int $expectPDU = null, int $timeout = null): Request4
+    public function getRequests(): array
+    {
+        //
+    }
+
+    public function delRequest(int $seqNum): void
+    {
+        unset($this->requests[$seqNum]);
+    }
+
+    public function wait(int $timeout, int $seqNum, int $expectPDU = null): void
+    {
+        $this->expects[] = new ExpectsPDU($timeout, $expectPDU);
+    }
+
+    public function send(PDU $pdu): void
     {
         $this->logger->log(LogLevel::DEBUG, sprintf(
             '> PDU(0x%08X, 0x%08X, %d)',
@@ -61,7 +81,6 @@ final class Connection4
         ));
 
         $this->client->write($this->serializer->encode($pdu));
-        return new Request4($pdu, $expectPDU, $timeout);//TODO do not return, just store inside
     }
 
     public function close(string $message = null): void

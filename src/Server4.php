@@ -6,6 +6,7 @@ use PE\Component\Event\Emitter;
 use PE\Component\Event\EmitterInterface;
 use PE\Component\Event\Event;
 use PE\Component\Loop\Loop;
+use PE\Component\SMPP\DTO\Address;
 use PE\Component\SMPP\DTO\PDU;
 use PE\Component\SMPP\Util\Serializer;
 use PE\Component\SMPP\Util\SerializerInterface;
@@ -72,7 +73,7 @@ final class Server4
         $loop->run();
     }
 
-    public function __invoke(): void
+    public function dispatch(): void
     {
         $this->select->dispatch();
 
@@ -81,14 +82,15 @@ final class Server4
         }
 
         foreach ($this->sessions as $session) {
-            $this->processPending($this->sessions[$session]);
+            // Request storage for pending PDUs for this connection
+            //$this->processPending($this->sessions[$session]);
         }
     }
 
     private function processReceive(Connection4 $connection, PDU $pdu): void
     {
-        // Remove deferred if any (prevents close client connection on timeout)
-        $connection->delRequest($pdu->getSeqNum());
+        // Remove expects PDU if any (prevents close client connection on timeout)
+        $connection->delRequest($pdu->getSeqNum());//TODO allow delete by seq num or id list
 
         // Check errored response
         if (PDU::STATUS_NO_ERROR !== $pdu->getStatus()) {
@@ -100,6 +102,12 @@ final class Server4
         if (array_key_exists($pdu->getID(), ConnectionInterface::BOUND_MAP)) {
             // Handle bind request
             $connection->send(new PDU(PDU::ID_GENERIC_NACK | $pdu->getID(), 0, $pdu->getSeqNum()));
+            // Store registration data
+            $this->sessions[$connection] = new Session(
+                $pdu->get('system_id'),
+                $pdu->get('password'),
+                $pdu->get('address')
+            );
         } elseif (PDU::ID_UNBIND === $pdu->getID()) {
             // Handle unbind request
             $connection->send(new PDU(PDU::ID_GENERIC_NACK | $pdu->getID(), 0, $pdu->getSeqNum()));

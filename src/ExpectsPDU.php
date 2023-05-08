@@ -2,19 +2,15 @@
 
 namespace PE\Component\SMPP;
 
-use PE\Component\SMPP\DTO\PDU;
-
-class Request4
+final class ExpectsPDU
 {
-    private PDU $pdu;
-    private ?int $expectPDU;
     private ?int $expiredAt;
+    private ?int $expectPDU;
 
-    public function __construct(PDU $pdu, int $expectPDU = null, int $timeout = null)
+    public function __construct(int $timeout = null, int $expectPDU = null)
     {
-        $this->pdu       = $pdu;//TODO maybe not need to store full object, just sequence num
-        $this->expectPDU = $expectPDU;
         $this->expiredAt = $timeout > 0 ? time() + $timeout : null;
+        $this->expectPDU = $expectPDU;//TODO array of integers
     }
 
     public function getExpectPDU(): ?int
