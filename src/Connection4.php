@@ -12,7 +12,7 @@ use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 use Psr\Log\NullLogger;
 
-class Connection4
+final class Connection4
 {
     public const EVT_INPUT = 'connection.input';
 
@@ -61,11 +61,11 @@ class Connection4
         ));
 
         $this->client->write($this->serializer->encode($pdu));
-        return new Request4($pdu, $expectPDU, $timeout);
+        return new Request4($pdu, $expectPDU, $timeout);//TODO do not return, just store inside
     }
 
-    public function close(): void
+    public function close(string $message = null): void
     {
-        $this->client->close();
+        $this->client->close($message);
     }
 }

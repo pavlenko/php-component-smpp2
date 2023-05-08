@@ -4,7 +4,9 @@ namespace PE\Component\SMPP;
 
 use PE\Component\Event\Emitter;
 use PE\Component\Event\EmitterInterface;
+use PE\Component\Event\Event;
 use PE\Component\Loop\Loop;
+use PE\Component\SMPP\DTO\PDU;
 use PE\Component\SMPP\Util\Serializer;
 use PE\Component\SMPP\Util\SerializerInterface;
 use PE\Component\Socket\ClientInterface as SocketClientInterface;
@@ -30,10 +32,6 @@ final class Server4
         $this->emitter    = $emitter;
         $this->serializer = $serializer;
         $this->logger     = $logger ?: new NullLogger();
-    }
-
-    public function __invoke(): void
-    {
     }
 
     public function bind(string $address): void
@@ -72,6 +70,56 @@ final class Server4
 
         $loop->addPeriodicTimer(0.001, fn() => $select->dispatch());
         $loop->run();
+    }
+
+    public function __invoke(): void
+    {
+        $this->select->dispatch();
+
+        foreach ($this->sessions as $session) {
+            $this->processTimeout($this->sessions[$session]);
+        }
+
+        foreach ($this->sessions as $session) {
+            $this->processPending($this->sessions[$session]);
+        }
+    }
+
+    private function processReceive(Connection4 $connection, PDU $pdu): void
+    {
+        // Remove deferred if any (prevents close client connection on timeout)
+        $connection->delRequest($pdu->getSeqNum());
+
+        // Check errored response
+        if (PDU::STATUS_NO_ERROR !== $pdu->getStatus()) {
+            $connection->close('Error [' . $pdu->getStatus() . ']');
+            $this->sessions->detach($connection);
+            return;
+        }
+
+        if (array_key_exists($pdu->getID(), ConnectionInterface::BOUND_MAP)) {
+            // Handle bind request
+            $connection->send(new PDU(PDU::ID_GENERIC_NACK | $pdu->getID(), 0, $pdu->getSeqNum()));
+        } elseif (PDU::ID_UNBIND === $pdu->getID()) {
+            // Handle unbind request
+            $connection->send(new PDU(PDU::ID_GENERIC_NACK | $pdu->getID(), 0, $pdu->getSeqNum()));
+            $connection->close('Error [' . $pdu->getStatus() . ']');
+            $this->sessions->detach($connection);
+        } else {
+            // Handle other requests redirected to user code
+            $this->emitter->dispatch(new Event('server.receive', $pdu));
+        }
+    }
+
+    private function processTimeout(Connection4 $connection): void
+    {
+        $requests = $connection->getRequests();
+        foreach ($requests as $request) {
+            if ($request->getExpiredAt() < time()) {
+                $connection->close('Timed out');
+                $this->sessions->detach($connection);
+            }
+        }
     }
 
     public function stop(): void
