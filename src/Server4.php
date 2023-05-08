@@ -2,12 +2,36 @@
 
 namespace PE\Component\SMPP;
 
+use PE\Component\Event\Emitter;
+use PE\Component\Event\EmitterInterface;
 use PE\Component\Loop\Loop;
+use PE\Component\SMPP\Util\Serializer;
+use PE\Component\SMPP\Util\SerializerInterface;
+use PE\Component\Socket\ClientInterface as SocketClientInterface;
 use PE\Component\Socket\Factory as SocketFactory;
 use PE\Component\Socket\Select;
+use Psr\Log\LoggerInterface;
+use Psr\Log\LogLevel;
+use Psr\Log\NullLogger;
 
 final class Server4
 {
+    private \SplObjectStorage $sessions;
+    private EmitterInterface $emitter;
+    private SerializerInterface $serializer;
+    private LoggerInterface $logger;
+
+    public function __construct(
+        EmitterInterface $emitter,
+        SerializerInterface $serializer,
+        LoggerInterface $logger = null
+    ) {
+        $this->sessions   = new \SplObjectStorage();
+        $this->emitter    = $emitter;
+        $this->serializer = $serializer;
+        $this->logger     = $logger ?: new NullLogger();
+    }
+
     public function __invoke(): void
     {
     }
@@ -24,8 +48,9 @@ final class Server4
         //TODO onConnect($stream)
         //TODO onReceive($stream)
 
-        $server->setInputHandler(function ($data) {
-            var_dump($data);
+        $server->setInputHandler(function (SocketClientInterface $input) {
+            $this->logger->log(LogLevel::DEBUG, '> New connection from' . $input->getRemoteAddress());
+            $this->sessions->attach(new Connection4($input, $this->emitter, $this->serializer, $this->logger));
         });
 
         $server->setErrorHandler(function ($error) {
