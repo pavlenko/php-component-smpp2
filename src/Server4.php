@@ -47,16 +47,13 @@ final class Server4
         //TODO onConnect($stream)
         //TODO onReceive($stream)
 
-        $server->setInputHandler(function (SocketClientInterface $input) {
-            $input->setErrorHandler(fn($error) => $this->logger->log(LogLevel::ERROR, '< E: ' . $error));
+        $server->setInputHandler(function (SocketClientInterface $client) {
+            $connection = new Connection4($client, $this->emitter, $this->serializer, $this->logger);
 
-            //TODO detach session
-            $input->setCloseHandler(fn($error) => $this->logger->log(LogLevel::DEBUG, '< C: ' . ($error ?: 'Closed')));
+            $this->attachConnection($connection);
 
-            $client = new Connection4($input, $this->emitter, $this->serializer, $this->logger);
-
-            $this->logger->log(LogLevel::DEBUG, '> New connection from' . $input->getRemoteAddress());
-            $this->sessions->attach($client);
+            $client->setErrorHandler(fn($error) => $this->logger->log(LogLevel::ERROR, '< E: ' . $error));
+            $client->setCloseHandler(fn() => $this->detachConnection($connection));
         });
 
         $server->setErrorHandler(function ($error) {
@@ -85,6 +82,20 @@ final class Server4
             // Request storage for pending PDUs for this connection
             //$this->processPending($this->sessions[$session]);
         }
+    }
+
+    private function attachConnection(Connection4 $connection): void
+    {
+        $this->logger->log(LogLevel::DEBUG, '< New connection from' . $connection->getClient()->getRemoteAddress());
+        $this->sessions->attach($connection);
+        $connection->wait(10, 0, ...array_keys(ConnectionInterface::BOUND_MAP));
+    }
+
+    private function detachConnection(Connection4 $connection): void
+    {
+        $this->logger->log(LogLevel::INFO, '< Close connection from ' . $connection->getClient()->getRemoteAddress());
+        $this->sessions->detach($connection);
+        $connection->close();
     }
 
     private function processReceive(Connection4 $connection, PDU $pdu): void

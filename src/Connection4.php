@@ -56,6 +56,11 @@ final class Connection4
         $this->logger     = $logger ?: new NullLogger();
     }
 
+    public function getClient(): SocketClientInterface
+    {
+        return $this->client;
+    }
+
     public function getExpects(): array
     {
         return $this->expects;
