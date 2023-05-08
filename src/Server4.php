@@ -44,11 +44,6 @@ final class Server4
         $factory = new SocketFactory($this->select);
 
         $server = $factory->createServer($address);
-
-        //TODO maybe split onInput into two, or first try to accept connection
-        //TODO onConnect($stream)
-        //TODO onReceive($stream)
-
         $server->setInputHandler(function (SocketClientInterface $client) {
             $connection = new Connection4($client, $this->emitter, $this->serializer, $this->logger);
 
@@ -95,9 +90,12 @@ final class Server4
         $connection->wait(3, 0, ...array_keys(ConnectionInterface::BOUND_MAP));
     }
 
-    private function detachConnection(Connection4 $connection): void
+    private function detachConnection(Connection4 $connection, string $message = null): void
     {
-        $this->logger->log(LogLevel::INFO, '< Close connection from ' . $connection->getClient()->getRemoteAddress());
+        $this->logger->log(
+            LogLevel::DEBUG,
+            '< Close connection from ' . $connection->getClient()->getRemoteAddress() . $message
+        );
         $this->sessions->detach($connection);
         $connection->close();
     }
@@ -109,8 +107,7 @@ final class Server4
 
         // Check errored response
         if (PDU::STATUS_NO_ERROR !== $pdu->getStatus()) {
-            $connection->close('Error [' . $pdu->getStatus() . ']');
-            $this->sessions->detach($connection);
+            $this->detachConnection($connection, ': error [' . $pdu->getStatus() . ']');
             return;
         }
 
@@ -126,8 +123,7 @@ final class Server4
         } elseif (PDU::ID_UNBIND === $pdu->getID()) {
             // Handle unbind request
             $connection->send(new PDU(PDU::ID_GENERIC_NACK | $pdu->getID(), 0, $pdu->getSeqNum()));
-            $connection->close('Error [' . $pdu->getStatus() . ']');
-            $this->sessions->detach($connection);
+            $this->detachConnection($connection, ': unbind');
         } else {
             // Handle other requests redirected to user code
             $this->emitter->dispatch(new Event('server.receive', $pdu));
@@ -139,8 +135,7 @@ final class Server4
         $expects = $connection->getExpects();
         foreach ($expects as $expect) {
             if ($expect->getExpiredAt() < time()) {
-                $connection->close('Timed out');
-                $this->sessions->detach($connection);
+                $this->detachConnection($connection, ': timed out');
             }
         }
     }
