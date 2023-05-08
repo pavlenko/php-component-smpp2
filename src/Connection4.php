@@ -49,7 +49,7 @@ final class Connection4
                 $pdu->getSeqNum()
             ));
 
-            $emitter->dispatch(new Event(self::EVT_INPUT, $pdu));
+            $emitter->dispatch(new Event(self::EVT_INPUT, $this, $pdu));
         });
 
         $this->serializer = $serializer;

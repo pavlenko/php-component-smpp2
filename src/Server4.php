@@ -13,6 +13,7 @@ use PE\Component\SMPP\Util\SerializerInterface;
 use PE\Component\Socket\ClientInterface as SocketClientInterface;
 use PE\Component\Socket\Factory as SocketFactory;
 use PE\Component\Socket\Select;
+use PE\Component\Socket\SelectInterface as SocketSelectInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 use Psr\Log\NullLogger;
@@ -23,6 +24,7 @@ final class Server4
     private EmitterInterface $emitter;
     private SerializerInterface $serializer;
     private LoggerInterface $logger;
+    private SocketSelectInterface $select;
 
     public function __construct(
         EmitterInterface $emitter,
@@ -38,8 +40,8 @@ final class Server4
     public function bind(string $address): void
     {
         $loop    = new Loop();
-        $select  = new Select();
-        $factory = new SocketFactory($select);
+        $this->select  = new Select();
+        $factory = new SocketFactory($this->select);
 
         $server = $factory->createServer($address);
 
@@ -64,9 +66,11 @@ final class Server4
             $this->logger->log(LogLevel::DEBUG, 'C: ' . ($error ?: 'Closed'));
         });
 
+        $this->emitter->attach(Connection4::EVT_INPUT, \Closure::fromCallable([$this, 'processReceive']));
+
         $this->logger->log(LogLevel::DEBUG, 'Listen to ' . $server->getAddress());
 
-        $loop->addPeriodicTimer(0.001, fn() => $select->dispatch());
+        $loop->addPeriodicTimer(0.001, fn() => $this->dispatch());
         $loop->run();
     }
 
