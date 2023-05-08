@@ -15,8 +15,6 @@ use Psr\Log\NullLogger;
 class Connection4
 {
     public const EVT_INPUT = 'connection.input';
-    public const EVT_ERROR = 'connection.error';
-    public const EVT_CLOSE = 'connection.close';
 
     private SocketClientInterface $client;
     private SerializerInterface $serializer;
