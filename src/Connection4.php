@@ -22,7 +22,7 @@ final class Connection4
 
     public function __construct(
         SocketClientInterface $client,
-        EmitterInterface $emitter,
+        EmitterInterface $emitter,//TODO maybe pass callback instead of emitter
         SerializerInterface $serializer,
         LoggerInterface $logger = null
     ) {
