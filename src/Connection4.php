@@ -97,6 +97,7 @@ final class Connection4
 
     public function close(string $message = null): void
     {
+        $this->client->setCloseHandler(fn() => null);//TODO maybe add closed flag to socket lib
         $this->client->close($message);
     }
 }
