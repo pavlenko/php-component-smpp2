@@ -1,8 +1,6 @@
 <?php
 
-namespace PE\Component\SMPP;
-
-use PE\Component\SMPP\DTO\PDU;
+namespace PE\Component\SMPP\DTO;
 
 final class ExpectsPDU
 {

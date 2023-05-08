@@ -4,6 +4,7 @@ namespace PE\Component\SMPP;
 
 use PE\Component\Event\EmitterInterface;
 use PE\Component\Event\Event;
+use PE\Component\SMPP\DTO\ExpectsPDU;
 use PE\Component\SMPP\DTO\PDU;
 use PE\Component\SMPP\Util\Buffer;
 use PE\Component\SMPP\Util\SerializerInterface;

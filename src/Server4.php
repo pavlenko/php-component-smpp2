@@ -87,7 +87,7 @@ final class Server4
     {
         $this->logger->log(LogLevel::DEBUG, '< New connection from ' . $connection->getClient()->getRemoteAddress());
         $this->sessions->attach($connection);
-        $connection->wait(3, 0, ...array_keys(ConnectionInterface::BOUND_MAP));
+        $connection->wait(3, 0, PDU::ID_BIND_RECEIVER_RESP, PDU::ID_BIND_TRANSMITTER_RESP, PDU::ID_BIND_TRANSCEIVER_RESP);
     }
 
     private function detachConnection(Connection4 $connection, string $message = null): void
