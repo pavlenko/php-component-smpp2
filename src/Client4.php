@@ -44,7 +44,8 @@ final class Client4
         $sequenceNum = $this->session->newSequenceNum();
 
         // bind start
-        $this->logger->log(LogLevel::DEBUG, "SMPP Client of ($address) connecting ...");
+        //$this->logger->log(LogLevel::DEBUG, "SMPP Client of ($address) connecting ...");
+        $this->logger->log(LogLevel::DEBUG, "Connecting to {$address} ...");
 
         $this->connection = new Connection4($client, $this->emitter, $this->serializer, $this->logger);
         $this->connection->send(new PDU(PDU::ID_BIND_TRANSMITTER, PDU::STATUS_NO_ERROR, $sequenceNum, [
@@ -88,6 +89,10 @@ final class Client4
         if (PDU::STATUS_NO_ERROR !== $pdu->getStatus()) {
             $connection->close('Error [' . $pdu->getStatus() . ']');
             return;
+        }
+
+        if (PDU::ID_BIND_TRANSMITTER_RESP === $pdu->getID()) {
+            $this->logger->log(LogLevel::DEBUG, "Connecting to {$connection->getClient()->getRemoteAddress()} OK");
         }
 
         if (PDU::ID_ENQUIRE_LINK === $pdu->getID()) {
