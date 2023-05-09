@@ -17,6 +17,9 @@ final class Connection4
 {
     public const EVT_INPUT = 'connection.input';
 
+    private \Closure $onInput;
+    private \Closure $onError;
+
     private SocketClientInterface $client;
     private SerializerInterface $serializer;
     private LoggerInterface $logger;
@@ -38,6 +41,7 @@ final class Connection4
             $buffer = new Buffer($data);
             $length = $buffer->shiftInt32();
             if (empty($length)) {
+                //TODO on error
                 $this->logger->log(LogLevel::WARNING, 'Unexpected data length');
                 return;
             }
@@ -45,14 +49,27 @@ final class Connection4
             $pdu  = $this->serializer->decode($data);
 
             $this->logger->log(LogLevel::DEBUG, '< ' . $pdu->toLogger());
-            $emitter->dispatch(new Event(self::EVT_INPUT, $this, $pdu));
+            $emitter->dispatch(new Event(self::EVT_INPUT, $this, $pdu));//TODO on input
             $this->updLastMessageTime();
         });
 
         $this->serializer = $serializer;
         $this->logger     = $logger ?: new NullLogger();
 
+        $this->onInput = fn() => null;
+        $this->onError = fn() => null;
+
         $this->updLastMessageTime();
+    }
+
+    public function setInputHandler(callable $handler): void
+    {
+        $this->onInput = \Closure::fromCallable($handler);
+    }
+
+    public function setErrorHandler(callable $handler): void
+    {
+        $this->onError = \Closure::fromCallable($handler);
     }
 
     public function getClient(): SocketClientInterface
