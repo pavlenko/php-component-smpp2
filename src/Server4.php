@@ -98,11 +98,9 @@ final class Server4
 
     private function detachConnection(Connection4 $connection, string $message = null): void
     {
-        $this->logger->log(
-            LogLevel::DEBUG,
-            '< Close connection from ' . $connection->getRemoteAddress() . $message
-        );
+        $this->logger->log(LogLevel::DEBUG, '< Close connection from ' . $connection->getRemoteAddress() . $message);
         $this->sessions->detach($connection);
+        $connection->setCloseHandler(fn() => null);
         $connection->close();
     }
 
