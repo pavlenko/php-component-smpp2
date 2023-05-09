@@ -10,17 +10,14 @@ final class Session implements SessionInterface
     private ?string $password;
     private ?Address $address;
     private int $seqNum;
+    private ?int $mode;
 
-    /**
-     * @param string $systemID
-     * @param string|null $password
-     * @param Address|null $address
-     */
-    public function __construct(string $systemID, string $password = null, Address $address = null)
+    public function __construct(string $systemID, string $password = null, Address $address = null, int $mode = null)
     {
         $this->systemID = $systemID;
         $this->password = $password;
         $this->address  = $address;
+        $this->mode     = $mode;
 
         // Generate random sequence number for make connection more unique
         $this->seqNum = mt_rand(0x001, 0x7FF) << 20;
@@ -39,6 +36,11 @@ final class Session implements SessionInterface
     public function getAddress(): ?Address
     {
         return $this->address;
+    }
+
+    public function getMode(): ?int
+    {
+        return $this->mode;
     }
 
     public function getSequenceNum(): int

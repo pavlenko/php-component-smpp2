@@ -19,6 +19,10 @@ final class Server4
 {
     private SessionInterface $session;
     private StorageInterface $storage;
+
+    /**
+     * @var \SplObjectStorage|SessionInterface[]
+     */
     private \SplObjectStorage $sessions;
     private EmitterInterface $emitter;
     private SerializerInterface $serializer;
@@ -123,7 +127,8 @@ final class Server4
             $this->sessions[$connection] = new Session(
                 $pdu->get('system_id'),
                 $pdu->get('password'),
-                $pdu->get('address')
+                $pdu->get('address'),
+                ConnectionInterface::BOUND_MAP[$pdu->getID()]//TODO maybe move outside of session
             );
         } elseif (PDU::ID_ENQUIRE_LINK === $pdu->getID()) {
             $connection->send(new PDU(PDU::ID_ENQUIRE_LINK_RESP, 0, $pdu->getSeqNum()));
@@ -175,7 +180,9 @@ final class Server4
 
     private function processPending(Connection4 $connection): void
     {
-        if (empty($this->sessions[$connection])) {
+        if (empty($this->sessions[$connection])
+            || $this->sessions[$connection]->getMode() === ConnectionInterface::STATUS_BOUND_TX
+        ) {
             return;
         }
 
