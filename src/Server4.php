@@ -133,7 +133,6 @@ final class Server4
         } elseif (PDU::ID_UNBIND === $pdu->getID()) {
             // Handle unbind request
             $connection->send(new PDU(PDU::ID_UNBIND_RESP, 0, $pdu->getSeqNum()));
-            $this->detachConnection($connection, ': unbind');
         } elseif (PDU::ID_SUBMIT_SM === $pdu->getID()) {
             $connection->send(new PDU(PDU::ID_SUBMIT_SM_RESP, 0, $pdu->getSeqNum()));
             $this->storage->insert(new PDU(

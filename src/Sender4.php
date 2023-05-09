@@ -50,16 +50,17 @@ final class Sender4
 
         $this->connection = new Connection4($socket, $this->serializer, $this->logger);
         $this->connection->setInputHandler(fn(PDU $pdu) => $this->processReceive($this->connection, $pdu));
+        $this->connection->setCloseHandler(fn() => $this->loop->stop());
 
         $sequenceNum = $this->session->newSequenceNum();
-        $this->connection->send(new PDU(PDU::ID_BIND_RECEIVER, PDU::STATUS_NO_ERROR, $sequenceNum, [
+        $this->connection->send(new PDU(PDU::ID_BIND_TRANSMITTER, PDU::STATUS_NO_ERROR, $sequenceNum, [
             'system_id'         => $this->session->getSystemID(),
             'password'          => $this->session->getPassword(),
             'system_type'       => '',
             'interface_version' => ConnectionInterface::INTERFACE_VER,
             'address'           => $this->session->getAddress(),
         ]));
-        $this->connection->wait(5, $sequenceNum);
+        $this->connection->wait(5, $sequenceNum, PDU::ID_BIND_TRANSMITTER_RESP);
         $this->wait();
     }
 

@@ -19,6 +19,7 @@ final class Connection4
 
     private \Closure $onInput;
     private \Closure $onError;
+    private \Closure $onClose;
 
     private SocketClientInterface $client;
     private SerializerInterface $serializer;
@@ -57,6 +58,7 @@ final class Connection4
 
         $this->onInput = fn() => null;
         $this->onError = fn() => null;
+        $this->onClose = fn() => null;
 
         $this->updLastMessageTime();
     }
@@ -69,6 +71,11 @@ final class Connection4
     public function setErrorHandler(callable $handler): void
     {
         $this->onError = \Closure::fromCallable($handler);
+    }
+
+    public function setCloseHandler(callable $handler): void
+    {
+        $this->onClose = \Closure::fromCallable($handler);
     }
 
     public function getClient(): SocketClientInterface
@@ -117,8 +124,10 @@ final class Connection4
     {
         $this->client->setCloseHandler(fn() => null);
         $this->client->close($message);
+        call_user_func($this->onClose, $message);
 
         $this->onInput = fn() => null;
         $this->onError = fn() => null;
+        $this->onClose = fn() => null;
     }
 }
