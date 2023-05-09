@@ -2,7 +2,6 @@
 
 namespace PE\Component\SMPP;
 
-use PE\Component\Event\EmitterInterface;
 use PE\Component\Loop\Loop;
 use PE\Component\Loop\LoopInterface;
 use PE\Component\SMPP\DTO\PDU;
@@ -20,6 +19,7 @@ final class Sender4
     private LoggerInterface $logger;
     private Select $select;
     private ?Connection4 $connection = null;
+    private LoopInterface $loop;
 
     public function __construct(
         SessionInterface $session,
@@ -30,6 +30,15 @@ final class Sender4
         $this->serializer = $serializer;
         $this->logger = $logger ?: new NullLogger();
         $this->select = new Select();
+
+        $this->loop = new Loop();
+        $this->loop->addPeriodicTimer(0.001, function () {
+            $this->select->dispatch();
+            $this->processTimeout($this->connection);
+            if (empty($this->connection->getExpects())) {//TODO check
+                $this->loop->stop();
+            }
+        });
     }
 
     public function bind(string $address): void
@@ -51,6 +60,7 @@ final class Sender4
             'address'           => $this->session->getAddress(),
         ]));
         $this->connection->wait(5, $sequenceNum);
+        $this->wait();
     }
 
     public function send(SMS $message): void
@@ -72,9 +82,9 @@ final class Sender4
         $this->connection->wait(5, $sequenceNum, PDU::ID_SUBMIT_SM_RESP);
     }
 
-    public function wait(LoopInterface $loop): void
+    public function wait(): void
     {
-        $loop->run();
+        $this->loop->run();
     }
 
     private function processReceive(Connection4 $connection, PDU $pdu): void
