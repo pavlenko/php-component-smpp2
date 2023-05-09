@@ -5,6 +5,7 @@ namespace PE\Component\SMPP;
 use PE\Component\SMPP\Util\Stream;
 use Psr\Log\LoggerInterface;
 
+/* @deprecated */
 interface FactoryInterface
 {
     /**

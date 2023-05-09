@@ -5,6 +5,7 @@ namespace PE\Component\SMPP;
 use PE\Component\Loop\Loop;
 use PE\Component\Loop\LoopInterface;
 use PE\Component\SMPP\DTO\PDU;
+use PE\Component\SMPP\Util\Serializer;
 use PE\Component\SMPP\Util\SerializerInterface;
 use PE\Component\Socket\Factory as SocketFactory;
 use PE\Component\Socket\Select;
@@ -24,12 +25,13 @@ final class Client4
 
     public function __construct(
         SessionInterface $session,
-        SerializerInterface $serializer,
+        StorageInterface $storage,
+        SerializerInterface $serializer = null,
         LoggerInterface $logger = null
     ) {
         $this->session = $session;
-        $this->storage = new Storage4();//TODO pass to constructor
-        $this->serializer = $serializer;
+        $this->storage = $storage;
+        $this->serializer = $serializer ?: new Serializer();//TODO need only for pass to connection
         $this->logger = $logger ?: new NullLogger();
         $this->select = new Select();//TODO pass factory to constructor and get from it
 
