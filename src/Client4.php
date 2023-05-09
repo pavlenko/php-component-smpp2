@@ -3,6 +3,7 @@
 namespace PE\Component\SMPP;
 
 use PE\Component\Loop\Loop;
+use PE\Component\Loop\LoopInterface;
 use PE\Component\SMPP\DTO\PDU;
 use PE\Component\SMPP\Util\SerializerInterface;
 use PE\Component\Socket\Factory as SocketFactory;
@@ -18,6 +19,7 @@ final class Client4
     private LoggerInterface $logger;
     private Select $select;
     private Connection4 $connection;
+    private LoopInterface $loop;
 
     public function __construct(
         SessionInterface $session,
@@ -28,17 +30,30 @@ final class Client4
         $this->serializer = $serializer;
         $this->logger = $logger ?: new NullLogger();
         $this->select = new Select();
+
+        $this->loop = new Loop(1, function () {
+            $this->select->dispatch();
+            $this->processTimeout($this->connection);
+            $this->processEnquire($this->connection);
+        });
     }
 
     public function bind(string $address): void
     {
         $socket = (new SocketFactory($this->select))->createClient($address);
 
-        // bind start
         $this->logger->log(LogLevel::DEBUG, "Connecting to {$socket->getRemoteAddress()} ...");
 
         $this->connection = new Connection4($socket, $this->serializer, $this->logger);
         $this->connection->setInputHandler(fn(PDU $pdu) => $this->processReceive($this->connection, $pdu));
+        $this->connection->setCloseHandler(function () {
+            $this->logger->log(
+                LogLevel::DEBUG,
+                "Connection to {$this->connection->getClient()->getRemoteAddress()} closed"
+            );
+            $this->loop->stop();
+            $this->connection->setStatus(ConnectionInterface::STATUS_CLOSED);
+        });
 
         $sequenceNum = $this->session->newSequenceNum();
         $this->connection->send(new PDU(PDU::ID_BIND_RECEIVER, PDU::STATUS_NO_ERROR, $sequenceNum, [
@@ -50,27 +65,19 @@ final class Client4
         ]));
         $this->connection->wait(5, $sequenceNum, PDU::ID_BIND_RECEIVER_RESP);
         // bind end
-        //TODO wait bind completed???
 
-        $loop = new Loop(1, fn() => $this->dispatch());
+        //$loop = new Loop(1, fn() => $this->dispatch());
 
-        $socket->setErrorHandler(function ($error) {
-            $this->logger->log(LogLevel::ERROR, 'E: ' . $error);
-        });
+//        $socket->setErrorHandler(function ($error) {
+//            $this->logger->log(LogLevel::ERROR, 'E: ' . $error);
+//        });
 
-        $socket->setCloseHandler(function ($error = null) use ($loop) {
-            $loop->stop();
-            $this->logger->log(LogLevel::DEBUG, 'C: ' . ($error ?: 'Closed'));
-        });
+//        $socket->setCloseHandler(function ($error = null) use ($loop) {
+//            //$loop->stop();
+//            $this->logger->log(LogLevel::DEBUG, 'C: ' . ($error ?: 'Closed'));
+//        });
 
-        $loop->run();
-    }
-
-    public function dispatch()
-    {
-        $this->select->dispatch();
-        $this->processTimeout();
-        $this->processEnquire();
+        $this->loop->run();
     }
 
     private function processReceive(Connection4 $connection, PDU $pdu): void
@@ -101,25 +108,25 @@ final class Client4
         }
     }
 
-    private function processTimeout()
+    private function processTimeout(Connection4 $connection)
     {
-        $expects = $this->connection->getExpects();
+        $expects = $connection->getExpects();
         foreach ($expects as $expect) {
             if ($expect->getExpiredAt() < time()) {
-                $this->connection->close('Timed out');
+                $connection->close('Timed out');
             }
         }
     }
 
-    private function processEnquire()
+    private function processEnquire(Connection4 $connection)
     {
         return;
-        $overdue = time() - $this->connection->getLastMessageTime() > 15;
+        $overdue = time() - $connection->getLastMessageTime() > 15;
         if ($overdue) {
             $sequenceNum = $this->session->newSequenceNum();
 
-            $this->connection->send(new PDU(PDU::ID_ENQUIRE_LINK, 0, $sequenceNum));
-            $this->connection->wait(5, $sequenceNum, PDU::ID_ENQUIRE_LINK_RESP);
+            $connection->send(new PDU(PDU::ID_ENQUIRE_LINK, 0, $sequenceNum));
+            $connection->wait(5, $sequenceNum, PDU::ID_ENQUIRE_LINK_RESP);
         }
     }
 }
