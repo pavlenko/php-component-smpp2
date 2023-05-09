@@ -52,12 +52,10 @@ final class Server4
         $server->setInputHandler(function (SocketClientInterface $client) {
             $connection = new Connection4($client, $this->serializer, $this->logger);
             $connection->setInputHandler(fn(PDU $pdu) => $this->processReceive($connection, $pdu));
+            $connection->setErrorHandler(fn($error) => $this->logger->log(LogLevel::ERROR, '< E: ' . $error));
+            $connection->setCloseHandler(fn() => $this->detachConnection($connection));
 
             $this->attachConnection($connection);
-
-            //TODO replace socket handlers with connection one
-            $client->setErrorHandler(fn($error) => $this->logger->log(LogLevel::ERROR, '< E: ' . $error));
-            $client->setCloseHandler(fn() => $this->detachConnection($connection));
         });
 
         $server->setErrorHandler(function ($error) {
@@ -93,7 +91,7 @@ final class Server4
 
     private function attachConnection(Connection4 $connection): void
     {
-        $this->logger->log(LogLevel::DEBUG, '< New connection from ' . $connection->getClient()->getRemoteAddress());
+        $this->logger->log(LogLevel::DEBUG, '< New connection from ' . $connection->getRemoteAddress());
         $this->sessions->attach($connection);
         $connection->wait(5, 0, PDU::ID_BIND_RECEIVER, PDU::ID_BIND_TRANSMITTER, PDU::ID_BIND_TRANSCEIVER);
     }
@@ -102,7 +100,7 @@ final class Server4
     {
         $this->logger->log(
             LogLevel::DEBUG,
-            '< Close connection from ' . $connection->getClient()->getRemoteAddress() . $message
+            '< Close connection from ' . $connection->getRemoteAddress() . $message
         );
         $this->sessions->detach($connection);
         $connection->close();

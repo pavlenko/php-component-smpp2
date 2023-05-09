@@ -87,9 +87,22 @@ final class Connection4
         $this->onClose = \Closure::fromCallable($handler);
     }
 
-    public function getClient(): SocketClientInterface
+    public function getClientAddress(): ?string
     {
-        return $this->client;
+        static $address = null;
+        if (null === $address) {
+            $address = $this->client->getClientAddress();
+        }
+        return $address;
+    }
+
+    public function getRemoteAddress(): ?string
+    {
+        static $address = null;
+        if (null === $address) {
+            $address = $this->client->getRemoteAddress();
+        }
+        return $address;
     }
 
     public function getStatus(): int

@@ -53,7 +53,7 @@ final class Client4
         $this->connection->setCloseHandler(function () {
             $this->logger->log(
                 LogLevel::DEBUG,
-                "Connection to {$this->connection->getClient()->getRemoteAddress()} closed"
+                "Connection to {$this->connection->getRemoteAddress()} closed"
             );
             $this->loop->stop();
             $this->connection->setStatus(ConnectionInterface::STATUS_CLOSED);
@@ -95,8 +95,8 @@ final class Client4
             return;
         }
 
-        if (PDU::ID_BIND_RECEIVER_RESP === $pdu->getID()) {
-            $this->logger->log(LogLevel::DEBUG, "Connecting to {$connection->getClient()->getRemoteAddress()} OK");
+        if (array_key_exists(~PDU::ID_GENERIC_NACK & $pdu->getID(), ConnectionInterface::BOUND_MAP)) {
+            $this->logger->log(LogLevel::DEBUG, "Connecting to {$connection->getRemoteAddress()} OK");
             $this->connection->setStatus(ConnectionInterface::BOUND_MAP[~PDU::ID_GENERIC_NACK & $pdu->getID()]);
         }
 
