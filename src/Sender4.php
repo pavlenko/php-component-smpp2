@@ -7,6 +7,7 @@ use PE\Component\Loop\LoopInterface;
 use PE\Component\SMPP\DTO\PDU;
 use PE\Component\SMPP\DTO\SMS;
 use PE\Component\SMPP\Util\SerializerInterface;
+use PE\Component\Socket\Factory as SocketFactory;
 use PE\Component\Socket\Select;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
@@ -50,8 +51,7 @@ final class Sender4
 
     public function bind(string $address): void
     {
-        $factory = new \PE\Component\Socket\Factory($this->select);
-        $socket  = $factory->createClient($address);
+        $socket = (new SocketFactory($this->select))->createClient($address);
 
         $this->logger->log(LogLevel::DEBUG, "Connecting to {$socket->getRemoteAddress()} ...");
 
