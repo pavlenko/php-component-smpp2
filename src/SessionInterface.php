@@ -28,13 +28,6 @@ interface SessionInterface
     public function getAddress(): ?Address;
 
     /**
-     * Get bound mode if any
-     *
-     * @return int|null
-     */
-    public function getMode(): ?int;
-
-    /**
      * Get current sequence number
      *
      * @return int

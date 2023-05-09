@@ -12,11 +12,11 @@ final class Storage4 implements StorageInterface
      */
     private array $data = [];
 
-    public function select(Address $address): ?PDU
+    public function select(Address $address = null): ?PDU
     {
         foreach ($this->data as $pdu) {
             $destination = $pdu->get('dest_address');
-            if ($destination instanceof Address && $destination->getValue() === $address->getValue()) {
+            if ($destination instanceof Address && !$address || ($destination->getValue() === $address->getValue())) {
                 return $pdu;
             }
         }

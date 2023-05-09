@@ -15,6 +15,7 @@ use Psr\Log\NullLogger;
 final class Client4
 {
     private SessionInterface $session;
+    private StorageInterface $storage;
     private SerializerInterface $serializer;
     private LoggerInterface $logger;
     private Select $select;
@@ -27,6 +28,7 @@ final class Client4
         LoggerInterface $logger = null
     ) {
         $this->session = $session;
+        $this->storage = new Storage4();
         $this->serializer = $serializer;
         $this->logger = $logger ?: new NullLogger();
         $this->select = new Select();
@@ -35,6 +37,7 @@ final class Client4
             $this->select->dispatch();
             $this->processTimeout($this->connection);
             $this->processEnquire($this->connection);
+            $this->processPending($this->connection);
         });
     }
 
@@ -93,6 +96,7 @@ final class Client4
 
         if (PDU::ID_BIND_RECEIVER_RESP === $pdu->getID()) {
             $this->logger->log(LogLevel::DEBUG, "Connecting to {$connection->getClient()->getRemoteAddress()} OK");
+            $this->connection->setStatus(ConnectionInterface::BOUND_MAP[~PDU::ID_GENERIC_NACK & $pdu->getID()]);
         }
 
         if (PDU::ID_ENQUIRE_LINK === $pdu->getID()) {
@@ -120,13 +124,26 @@ final class Client4
 
     private function processEnquire(Connection4 $connection)
     {
-        return;
         $overdue = time() - $connection->getLastMessageTime() > 15;
         if ($overdue) {
             $sequenceNum = $this->session->newSequenceNum();
 
             $connection->send(new PDU(PDU::ID_ENQUIRE_LINK, 0, $sequenceNum));
             $connection->wait(5, $sequenceNum, PDU::ID_ENQUIRE_LINK_RESP);
+        }
+    }
+
+    private function processPending(Connection4 $connection): void
+    {
+        if (!array_key_exists($connection->getStatus(), ConnectionInterface::BOUND_MAP)) {
+            return;
+        }
+
+        $pdu = $this->storage->select();
+        if ($pdu) {
+            $connection->send($pdu);
+            $connection->wait(5, $pdu->getSeqNum(), PDU::ID_GENERIC_NACK | $pdu->getID());
+            $this->storage->delete($pdu);
         }
     }
 }

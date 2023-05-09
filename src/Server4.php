@@ -55,6 +55,7 @@ final class Server4
 
             $this->attachConnection($connection);
 
+            //TODO replace socket handlers with connection one
             $client->setErrorHandler(fn($error) => $this->logger->log(LogLevel::ERROR, '< E: ' . $error));
             $client->setCloseHandler(fn() => $this->detachConnection($connection));
         });
@@ -125,9 +126,9 @@ final class Server4
             $this->sessions[$connection] = new Session(
                 $pdu->get('system_id'),
                 $pdu->get('password'),
-                $pdu->get('address'),
-                ConnectionInterface::BOUND_MAP[$pdu->getID()]//TODO maybe move outside of session
+                $pdu->get('address')
             );
+            $connection->setStatus(ConnectionInterface::BOUND_MAP[$pdu->getID()]);
         } elseif (PDU::ID_ENQUIRE_LINK === $pdu->getID()) {
             $connection->send(new PDU(PDU::ID_ENQUIRE_LINK_RESP, 0, $pdu->getSeqNum()));
         } elseif (PDU::ID_UNBIND === $pdu->getID()) {
@@ -148,7 +149,6 @@ final class Server4
                     'registered_delivery'    => $pdu->get('registered_delivery'),
                 ]
             ));
-            dump($this->storage);
         } else {
             // Handle other requests redirected to user code
             $this->emitter->dispatch(new Event('server.receive', $pdu));
@@ -178,15 +178,12 @@ final class Server4
 
     private function processPending(Connection4 $connection): void
     {
-        if (empty($this->sessions[$connection])
-            //|| $this->sessions[$connection]->getMode() === ConnectionInterface::STATUS_BOUND_TX
-        ) {
+        if (!array_key_exists($connection->getStatus(), ConnectionInterface::BOUND_MAP)) {
             return;
         }
 
         $pdu = $this->storage->select($this->sessions[$connection]->getAddress());
         if ($pdu) {
-            dump($pdu);
             $connection->send($pdu);
             $connection->wait(5, $pdu->getSeqNum(), PDU::ID_GENERIC_NACK | $pdu->getID());
             $this->storage->delete($pdu);

@@ -60,6 +60,8 @@ final class Connection4
             }
         });
 
+        $this->client->setCloseHandler(fn(string $message = null) => $this->close($message));
+
         $this->serializer = $serializer;
         $this->logger     = $logger ?: new NullLogger();
 
