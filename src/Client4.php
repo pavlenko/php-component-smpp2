@@ -2,6 +2,8 @@
 
 namespace PE\Component\SMPP;
 
+use PE\Component\Event\EmitterInterface;
+use PE\Component\Event\Event;
 use PE\Component\Loop\Loop;
 use PE\Component\Loop\LoopInterface;
 use PE\Component\SMPP\DTO\PDU;
@@ -13,8 +15,8 @@ final class Client4
 {
     private SessionInterface $session;
     private StorageInterface $storage;
+    private EmitterInterface $emitter;
     private Factory4 $factory;
-    private SelectInterface $select;
     private LoggerInterface $logger;
 
     private Connection4 $connection;
@@ -23,17 +25,20 @@ final class Client4
     public function __construct(
         SessionInterface $session,
         StorageInterface $storage,
+        EmitterInterface $emitter,
         Factory4 $factory
     ) {
         $this->session = $session;
         $this->storage = $storage;
+        $this->emitter = $emitter;
         $this->factory = $factory;
-        $this->select  = $factory->getSocketSelect();
-        $this->logger  = $factory->getLogger();
+
+        $this->logger = $factory->getLogger();
+        //$this->select = $factory->getSocketSelect();
 
         //TODO pass to constructor
         $this->loop = new Loop(1, function () {
-            $this->select->dispatch();
+            $this->factory->getSocketSelect()->dispatch();
             $this->processTimeout($this->connection);
             $this->processEnquire($this->connection);
             $this->processPending($this->connection);
@@ -91,8 +96,8 @@ final class Client4
                 "SMS from {$pdu->get('source_address')->getValue()}: {$pdu->get('short_message')}"
             );
             $connection->send(new PDU(PDU::ID_DELIVER_SM_RESP, 0, $pdu->getSeqNum()));
+            $this->emitter->dispatch(new Event('DELIVER_SM', $connection, $pdu));
 
-            //TODO Test reply via external event
 //            $this->loop->addSingularTimer(5, function () use ($connection) {
 //                $sequenceNum = $this->session->newSequenceNum();
 //                $this->connection->send(new PDU(PDU::ID_SUBMIT_SM, PDU::STATUS_NO_ERROR, $sequenceNum, [
