@@ -12,13 +12,13 @@ use Psr\Log\NullLogger;
 trait ClientTrait
 {
     private string $address;
-    private FactoryInterface $factory;
+    private FactoryOldInterface $factory;
     private SessionInterface $session;
     private EventsInterface $events;
     private LoggerInterface $logger;
     private ConnectionInterface $connection;
 
-    public function __construct(string $address, FactoryInterface $factory, SessionInterface $session, EventsInterface $events, LoggerInterface $logger = null)
+    public function __construct(string $address, FactoryOldInterface $factory, SessionInterface $session, EventsInterface $events, LoggerInterface $logger = null)
     {
         $this->address = $address;
         $this->factory = $factory;

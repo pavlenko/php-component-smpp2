@@ -5,7 +5,7 @@ namespace PE\Component\SMPP\V3;
 use PE\Component\Loop\Loop;
 use PE\Component\SMPP\ConnectionInterface;
 use PE\Component\SMPP\DTO\PDU;
-use PE\Component\SMPP\Factory;
+use PE\Component\SMPP\FactoryOld;
 use PE\Component\SMPP\Server;
 use PE\Component\SMPP\Session;
 use PE\Component\SMPP\Util\Events;
@@ -14,7 +14,7 @@ use Symfony\Component\Console\Output\ConsoleOutput;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-$factory = new Factory();
+$factory = new FactoryOld();
 $session = new Session('SERVER');
 $events  = new Events();
 $logger  = new ConsoleLogger(new ConsoleOutput(ConsoleOutput::VERBOSITY_DEBUG));

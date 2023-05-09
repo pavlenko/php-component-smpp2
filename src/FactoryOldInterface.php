@@ -6,7 +6,7 @@ use PE\Component\SMPP\Util\Stream;
 use Psr\Log\LoggerInterface;
 
 /* @deprecated */
-interface FactoryInterface
+interface FactoryOldInterface
 {
     /**
      * Create connection for stream

@@ -2,7 +2,7 @@
 
 namespace PE\Component\SMPP\V3;
 
-use PE\Component\SMPP\Factory;
+use PE\Component\SMPP\FactoryOld;
 use PE\Component\SMPP\DTO\Address;
 use PE\Component\SMPP\Sender;
 use PE\Component\SMPP\Session;
@@ -13,7 +13,7 @@ use Symfony\Component\Console\Output\ConsoleOutput;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-$factory = new Factory();
+$factory = new FactoryOld();
 $session = new Session('SENDER');
 $events  = new Events();
 $logger  = new ConsoleLogger(new ConsoleOutput(ConsoleOutput::VERBOSITY_DEBUG));
