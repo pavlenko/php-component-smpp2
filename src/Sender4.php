@@ -4,6 +4,7 @@ namespace PE\Component\SMPP;
 
 use PE\Component\Event\EmitterInterface;
 use PE\Component\Loop\Loop;
+use PE\Component\Loop\LoopInterface;
 use PE\Component\SMPP\DTO\PDU;
 use PE\Component\SMPP\DTO\SMS;
 use PE\Component\SMPP\Util\SerializerInterface;
@@ -17,20 +18,34 @@ final class Sender4
     private EmitterInterface $emitter;
     private SerializerInterface $serializer;
     private LoggerInterface $logger;
-    private ?Connection4 $connection;
+    private Select $select;
+    private Connection4 $connection;
 
     public function __construct(SessionInterface $session)
     {
         $this->session = $session;
+        $this->select = new Select();
     }
 
     public function bind(string $address): void
     {
-        $select  = new Select();
-        $factory = new \PE\Component\Socket\Factory($select);
+        $factory = new \PE\Component\Socket\Factory($this->select);
         $socket  = $factory->createClient($address);
 
+        $this->logger->log(LogLevel::DEBUG, "Connecting to {$socket->getRemoteAddress()} ...");
+
         $this->connection = new Connection4($socket, $this->emitter, $this->serializer, $this->logger);
+        //TODO $this->connection->setInputHandler(fn(PDU $pdu) => $this->processReceive($this->connection, $pdu));
+
+        $sequenceNum = $this->session->newSequenceNum();
+        $this->connection->send(new PDU(PDU::ID_BIND_RECEIVER, PDU::STATUS_NO_ERROR, $sequenceNum, [
+            'system_id'         => $this->session->getSystemID(),
+            'password'          => $this->session->getPassword(),
+            'system_type'       => '',
+            'interface_version' => ConnectionInterface::INTERFACE_VER,
+            'address'           => $this->session->getAddress(),
+        ]));
+        $this->connection->wait(5, $sequenceNum);
     }
 
     public function send(SMS $message): void
@@ -46,11 +61,11 @@ final class Sender4
             'registered_delivery'    => $message->hasRegisteredDelivery(),
         ]));
         $this->connection->wait(5, $sequenceNum, PDU::ID_SUBMIT_SM_RESP);
+    }
 
-        $loop = new Loop(1, function () {
-            $this->processTimeout();
-        });
-        $loop->run();//TODO maybe add wait method
+    public function wait(LoopInterface $loop): void
+    {
+        $loop->run();
     }
 
     private function processReceive(Connection4 $connection, PDU $pdu): void
@@ -81,6 +96,6 @@ final class Sender4
 
     public function exit(): void
     {
-        //TODO stop loop & close connection
+        $this->connection->close();
     }
 }
