@@ -98,6 +98,11 @@ final class Client4
         if (PDU::ID_ENQUIRE_LINK === $pdu->getID()) {
             $connection->send(new PDU(PDU::ID_ENQUIRE_LINK_RESP, 0, $pdu->getSeqNum()));
         }
+
+        if (PDU::ID_DELIVER_SM === $pdu->getID()) {
+            //TODO
+            $connection->send(new PDU(PDU::ID_DELIVER_SM_RESP, 0, $pdu->getSeqNum()));
+        }
     }
 
     private function processTimeout()

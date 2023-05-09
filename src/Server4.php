@@ -128,10 +128,10 @@ final class Server4
                 $pdu->get('address')
             );
         } elseif (PDU::ID_ENQUIRE_LINK === $pdu->getID()) {
-            $connection->send(new PDU(PDU::ID_GENERIC_NACK | $pdu->getID(), 0, $pdu->getSeqNum()));
+            $connection->send(new PDU(PDU::ID_ENQUIRE_LINK_RESP, 0, $pdu->getSeqNum()));
         } elseif (PDU::ID_UNBIND === $pdu->getID()) {
             // Handle unbind request
-            $connection->send(new PDU(PDU::ID_GENERIC_NACK | $pdu->getID(), 0, $pdu->getSeqNum()));
+            $connection->send(new PDU(PDU::ID_UNBIND_RESP, 0, $pdu->getSeqNum()));
             $this->detachConnection($connection, ': unbind');
         } else {
             // Handle other requests redirected to user code
