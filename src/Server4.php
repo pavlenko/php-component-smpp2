@@ -8,6 +8,7 @@ use PE\Component\Event\Event;
 use PE\Component\Loop\Loop;
 use PE\Component\SMPP\DTO\Address;
 use PE\Component\SMPP\DTO\PDU;
+use PE\Component\SMPP\DTO\SMS;
 use PE\Component\SMPP\Util\Serializer;
 use PE\Component\SMPP\Util\SerializerInterface;
 use PE\Component\Socket\ClientInterface as SocketClientInterface;
@@ -21,6 +22,7 @@ use Psr\Log\NullLogger;
 final class Server4
 {
     private SessionInterface $session;
+    private StorageInterface $storage;
     private \SplObjectStorage $sessions;
     private EmitterInterface $emitter;
     private SerializerInterface $serializer;
@@ -85,8 +87,7 @@ final class Server4
         }
 
         foreach ($this->sessions as $session) {
-            // Request storage for pending PDUs for this connection
-            //$this->processPending($this->sessions[$session]);
+            $this->processPending($session);
         }
     }
 
@@ -133,6 +134,21 @@ final class Server4
             // Handle unbind request
             $connection->send(new PDU(PDU::ID_UNBIND_RESP, 0, $pdu->getSeqNum()));
             $this->detachConnection($connection, ': unbind');
+        } elseif (PDU::ID_SUBMIT_SM === $pdu->getID()) {
+            $connection->send(new PDU(PDU::ID_SUBMIT_SM_RESP, 0, $pdu->getSeqNum()));
+            $this->storage->insert(0, new PDU(
+                PDU::ID_DELIVER_SM,
+                PDU::STATUS_NO_ERROR,
+                $this->session->newSequenceNum(),
+                [
+                    'short_message'          => $pdu->get('short_message'),
+                    'dest_address'           => $pdu->get('dest_address'),
+                    'source_address'         => $pdu->get('source_address'),
+                    'data_coding'            => $pdu->get('data_coding'),
+                    'schedule_delivery_time' => $pdu->get('schedule_delivery_time'),
+                    'registered_delivery'    => $pdu->get('registered_delivery'),
+                ]
+            ));
         } else {
             // Handle other requests redirected to user code
             $this->emitter->dispatch(new Event('server.receive', $pdu));
@@ -157,6 +173,22 @@ final class Server4
 
             $connection->send(new PDU(PDU::ID_ENQUIRE_LINK, 0, $sequenceNum));
             $connection->wait(5, $sequenceNum, PDU::ID_ENQUIRE_LINK_RESP);
+        }
+    }
+
+    private function processPending(Connection4 $connection): void
+    {
+        if (empty($this->sessions[$connection])) {
+            return;
+        }
+
+        //TODO storage API, how to identify pending PDU
+        // Get PDU for connection, if it has - send & require response
+        $pdu = $this->storage->select($this->sessions[$connection]->getAddress());
+        if ($pdu) {
+            $connection->send($pdu);
+            //TODO use max lifetime from pdu here
+            $connection->wait(5, $pdu->getSeqNum(), PDU::ID_GENERIC_NACK | $pdu->getID());
         }
     }
 

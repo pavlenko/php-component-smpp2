@@ -47,7 +47,7 @@ final class Client4
         $this->logger->log(LogLevel::DEBUG, "Connecting to {$address} ...");
 
         $this->connection = new Connection4($client, $this->emitter, $this->serializer, $this->logger);
-        $this->connection->send(new PDU(PDU::ID_BIND_TRANSMITTER, PDU::STATUS_NO_ERROR, $sequenceNum, [
+        $this->connection->send(new PDU(PDU::ID_BIND_RECEIVER, PDU::STATUS_NO_ERROR, $sequenceNum, [
             'system_id'         => $this->session->getSystemID(),
             'password'          => $this->session->getPassword(),
             'system_type'       => '',
