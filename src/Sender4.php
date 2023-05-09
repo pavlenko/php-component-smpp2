@@ -66,11 +66,10 @@ final class Sender4
     public function send(SMS $message): void
     {
         if (null === $this->connection) {
-            throw new \RuntimeException('You must call bind() and wait() before send SMS');
+            throw new \RuntimeException('You must call bind() before any other operation');
         }
 
         $sequenceNum = $this->session->newSequenceNum();
-
         $this->connection->send(new PDU(PDU::ID_SUBMIT_SM, PDU::STATUS_NO_ERROR, $sequenceNum, [
             'short_message'          => $message->getMessage(),
             'dest_address'           => $message->getRecipient(),
@@ -84,6 +83,10 @@ final class Sender4
 
     public function wait(): void
     {
+        if (null === $this->connection) {
+            throw new \RuntimeException('You must call bind() before any other operation');
+        }
+
         $this->loop->run();
     }
 
@@ -101,6 +104,11 @@ final class Sender4
         if (PDU::ID_BIND_TRANSMITTER_RESP === $pdu->getID()) {
             $this->logger->log(LogLevel::DEBUG, "Connecting to {$connection->getClient()->getRemoteAddress()} OK");
         }
+
+        if (PDU::ID_UNBIND_RESP === $pdu->getID()) {
+            $this->logger->log(LogLevel::DEBUG, "Connecting to {$connection->getClient()->getRemoteAddress()} closed");
+            $connection->close('Unbind');
+        }
     }
 
     private function processTimeout(Connection4 $connection): void
@@ -115,8 +123,13 @@ final class Sender4
 
     public function exit(): void
     {
-        if (null !== $this->connection) {
-            $this->connection->close();
+        if (null === $this->connection) {
+            throw new \RuntimeException('You must call bind() before any other operation');
         }
+
+        $sequenceNum = $this->session->newSequenceNum();
+        $this->connection->send(new PDU(PDU::ID_UNBIND, PDU::STATUS_NO_ERROR, $sequenceNum));
+        $this->connection->wait(5, $sequenceNum, PDU::ID_UNBIND_RESP);
+        $this->wait();
     }
 }
