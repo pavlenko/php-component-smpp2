@@ -11,6 +11,7 @@ use PE\Component\SMPP\Util\SerializerInterface;
 use PE\Component\Socket\Select;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
+use Psr\Log\NullLogger;
 
 final class Sender4
 {
@@ -21,9 +22,14 @@ final class Sender4
     private Select $select;
     private Connection4 $connection;
 
-    public function __construct(SessionInterface $session)
-    {
+    public function __construct(
+        SessionInterface $session,
+        SerializerInterface $serializer,
+        LoggerInterface $logger = null
+    ) {
         $this->session = $session;
+        $this->serializer = $serializer;
+        $this->logger = $logger ?: new NullLogger();
         $this->select = new Select();
     }
 
@@ -35,7 +41,7 @@ final class Sender4
         $this->logger->log(LogLevel::DEBUG, "Connecting to {$socket->getRemoteAddress()} ...");
 
         $this->connection = new Connection4($socket, $this->emitter, $this->serializer, $this->logger);
-        //TODO $this->connection->setInputHandler(fn(PDU $pdu) => $this->processReceive($this->connection, $pdu));
+        $this->connection->setInputHandler(fn(PDU $pdu) => $this->processReceive($this->connection, $pdu));
 
         $sequenceNum = $this->session->newSequenceNum();
         $this->connection->send(new PDU(PDU::ID_BIND_RECEIVER, PDU::STATUS_NO_ERROR, $sequenceNum, [
