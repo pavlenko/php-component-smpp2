@@ -2,8 +2,6 @@
 
 namespace PE\Component\SMPP;
 
-use PE\Component\Event\EmitterInterface;
-use PE\Component\Event\Event;
 use PE\Component\SMPP\DTO\ExpectsPDU;
 use PE\Component\SMPP\DTO\PDU;
 use PE\Component\SMPP\Util\Buffer;
@@ -15,8 +13,6 @@ use Psr\Log\NullLogger;
 
 final class Connection4
 {
-    public const EVT_INPUT = 'connection.input';
-
     private \Closure $onInput;
     private \Closure $onError;
     private \Closure $onClose;
@@ -122,8 +118,9 @@ final class Connection4
 
     public function close(string $message = null): void
     {
-        $this->client->setCloseHandler(fn() => null);
         call_user_func($this->onClose, $message);
+
+        $this->client->setCloseHandler(fn() => null);
         $this->client->close($message);
 
         $this->onInput = fn() => null;

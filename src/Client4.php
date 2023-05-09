@@ -2,7 +2,6 @@
 
 namespace PE\Component\SMPP;
 
-use PE\Component\Event\EmitterInterface;
 use PE\Component\Loop\Loop;
 use PE\Component\SMPP\DTO\PDU;
 use PE\Component\SMPP\Util\SerializerInterface;
@@ -49,8 +48,9 @@ final class Client4
             'interface_version' => ConnectionInterface::INTERFACE_VER,
             'address'           => $this->session->getAddress(),
         ]));
-        $this->connection->wait(5, $sequenceNum);
+        $this->connection->wait(5, $sequenceNum, PDU::ID_BIND_RECEIVER_RESP);
         // bind end
+        //TODO wait bind completed???
 
         $loop = new Loop(1, fn() => $this->dispatch());
 
@@ -84,7 +84,7 @@ final class Client4
             return;
         }
 
-        if (PDU::ID_BIND_TRANSMITTER_RESP === $pdu->getID()) {
+        if (PDU::ID_BIND_RECEIVER_RESP === $pdu->getID()) {
             $this->logger->log(LogLevel::DEBUG, "Connecting to {$connection->getClient()->getRemoteAddress()} OK");
         }
 
@@ -93,7 +93,10 @@ final class Client4
         }
 
         if (PDU::ID_DELIVER_SM === $pdu->getID()) {
-            //TODO
+            $this->logger->log(
+                LogLevel::DEBUG,
+                "SMS from {$pdu->get('source_address')->getValue()}: {$pdu->get('short_message')}"
+            );
             $connection->send(new PDU(PDU::ID_DELIVER_SM_RESP, 0, $pdu->getSeqNum()));
         }
     }
@@ -110,6 +113,7 @@ final class Client4
 
     private function processEnquire()
     {
+        return;
         $overdue = time() - $this->connection->getLastMessageTime() > 15;
         if ($overdue) {
             $sequenceNum = $this->session->newSequenceNum();

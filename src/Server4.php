@@ -148,6 +148,7 @@ final class Server4
                     'registered_delivery'    => $pdu->get('registered_delivery'),
                 ]
             ));
+            dump($this->storage);
         } else {
             // Handle other requests redirected to user code
             $this->emitter->dispatch(new Event('server.receive', $pdu));
@@ -178,13 +179,14 @@ final class Server4
     private function processPending(Connection4 $connection): void
     {
         if (empty($this->sessions[$connection])
-            || $this->sessions[$connection]->getMode() === ConnectionInterface::STATUS_BOUND_TX
+            //|| $this->sessions[$connection]->getMode() === ConnectionInterface::STATUS_BOUND_TX
         ) {
             return;
         }
 
         $pdu = $this->storage->select($this->sessions[$connection]->getAddress());
         if ($pdu) {
+            dump($pdu);
             $connection->send($pdu);
             $connection->wait(5, $pdu->getSeqNum(), PDU::ID_GENERIC_NACK | $pdu->getID());
             $this->storage->delete($pdu);
