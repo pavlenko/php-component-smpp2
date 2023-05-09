@@ -9,6 +9,7 @@ use PE\Component\SMPP\DTO\SMS;
 use PE\Component\SMPP\Util\SerializerInterface;
 use PE\Component\Socket\Select;
 use Psr\Log\LoggerInterface;
+use Psr\Log\LogLevel;
 
 final class Sender4
 {
@@ -46,8 +47,36 @@ final class Sender4
         ]));
         $this->connection->wait(5, $sequenceNum, PDU::ID_SUBMIT_SM_RESP);
 
-        $loop = new Loop(1, fn() => null);
-        $loop->run();
+        $loop = new Loop(1, function () {
+            $this->processTimeout();
+        });
+        $loop->run();//TODO maybe add wait method
+    }
+
+    private function processReceive(Connection4 $connection, PDU $pdu): void
+    {
+        // Remove expects PDU if any (prevents close client connection on timeout)
+        $connection->delExpects($pdu->getSeqNum(), $pdu->getID());
+
+        // Check errored response
+        if (PDU::STATUS_NO_ERROR !== $pdu->getStatus()) {
+            $connection->close('Error [' . $pdu->getStatus() . ']');
+            return;
+        }
+
+        if (PDU::ID_BIND_TRANSMITTER_RESP === $pdu->getID()) {
+            $this->logger->log(LogLevel::DEBUG, "Connecting to {$connection->getClient()->getRemoteAddress()} OK");
+        }
+    }
+
+    private function processTimeout(): void
+    {
+        $expects = $this->connection->getExpects();
+        foreach ($expects as $expect) {
+            if ($expect->getExpiredAt() < time()) {
+                $this->connection->close('Timed out');
+            }
+        }
     }
 
     public function exit(): void
