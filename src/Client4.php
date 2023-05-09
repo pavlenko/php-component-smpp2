@@ -15,7 +15,6 @@ use Psr\Log\NullLogger;
 final class Client4
 {
     private SessionInterface $session;
-    private EmitterInterface $emitter;
     private SerializerInterface $serializer;
     private LoggerInterface $logger;
     private Select $select;
@@ -23,30 +22,26 @@ final class Client4
 
     public function __construct(
         SessionInterface $session,
-        EmitterInterface $emitter,
         SerializerInterface $serializer,
         LoggerInterface $logger = null
     ) {
         $this->session = $session;
-        $this->emitter = $emitter;
         $this->serializer = $serializer;
         $this->logger = $logger ?: new NullLogger();
+        $this->select = new Select();
     }
-
 
     public function bind(string $address): void
     {
-        $this->select = new Select();
-        $factory = new SocketFactory($this->select);
-
-        $client = $factory->createClient($address);
-
-        $sequenceNum = $this->session->newSequenceNum();
+        $socket = (new SocketFactory($this->select))->createClient($address);
 
         // bind start
-        $this->logger->log(LogLevel::DEBUG, "Connecting to {$address} ...");
+        $this->logger->log(LogLevel::DEBUG, "Connecting to {$socket->getRemoteAddress()} ...");
 
-        $this->connection = new Connection4($client, $this->emitter, $this->serializer, $this->logger);
+        $this->connection = new Connection4($socket, $this->serializer, $this->logger);
+        $this->connection->setInputHandler(fn(PDU $pdu) => $this->processReceive($this->connection, $pdu));
+
+        $sequenceNum = $this->session->newSequenceNum();
         $this->connection->send(new PDU(PDU::ID_BIND_RECEIVER, PDU::STATUS_NO_ERROR, $sequenceNum, [
             'system_id'         => $this->session->getSystemID(),
             'password'          => $this->session->getPassword(),
@@ -57,15 +52,13 @@ final class Client4
         $this->connection->wait(5, $sequenceNum);
         // bind end
 
-        $this->emitter->attach(Connection4::EVT_INPUT, \Closure::fromCallable([$this, 'processReceive']));
-
         $loop = new Loop(1, fn() => $this->dispatch());
 
-        $client->setErrorHandler(function ($error) {
+        $socket->setErrorHandler(function ($error) {
             $this->logger->log(LogLevel::ERROR, 'E: ' . $error);
         });
 
-        $client->setCloseHandler(function ($error = null) use ($loop) {
+        $socket->setCloseHandler(function ($error = null) use ($loop) {
             $loop->stop();
             $this->logger->log(LogLevel::DEBUG, 'C: ' . ($error ?: 'Closed'));
         });
@@ -80,7 +73,7 @@ final class Client4
         $this->processEnquire();
     }
 
-    public function processReceive(Connection4 $connection, PDU $pdu): void
+    private function processReceive(Connection4 $connection, PDU $pdu): void
     {
         // Remove expects PDU if any (prevents close client connection on timeout)
         $connection->delExpects($pdu->getSeqNum(), $pdu->getID());

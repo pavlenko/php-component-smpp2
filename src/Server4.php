@@ -41,17 +41,17 @@ final class Server4
         $this->emitter    = $emitter;
         $this->serializer = $serializer;
         $this->logger     = $logger ?: new NullLogger();
+        $this->select     = new Select();
     }
 
     public function bind(string $address): void
     {
-        $loop    = new Loop();
-        $this->select  = new Select();
         $factory = new SocketFactory($this->select);
 
         $server = $factory->createServer($address);
         $server->setInputHandler(function (SocketClientInterface $client) {
-            $connection = new Connection4($client, $this->emitter, $this->serializer, $this->logger);
+            $connection = new Connection4($client, $this->serializer, $this->logger);
+            $connection->setInputHandler(fn(PDU $pdu) => $this->processReceive($connection, $pdu));
 
             $this->attachConnection($connection);
 
@@ -67,11 +67,9 @@ final class Server4
             $this->logger->log(LogLevel::DEBUG, 'C: ' . ($error ?: 'Closed'));
         });
 
-        $this->emitter->attach(Connection4::EVT_INPUT, \Closure::fromCallable([$this, 'processReceive']));
-
         $this->logger->log(LogLevel::DEBUG, 'Listen to ' . $server->getAddress());
 
-        $loop->addPeriodicTimer(0.001, fn() => $this->dispatch());
+        $loop = new Loop(1, fn() => $this->dispatch());
         $loop->run();
     }
 

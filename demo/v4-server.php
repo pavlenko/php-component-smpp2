@@ -11,10 +11,8 @@ use Symfony\Component\Console\Output\ConsoleOutput;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-$session    = new Session('SERVER');
-$emitter    = new Emitter();
-$serializer = new Serializer();
-$logger     = new ConsoleLogger(new ConsoleOutput(ConsoleOutput::VERBOSITY_DEBUG));
+$session = new Session('SERVER');
+$logger  = new ConsoleLogger(new ConsoleOutput(ConsoleOutput::VERBOSITY_DEBUG));
 
-$server = new Server4($session, $emitter, $serializer, $logger);
+$server = new Server4($session, new Emitter(), new Serializer(), $logger);
 $server->bind('127.0.0.1:2775');

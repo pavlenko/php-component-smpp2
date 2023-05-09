@@ -40,7 +40,7 @@ final class Sender4
 
         $this->logger->log(LogLevel::DEBUG, "Connecting to {$socket->getRemoteAddress()} ...");
 
-        $this->connection = new Connection4($socket, $this->emitter, $this->serializer, $this->logger);
+        $this->connection = new Connection4($socket, $this->serializer, $this->logger);
         $this->connection->setInputHandler(fn(PDU $pdu) => $this->processReceive($this->connection, $pdu));
 
         $sequenceNum = $this->session->newSequenceNum();

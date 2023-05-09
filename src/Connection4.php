@@ -32,24 +32,23 @@ final class Connection4
 
     public function __construct(
         SocketClientInterface $client,
-        EmitterInterface $emitter,//TODO maybe pass callback instead of emitter
         SerializerInterface $serializer,
         LoggerInterface $logger = null
     ) {
         $this->client = $client;
-        $this->client->setInputHandler(function (string $data) use ($emitter) {
+        $this->client->setInputHandler(function (string $data) {
             $buffer = new Buffer($data);
             $length = $buffer->shiftInt32();
             if (empty($length)) {
-                //TODO on error
                 $this->logger->log(LogLevel::WARNING, 'Unexpected data length');
+                call_user_func($this->onError);
                 return;
             }
-            $data = $buffer->shiftBytes($length);
-            $pdu  = $this->serializer->decode($data);
+
+            $pdu = $this->serializer->decode($buffer->shiftBytes($length));
 
             $this->logger->log(LogLevel::DEBUG, '< ' . $pdu->toLogger());
-            $emitter->dispatch(new Event(self::EVT_INPUT, $this, $pdu));//TODO on input
+            call_user_func($this->onInput, $pdu);
             $this->updLastMessageTime();
         });
 
@@ -118,5 +117,8 @@ final class Connection4
     {
         $this->client->setCloseHandler(fn() => null);
         $this->client->close($message);
+
+        $this->onInput = fn() => null;
+        $this->onError = fn() => null;
     }
 }
