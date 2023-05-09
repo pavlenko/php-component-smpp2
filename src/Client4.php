@@ -4,6 +4,7 @@ namespace PE\Component\SMPP;
 
 use PE\Component\Loop\Loop;
 use PE\Component\Loop\LoopInterface;
+use PE\Component\SMPP\DTO\Address;
 use PE\Component\SMPP\DTO\PDU;
 use PE\Component\SMPP\Util\SerializerInterface;
 use PE\Component\Socket\Factory as SocketFactory;
@@ -109,6 +110,20 @@ final class Client4
                 "SMS from {$pdu->get('source_address')->getValue()}: {$pdu->get('short_message')}"
             );
             $connection->send(new PDU(PDU::ID_DELIVER_SM_RESP, 0, $pdu->getSeqNum()));
+
+            //TODO Test reply via external event
+//            $this->loop->addSingularTimer(5, function () use ($connection) {
+//                $sequenceNum = $this->session->newSequenceNum();
+//                $this->connection->send(new PDU(PDU::ID_SUBMIT_SM, PDU::STATUS_NO_ERROR, $sequenceNum, [
+//                    'short_message'          => 'WELCOME',
+//                    'dest_address'           => new Address(Address::TON_INTERNATIONAL, Address::NPI_ISDN, '10001112233'),
+//                    'source_address'         => $this->session->getAddress(),
+//                    'data_coding'            => PDU::DATA_CODING_DEFAULT,
+//                    'schedule_delivery_time' => null,
+//                    'registered_delivery'    => false,
+//                ]));
+//                $this->connection->wait(5, $sequenceNum, PDU::ID_SUBMIT_SM_RESP);
+//            });
         }
     }
 
