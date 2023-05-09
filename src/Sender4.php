@@ -41,6 +41,13 @@ final class Sender4
         });
     }
 
+    public function __destruct()
+    {
+        if ($this->connection) {
+            $this->connection->close();
+        }
+    }
+
     public function bind(string $address): void
     {
         $factory = new \PE\Component\Socket\Factory($this->select);
@@ -49,8 +56,16 @@ final class Sender4
         $this->logger->log(LogLevel::DEBUG, "Connecting to {$socket->getRemoteAddress()} ...");
 
         $this->connection = new Connection4($socket, $this->serializer, $this->logger);
-        $this->connection->setInputHandler(fn(PDU $pdu) => $this->processReceive($this->connection, $pdu));
-        $this->connection->setCloseHandler(fn() => $this->loop->stop());
+        $this->connection->setInputHandler(function (PDU $pdu) {
+            $this->processReceive($this->connection, $pdu);
+        });
+        $this->connection->setCloseHandler(function () {
+            $this->logger->log(
+                LogLevel::DEBUG,
+                "Connection to {$this->connection->getClient()->getRemoteAddress()} closed"
+            );
+            $this->loop->stop();
+        });
 
         $sequenceNum = $this->session->newSequenceNum();
         $this->connection->send(new PDU(PDU::ID_BIND_TRANSMITTER, PDU::STATUS_NO_ERROR, $sequenceNum, [
@@ -107,7 +122,7 @@ final class Sender4
         }
 
         if (PDU::ID_UNBIND_RESP === $pdu->getID()) {
-            $this->logger->log(LogLevel::DEBUG, "Connecting to {$connection->getClient()->getRemoteAddress()} closed");
+            //$this->logger->log(LogLevel::DEBUG, "Connection to {$connection->getClient()->getRemoteAddress()} closed");
             $connection->close('Unbind');
         }
     }

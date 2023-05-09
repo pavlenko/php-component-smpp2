@@ -123,8 +123,8 @@ final class Connection4
     public function close(string $message = null): void
     {
         $this->client->setCloseHandler(fn() => null);
-        $this->client->close($message);
         call_user_func($this->onClose, $message);
+        $this->client->close($message);
 
         $this->onInput = fn() => null;
         $this->onError = fn() => null;
