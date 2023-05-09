@@ -16,11 +16,10 @@ use Psr\Log\NullLogger;
 final class Sender4
 {
     private SessionInterface $session;
-    private EmitterInterface $emitter;
     private SerializerInterface $serializer;
     private LoggerInterface $logger;
     private Select $select;
-    private Connection4 $connection;
+    private ?Connection4 $connection = null;
 
     public function __construct(
         SessionInterface $session,
@@ -56,6 +55,10 @@ final class Sender4
 
     public function send(SMS $message): void
     {
+        if (null === $this->connection) {
+            throw new \RuntimeException('You must call bind() and wait() before send SMS');
+        }
+
         $sequenceNum = $this->session->newSequenceNum();
 
         $this->connection->send(new PDU(PDU::ID_SUBMIT_SM, PDU::STATUS_NO_ERROR, $sequenceNum, [
@@ -90,18 +93,20 @@ final class Sender4
         }
     }
 
-    private function processTimeout(): void
+    private function processTimeout(Connection4 $connection): void
     {
-        $expects = $this->connection->getExpects();
+        $expects = $connection->getExpects();
         foreach ($expects as $expect) {
             if ($expect->getExpiredAt() < time()) {
-                $this->connection->close('Timed out');
+                $connection->close('Timed out');
             }
         }
     }
 
     public function exit(): void
     {
-        $this->connection->close();
+        if (null !== $this->connection) {
+            $this->connection->close();
+        }
     }
 }
