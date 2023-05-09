@@ -5,37 +5,34 @@ namespace PE\Component\SMPP;
 use PE\Component\Loop\Loop;
 use PE\Component\Loop\LoopInterface;
 use PE\Component\SMPP\DTO\PDU;
-use PE\Component\SMPP\Util\Serializer;
-use PE\Component\SMPP\Util\SerializerInterface;
-use PE\Component\Socket\Factory as SocketFactory;
-use PE\Component\Socket\Select;
+use PE\Component\Socket\SelectInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
-use Psr\Log\NullLogger;
 
 final class Client4
 {
     private SessionInterface $session;
     private StorageInterface $storage;
-    private SerializerInterface $serializer;
+    private Factory4 $factory;
+    private SelectInterface $select;
     private LoggerInterface $logger;
-    private Select $select;
+
     private Connection4 $connection;
     private LoopInterface $loop;
 
     public function __construct(
         SessionInterface $session,
         StorageInterface $storage,
-        SerializerInterface $serializer = null,
-        LoggerInterface $logger = null
+        Factory4 $factory
     ) {
         $this->session = $session;
         $this->storage = $storage;
-        $this->serializer = $serializer ?: new Serializer();//TODO need only for pass to connection
-        $this->logger = $logger ?: new NullLogger();
-        $this->select = new Select();//TODO pass factory to constructor and get from it
+        $this->factory = $factory;
+        $this->select  = $factory->getSocketSelect();
+        $this->logger  = $factory->getLogger();
 
-        $this->loop = new Loop(1, function () {//TODO pass to constructor
+        //TODO pass to constructor
+        $this->loop = new Loop(1, function () {
             $this->select->dispatch();
             $this->processTimeout($this->connection);
             $this->processEnquire($this->connection);
@@ -45,17 +42,12 @@ final class Client4
 
     public function bind(string $address): void
     {
-        $socket = (new SocketFactory($this->select))->createClient($address);//TODO pass to constructor
+        $this->logger->log(LogLevel::DEBUG, "Connecting to $address ...");
 
-        $this->logger->log(LogLevel::DEBUG, "Connecting to {$socket->getRemoteAddress()} ...");
-
-        $this->connection = new Connection4($socket, $this->serializer, $this->logger);//TODO maybe create from factory
+        $this->connection = $this->factory->createConnection($address);
         $this->connection->setInputHandler(fn(PDU $pdu) => $this->processReceive($this->connection, $pdu));
         $this->connection->setCloseHandler(function () {
-            $this->logger->log(
-                LogLevel::DEBUG,
-                "Connection to {$this->connection->getRemoteAddress()} closed"
-            );
+            $this->logger->log(LogLevel::DEBUG, "Connection to {$this->connection->getRemoteAddress()} closed");
             $this->loop->stop();
             $this->connection->setStatus(ConnectionInterface::STATUS_CLOSED);
         });
@@ -105,7 +97,7 @@ final class Client4
 //                $sequenceNum = $this->session->newSequenceNum();
 //                $this->connection->send(new PDU(PDU::ID_SUBMIT_SM, PDU::STATUS_NO_ERROR, $sequenceNum, [
 //                    'short_message'          => 'WELCOME',
-//                    'dest_address'           => new Address(Address::TON_INTERNATIONAL, Address::NPI_ISDN, '10001112233'),
+//                    'dest_address'           => new Address(1, 1, '10001112233'),
 //                    'source_address'         => $this->session->getAddress(),
 //                    'data_coding'            => PDU::DATA_CODING_DEFAULT,
 //                    'schedule_delivery_time' => null,
