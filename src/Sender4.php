@@ -35,7 +35,7 @@ final class Sender4
         $this->loop->addPeriodicTimer(0.001, function () {
             $this->select->dispatch();
             $this->processTimeout($this->connection);
-            if (empty($this->connection->getExpects())) {//TODO check
+            if (empty($this->connection->getExpects())) {
                 $this->loop->stop();
             }
         });
@@ -56,9 +56,7 @@ final class Sender4
         $this->logger->log(LogLevel::DEBUG, "Connecting to {$socket->getRemoteAddress()} ...");
 
         $this->connection = new Connection4($socket, $this->serializer, $this->logger);
-        $this->connection->setInputHandler(function (PDU $pdu) {
-            $this->processReceive($this->connection, $pdu);
-        });
+        $this->connection->setInputHandler(fn(PDU $pdu) => $this->processReceive($this->connection, $pdu));
         $this->connection->setCloseHandler(function () {
             $this->logger->log(
                 LogLevel::DEBUG,
@@ -122,7 +120,6 @@ final class Sender4
         }
 
         if (PDU::ID_UNBIND_RESP === $pdu->getID()) {
-            //$this->logger->log(LogLevel::DEBUG, "Connection to {$connection->getClient()->getRemoteAddress()} closed");
             $connection->close('Unbind');
         }
     }
