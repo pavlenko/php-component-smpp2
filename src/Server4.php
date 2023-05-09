@@ -2,14 +2,10 @@
 
 namespace PE\Component\SMPP;
 
-use PE\Component\Event\Emitter;
 use PE\Component\Event\EmitterInterface;
 use PE\Component\Event\Event;
 use PE\Component\Loop\Loop;
-use PE\Component\SMPP\DTO\Address;
 use PE\Component\SMPP\DTO\PDU;
-use PE\Component\SMPP\DTO\SMS;
-use PE\Component\SMPP\Util\Serializer;
 use PE\Component\SMPP\Util\SerializerInterface;
 use PE\Component\Socket\ClientInterface as SocketClientInterface;
 use PE\Component\Socket\Factory as SocketFactory;
@@ -36,6 +32,7 @@ final class Server4
         LoggerInterface $logger = null
     ) {
         $this->session    = $session;
+        $this->storage    = new Storage4();
         $this->sessions   = new \SplObjectStorage();
         $this->emitter    = $emitter;
         $this->serializer = $serializer;
@@ -136,7 +133,7 @@ final class Server4
             $this->detachConnection($connection, ': unbind');
         } elseif (PDU::ID_SUBMIT_SM === $pdu->getID()) {
             $connection->send(new PDU(PDU::ID_SUBMIT_SM_RESP, 0, $pdu->getSeqNum()));
-            $this->storage->insert(0, new PDU(
+            $this->storage->insert(new PDU(
                 PDU::ID_DELIVER_SM,
                 PDU::STATUS_NO_ERROR,
                 $this->session->newSequenceNum(),
@@ -182,13 +179,11 @@ final class Server4
             return;
         }
 
-        //TODO storage API, how to identify pending PDU
-        // Get PDU for connection, if it has - send & require response
         $pdu = $this->storage->select($this->sessions[$connection]->getAddress());
         if ($pdu) {
             $connection->send($pdu);
-            //TODO use max lifetime from pdu here
             $connection->wait(5, $pdu->getSeqNum(), PDU::ID_GENERIC_NACK | $pdu->getID());
+            $this->storage->delete($pdu);
         }
     }
 
