@@ -30,9 +30,9 @@ final class Sender4
         $this->session = $session;
         $this->serializer = $serializer;
         $this->logger = $logger ?: new NullLogger();
-        $this->select = new Select();
+        $this->select = new Select();//TODO pass to constructor
 
-        $this->loop = new Loop();
+        $this->loop = new Loop();//TODO pass to constructor
         $this->loop->addPeriodicTimer(0.001, function () {
             $this->select->dispatch();
             $this->processTimeout($this->connection);
@@ -55,7 +55,7 @@ final class Sender4
 
         $this->logger->log(LogLevel::DEBUG, "Connecting to {$socket->getRemoteAddress()} ...");
 
-        $this->connection = new Connection4($socket, $this->serializer, $this->logger);
+        $this->connection = new Connection4($socket, $this->serializer, $this->logger);//TODO pass to constructor
         $this->connection->setInputHandler(fn(PDU $pdu) => $this->processReceive($this->connection, $pdu));
         $this->connection->setCloseHandler(function () {
             $this->logger->log(

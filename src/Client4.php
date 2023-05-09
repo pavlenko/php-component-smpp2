@@ -4,7 +4,6 @@ namespace PE\Component\SMPP;
 
 use PE\Component\Loop\Loop;
 use PE\Component\Loop\LoopInterface;
-use PE\Component\SMPP\DTO\Address;
 use PE\Component\SMPP\DTO\PDU;
 use PE\Component\SMPP\Util\SerializerInterface;
 use PE\Component\Socket\Factory as SocketFactory;
@@ -29,12 +28,12 @@ final class Client4
         LoggerInterface $logger = null
     ) {
         $this->session = $session;
-        $this->storage = new Storage4();
+        $this->storage = new Storage4();//TODO pass to constructor
         $this->serializer = $serializer;
         $this->logger = $logger ?: new NullLogger();
-        $this->select = new Select();
+        $this->select = new Select();//TODO pass factory to constructor and get from it
 
-        $this->loop = new Loop(1, function () {
+        $this->loop = new Loop(1, function () {//TODO pass to constructor
             $this->select->dispatch();
             $this->processTimeout($this->connection);
             $this->processEnquire($this->connection);
@@ -44,11 +43,11 @@ final class Client4
 
     public function bind(string $address): void
     {
-        $socket = (new SocketFactory($this->select))->createClient($address);
+        $socket = (new SocketFactory($this->select))->createClient($address);//TODO pass to constructor
 
         $this->logger->log(LogLevel::DEBUG, "Connecting to {$socket->getRemoteAddress()} ...");
 
-        $this->connection = new Connection4($socket, $this->serializer, $this->logger);
+        $this->connection = new Connection4($socket, $this->serializer, $this->logger);//TODO maybe create from factory
         $this->connection->setInputHandler(fn(PDU $pdu) => $this->processReceive($this->connection, $pdu));
         $this->connection->setCloseHandler(function () {
             $this->logger->log(
@@ -68,18 +67,6 @@ final class Client4
             'address'           => $this->session->getAddress(),
         ]));
         $this->connection->wait(5, $sequenceNum, PDU::ID_BIND_RECEIVER_RESP);
-        // bind end
-
-        //$loop = new Loop(1, fn() => $this->dispatch());
-
-//        $socket->setErrorHandler(function ($error) {
-//            $this->logger->log(LogLevel::ERROR, 'E: ' . $error);
-//        });
-
-//        $socket->setCloseHandler(function ($error = null) use ($loop) {
-//            //$loop->stop();
-//            $this->logger->log(LogLevel::DEBUG, 'C: ' . ($error ?: 'Closed'));
-//        });
 
         $this->loop->run();
     }

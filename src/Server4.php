@@ -36,17 +36,17 @@ final class Server4
         LoggerInterface $logger = null
     ) {
         $this->session    = $session;
-        $this->storage    = new Storage4();
+        $this->storage    = new Storage4();//TODO pass to constructor
         $this->sessions   = new \SplObjectStorage();
         $this->emitter    = $emitter;
         $this->serializer = $serializer;
         $this->logger     = $logger ?: new NullLogger();
-        $this->select     = new Select();
+        $this->select     = new Select();//TODO pass to constructor
     }
 
     public function bind(string $address): void
     {
-        $factory = new SocketFactory($this->select);
+        $factory = new SocketFactory($this->select);//TODO pass to constructor
 
         $server = $factory->createServer($address);
         $server->setInputHandler(function (SocketClientInterface $client) {
@@ -68,7 +68,7 @@ final class Server4
 
         $this->logger->log(LogLevel::DEBUG, 'Listen to ' . $server->getAddress());
 
-        $loop = new Loop(1, fn() => $this->dispatch());
+        $loop = new Loop(1, fn() => $this->dispatch());//TODO pass to constructor
         $loop->run();
     }
 
