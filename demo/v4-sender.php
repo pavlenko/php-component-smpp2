@@ -12,6 +12,7 @@ use Symfony\Component\Console\Output\ConsoleOutput;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
+//TODO transmitter can send submit_sm and query_sm
 $sender = new Sender4(
     new Session('ID', null, new Address(Address::TON_INTERNATIONAL, Address::NPI_ISDN, '10001112233')),
     new Serializer(),
