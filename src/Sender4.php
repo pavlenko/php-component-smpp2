@@ -63,6 +63,7 @@ final class Sender4
                 "Connection to {$this->connection->getClient()->getRemoteAddress()} closed"
             );
             $this->loop->stop();
+            $this->connection->setStatus(ConnectionInterface::STATUS_CLOSED);
         });
 
         $sequenceNum = $this->session->newSequenceNum();
@@ -82,6 +83,10 @@ final class Sender4
         if (null === $this->connection) {
             throw new \RuntimeException('You must call bind() before any other operation');
         }
+        if (ConnectionInterface::STATUS_CLOSED === $this->connection->getStatus()) {
+            $this->logger->log(LogLevel::ERROR, 'Cannot send to closed connection');
+            return;
+        }
 
         $sequenceNum = $this->session->newSequenceNum();
         $this->connection->send(new PDU(PDU::ID_SUBMIT_SM, PDU::STATUS_NO_ERROR, $sequenceNum, [
@@ -100,6 +105,10 @@ final class Sender4
         if (null === $this->connection) {
             throw new \RuntimeException('You must call bind() before any other operation');
         }
+        if (ConnectionInterface::STATUS_CLOSED === $this->connection->getStatus()) {
+            $this->logger->log(LogLevel::ERROR, 'Cannot wait on closed connection');
+            return;
+        }
 
         $this->loop->run();
     }
@@ -117,6 +126,7 @@ final class Sender4
 
         if (PDU::ID_BIND_TRANSMITTER_RESP === $pdu->getID()) {
             $this->logger->log(LogLevel::DEBUG, "Connecting to {$connection->getClient()->getRemoteAddress()} OK");
+            $this->connection->setStatus(ConnectionInterface::BOUND_MAP[~PDU::ID_GENERIC_NACK & $pdu->getID()]);
         }
 
         if (PDU::ID_UNBIND_RESP === $pdu->getID()) {
@@ -138,6 +148,10 @@ final class Sender4
     {
         if (null === $this->connection) {
             throw new \RuntimeException('You must call bind() before any other operation');
+        }
+        if (ConnectionInterface::STATUS_CLOSED === $this->connection->getStatus()) {
+            $this->logger->log(LogLevel::ERROR, 'Cannot exit on closed connection');
+            return;
         }
 
         $sequenceNum = $this->session->newSequenceNum();

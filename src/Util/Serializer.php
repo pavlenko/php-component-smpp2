@@ -109,7 +109,7 @@ final class Serializer implements SerializerInterface
                 ];
                 break;
             default:
-                throw new \UnexpectedValueException('Unexpected PDU id');
+                throw new \UnexpectedValueException(sprintf('Unexpected PDU id: 0x%08X', $id));
         }
 
         while (!$buffer->isEOF()) {

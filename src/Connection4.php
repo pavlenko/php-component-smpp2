@@ -25,6 +25,8 @@ final class Connection4
      * @var ExpectsPDU[]
      */
     private array $expects = [];
+    private string $buffer = '';
+    private int $status = ConnectionInterface::STATUS_CREATED;
     private int $lastMessageTime = 0;
 
     public function __construct(
@@ -34,19 +36,28 @@ final class Connection4
     ) {
         $this->client = $client;
         $this->client->setInputHandler(function (string $data) {
-            $buffer = new Buffer($data);
-            $length = $buffer->shiftInt32();
-            if (empty($length)) {
-                $this->logger->log(LogLevel::WARNING, 'Unexpected data length');
-                call_user_func($this->onError);
-                return;
+            try {
+                $this->buffer .= $data;
+
+                $reader = new Buffer($this->buffer);
+                while ($reader->bytesLeft() >= 16) {
+                    $length = $reader->shiftInt32();
+                    if (strlen($this->buffer) >= $length) {
+                        $reader->shiftBytes($length - 4);
+                        $pdu = $this->serializer->decode(substr($this->buffer, 4, $length));
+
+                        $this->buffer = substr($this->buffer, $length);
+                        $this->logger->log(LogLevel::DEBUG, '< ' . $pdu->toLogger());
+
+                        call_user_func($this->onInput, $pdu);
+                        $this->updLastMessageTime();
+                    }
+                }
+            } catch (\Throwable $exception) {
+                $this->logger->log(LogLevel::ERROR, 'E: ' . $exception);
+                call_user_func($this->onError, $exception);
+                $this->close();
             }
-
-            $pdu = $this->serializer->decode($buffer->shiftBytes($length));
-
-            $this->logger->log(LogLevel::DEBUG, '< ' . $pdu->toLogger());
-            call_user_func($this->onInput, $pdu);
-            $this->updLastMessageTime();
         });
 
         $this->serializer = $serializer;
@@ -77,6 +88,16 @@ final class Connection4
     public function getClient(): SocketClientInterface
     {
         return $this->client;
+    }
+
+    public function getStatus(): int
+    {
+        return $this->status;
+    }
+
+    public function setStatus(int $status): void
+    {
+        $this->status = $status;
     }
 
     public function getExpects(): array
