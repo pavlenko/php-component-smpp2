@@ -2,6 +2,7 @@
 
 namespace PE\Component\SMPP\Util;
 
+/* @deprecated */
 final class Events implements EventsInterface
 {
     /**

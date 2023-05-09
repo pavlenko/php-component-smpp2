@@ -8,6 +8,7 @@ use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 use Psr\Log\NullLogger;
 
+/* @deprecated */
 trait ClientTrait
 {
     private string $address;

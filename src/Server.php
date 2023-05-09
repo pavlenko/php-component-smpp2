@@ -9,6 +9,7 @@ use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 use Psr\Log\NullLogger;
 
+/* @deprecated */
 final class Server implements ServerInterface
 {
     public const EVENT_RECEIVE = 'server.receive';

@@ -5,6 +5,7 @@ namespace PE\Component\SMPP;
 use PE\Component\SMPP\DTO\PDU;
 use PE\Component\SMPP\DTO\SMS;
 
+/* @deprecated */
 final class Sender implements SenderInterface
 {
     use ClientTrait;

@@ -5,6 +5,7 @@ namespace PE\Component\SMPP;
 use PE\Component\SMPP\DTO\PDU;
 use PE\Component\SMPP\Util\Stream;
 
+/* @deprecated */
 final class Client implements ClientInterface
 {
     use ClientTrait;

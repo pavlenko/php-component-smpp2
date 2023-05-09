@@ -7,6 +7,7 @@ use PE\Component\SMPP\Util\SerializerInterface;
 use PE\Component\SMPP\Util\Stream;
 use Psr\Log\LoggerInterface;
 
+/* @deprecated */
 final class Factory implements FactoryInterface
 {
     private SerializerInterface $serializer;
