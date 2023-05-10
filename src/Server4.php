@@ -19,12 +19,7 @@ final class Server4
     private FactoryInterface $factory;
     private LoggerInterface $logger;
     private LoopInterface $loop;
-
-
-    /**
-     * @var \SplObjectStorage|SessionInterface[]
-     */
-    private \SplObjectStorage $sessions;
+    private \SplObjectStorage $connections;
 
     public function __construct(
         SessionInterface $session,
@@ -40,18 +35,18 @@ final class Server4
         $this->logger  = $logger ?: new NullLogger();
 
         $this->loop = $factory->createDispatcher(function () {
-            foreach ($this->sessions as $session) {
+            foreach ($this->connections as $session) {
                 $this->processTimeout($session);
             }
-            foreach ($this->sessions as $session) {
+            foreach ($this->connections as $session) {
                 $this->processEnquire($session);
             }
-            foreach ($this->sessions as $session) {
+            foreach ($this->connections as $session) {
                 $this->processPending($session);
             }
         });
 
-        $this->sessions = new \SplObjectStorage();//TODO rename
+        $this->connections = new \SplObjectStorage();
     }
 
     public function bind(string $address): void
@@ -77,14 +72,14 @@ final class Server4
     private function attachConnection(Connection4 $connection): void
     {
         $this->logger->log(LogLevel::DEBUG, '< New connection from ' . $connection->getRemoteAddress());
-        $this->sessions->attach($connection);
+        $this->connections->attach($connection);
         $connection->wait(5, 0, PDU::ID_BIND_RECEIVER, PDU::ID_BIND_TRANSMITTER, PDU::ID_BIND_TRANSCEIVER);
     }
 
     private function detachConnection(Connection4 $connection, string $message = null): void
     {
         $this->logger->log(LogLevel::DEBUG, '< Close connection from ' . $connection->getRemoteAddress() . $message);
-        $this->sessions->detach($connection);
+        $this->connections->detach($connection);
         $connection->setCloseHandler(fn() => null);
         $connection->close();
     }
@@ -101,15 +96,13 @@ final class Server4
         }
 
         if (array_key_exists($pdu->getID(), ConnectionInterface::BOUND_MAP)) {
-            // Handle bind request
             $connection->send(new PDU(PDU::ID_GENERIC_NACK | $pdu->getID(), 0, $pdu->getSeqNum()));
-            // Store registration data
-            $this->sessions[$connection] = new Session(
+            $connection->setStatus(ConnectionInterface::BOUND_MAP[$pdu->getID()]);
+            $connection->setSession(new Session(
                 $pdu->get('system_id'),
                 $pdu->get('password'),
                 $pdu->get('address')
-            );
-            $connection->setStatus(ConnectionInterface::BOUND_MAP[$pdu->getID()]);
+            ));
         } elseif (PDU::ID_ENQUIRE_LINK === $pdu->getID()) {
             $connection->send(new PDU(PDU::ID_ENQUIRE_LINK_RESP, 0, $pdu->getSeqNum()));
         } elseif (PDU::ID_UNBIND === $pdu->getID()) {
@@ -163,7 +156,7 @@ final class Server4
             return;
         }
 
-        $pdu = $this->storage->select($this->sessions[$connection]->getAddress());
+        $pdu = $this->storage->select($connection->getSession()->getAddress());
         if ($pdu) {
             $connection->send($pdu);
             $connection->wait(5, $pdu->getSeqNum(), PDU::ID_GENERIC_NACK | $pdu->getID());
@@ -173,5 +166,6 @@ final class Server4
 
     public function stop(): void
     {
+        //TODO
     }
 }

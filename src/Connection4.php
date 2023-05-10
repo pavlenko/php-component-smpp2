@@ -27,6 +27,7 @@ final class Connection4
     private array $expects = [];
     private string $buffer = '';
     private int $status = ConnectionInterface::STATUS_CREATED;
+    private ?SessionInterface $session = null;
     private int $lastMessageTime = 0;
 
     public function __construct(
@@ -113,6 +114,16 @@ final class Connection4
     public function setStatus(int $status): void
     {
         $this->status = $status;
+    }
+
+    public function getSession(): ?SessionInterface
+    {
+        return $this->session;
+    }
+
+    public function setSession(SessionInterface $session): void
+    {
+        $this->session = $session;
     }
 
     public function getExpects(): array
