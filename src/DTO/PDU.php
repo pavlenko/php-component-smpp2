@@ -87,7 +87,7 @@ final class PDU
     public const STATUS_INVALID_SUBMIT_W_REPLACE     = 0x00000042;
     public const STATUS_INVALID_ESM_SUBMIT           = 0x00000043;
     public const STATUS_CANNOT_SUBMIT_TO_DIST_LIST   = 0x00000044;
-    public const STATUS_SUBMIT_FAILED                = 0x00000045;
+    public const STATUS_SUBMIT_SM_FAILED             = 0x00000045;
     public const STATUS_INVALID_SRC_TON              = 0x00000048;
     public const STATUS_INVALID_SRC_NPI              = 0x00000049;
     public const STATUS_INVALID_DST_TON              = 0x00000050;

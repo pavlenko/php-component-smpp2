@@ -12,7 +12,7 @@ interface StorageInterface
 
     public function select(Address $address = null): ?PDU;
 
-    public function insert(PDU $pdu): void;
+    public function insert(Message $message): void;
 
     public function update(Message $message): void;
 

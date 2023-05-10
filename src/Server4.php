@@ -123,20 +123,22 @@ final class Server4
             case PDU::ID_ALERT_NOTIFICATION:
                 break;
             case PDU::ID_SUBMIT_SM:
-                $connection->send(new PDU(PDU::ID_GENERIC_NACK | $pdu->getID(), 0, $pdu->getSeqNum()));
-                $this->storage->insert(new PDU(
-                    PDU::ID_DELIVER_SM,
-                    PDU::STATUS_NO_ERROR,
-                    $this->session->newSequenceNum(),
-                    [
-                        'short_message'          => $pdu->get('short_message'),
-                        'dest_address'           => $pdu->get('dest_address'),
-                        'source_address'         => $pdu->get('source_address'),
-                        'data_coding'            => $pdu->get('data_coding'),
-                        'schedule_delivery_time' => $pdu->get('schedule_delivery_time'),
-                        'registered_delivery'    => $pdu->get('registered_delivery'),
-                    ]
-                ));
+                try {
+                    $message = new Message(
+                        $pdu->get(PDU::KEY_SRC_ADDRESS),
+                        $pdu->get(PDU::KEY_DST_ADDRESS),
+                        $pdu->get(PDU::KEY_SHORT_MESSAGE),
+                        [
+                            PDU::KEY_DATA_CODING            => $pdu->get(PDU::KEY_DATA_CODING),
+                            PDU::KEY_SCHEDULE_DELIVERY_TIME => $pdu->get(PDU::KEY_SCHEDULE_DELIVERY_TIME),
+                            PDU::KEY_REG_DELIVERY           => $pdu->get(PDU::KEY_REG_DELIVERY),
+                        ]
+                    );
+                    $this->storage->insert($message);
+                    $connection->send(new PDU(PDU::ID_SUBMIT_SM_RESP, 0, $pdu->getSeqNum()));
+                } catch (\Throwable $exception) {
+                    $connection->send(new PDU(PDU::ID_SUBMIT_SM_RESP, PDU::STATUS_SUBMIT_SM_FAILED, $pdu->getSeqNum()));
+                }
                 break;
             case PDU::ID_DATA_SM:
                 $connection->send(new PDU(PDU::ID_GENERIC_NACK | $pdu->getID(), 0, $pdu->getSeqNum()));
