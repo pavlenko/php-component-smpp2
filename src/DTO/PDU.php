@@ -103,6 +103,7 @@ final class PDU
     private int $seqNum;
     private array $params;
 
+    //TODO remove status arg, create setter instead???
     public function __construct(int $id, int $status, int $seqNum, array $params = [])
     {
         $this->id     = $id;

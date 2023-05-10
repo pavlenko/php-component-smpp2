@@ -62,20 +62,20 @@ final class Client4
             $this->connection->setStatus(ConnectionInterface::STATUS_CLOSED);
         });
 
-        $sequenceNum = $this->session->newSequenceNum();
-        return $this->send(new PDU($mode, PDU::STATUS_NO_ERROR, $sequenceNum, [
+        return $this->send($mode, [
             'system_id'         => $this->session->getSystemID(),
             'password'          => $this->session->getPassword(),
             'system_type'       => '',
             'interface_version' => ConnectionInterface::INTERFACE_VER,
             'address'           => $this->session->getAddress(),
-        ]));
+        ]);
     }
 
-    public function send(PDU $pdu): Deferred
+    public function send(int $id, array $params = []): Deferred
     {
-        $this->connection->send($pdu);
-        return $this->connection->wait(5, $pdu->getSeqNum(), PDU::ID_GENERIC_NACK | $pdu->getID());
+        $sequenceNum = $this->session->newSequenceNum();
+        $this->connection->send(new PDU($id, 0, $sequenceNum, $params));
+        return $this->connection->wait(5, $sequenceNum, PDU::ID_GENERIC_NACK | $id);
     }
 
     public function wait(): void
@@ -94,8 +94,7 @@ final class Client4
             return;
         }
 
-        $sequenceNum = $this->session->newSequenceNum();
-        $this->send(new PDU(PDU::ID_UNBIND, PDU::STATUS_NO_ERROR, $sequenceNum))
+        $this->send(PDU::ID_UNBIND)
             ->then(fn() => $this->connection->close())
             ->else(fn() => $this->connection->close());
     }

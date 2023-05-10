@@ -5,7 +5,7 @@ namespace PE\Component\SMPP;
 use PE\Component\SMPP\DTO\Deferred;
 use PE\Component\SMPP\DTO\PDU;
 
-class ClientAPI
+final class ClientAPI
 {
     private Client4 $client;
 
@@ -17,26 +17,26 @@ class ClientAPI
     public function submitSM(array $params): Deferred
     {
         //TODO required params check
-        return $this->client->send(new PDU(PDU::ID_SUBMIT_SM, 0, 0, $params));
+        return $this->client->send(PDU::ID_SUBMIT_SM, $params);
     }
 
-    public function dataSM(PDU $pdu): Deferred
+    public function dataSM(array $params): Deferred
     {
-        return $this->client->send($pdu);
+        return $this->client->send(PDU::ID_DATA_SM, $params);
     }
 
-    public function querySM(PDU $pdu): Deferred
+    public function querySM(array $params): Deferred
     {
-        return $this->client->send($pdu);
+        return $this->client->send(PDU::ID_QUERY_SM, $params);
     }
 
-    public function cancelSM(PDU $pdu): Deferred
+    public function cancelSM(array $params): Deferred
     {
-        return $this->client->send($pdu);
+        return $this->client->send(PDU::ID_CANCEL_SM, $params);
     }
 
-    public function replaceSM(PDU $pdu): Deferred
+    public function replaceSM(array $params): Deferred
     {
-        return $this->client->send($pdu);
+        return $this->client->send(PDU::ID_REPLACE_SM, $params);
     }
 }
