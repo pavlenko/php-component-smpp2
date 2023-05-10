@@ -150,10 +150,12 @@ final class Connection4
         $this->lastMessageTime = time();
     }
 
-    public function wait(int $timeout, int $seqNum = 0, int ...$expectPDU): void
+    //TODO maybe use deferred instead of expects, or extend deferred
+    public function wait(int $timeout, int $seqNum = 0, int ...$expectPDU): ExpectsPDU
     {
         $this->expects[] = $expects = new ExpectsPDU($timeout, $seqNum, ...$expectPDU);
         $this->logger->log(LogLevel::DEBUG, '? ' . $expects->toLogger());
+        return $expects;
     }
 
     public function send(PDU $pdu): void

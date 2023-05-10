@@ -42,9 +42,9 @@ final class Client4
         });
     }
 
-    public function bind(string $address, int $bind): void
+    public function bind(string $address, int $mode): void
     {
-        if (!array_key_exists($bind, ConnectionInterface::BOUND_MAP)) {
+        if (!array_key_exists($mode, ConnectionInterface::BOUND_MAP)) {
             throw new InvalidArgumentException('Invalid bind mode, allowed only one of PDU::ID_BIND_*');
         }
 
@@ -62,16 +62,16 @@ final class Client4
         });
 
         $sequenceNum = $this->session->newSequenceNum();
-        $this->connection->send(new PDU($bind, PDU::STATUS_NO_ERROR, $sequenceNum, [
+        $this->connection->send(new PDU($mode, PDU::STATUS_NO_ERROR, $sequenceNum, [
             'system_id'         => $this->session->getSystemID(),
             'password'          => $this->session->getPassword(),
             'system_type'       => '',
             'interface_version' => ConnectionInterface::INTERFACE_VER,
             'address'           => $this->session->getAddress(),
         ]));
-        $this->connection->wait(5, $sequenceNum, PDU::ID_GENERIC_NACK | $bind);
+        $this->connection->wait(5, $sequenceNum, PDU::ID_GENERIC_NACK | $mode);
 
-        $this->loop->run();
+        $this->loop->run();//todo in separate method
     }
 
     public function exit(): void
@@ -88,7 +88,6 @@ final class Client4
         $sequenceNum = $this->session->newSequenceNum();
         $this->connection->send(new PDU(PDU::ID_UNBIND, PDU::STATUS_NO_ERROR, $sequenceNum));
         $this->connection->wait(5, $sequenceNum, PDU::ID_UNBIND_RESP);
-        //TODO $this->wait();
     }
 
     //TODO send: submit_sm, data_sm, query_sm, cancel_sm, replace_sm, deliver_sm_resp
