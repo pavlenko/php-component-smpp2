@@ -8,6 +8,9 @@ final class ExpectsPDU
     private int $seqNum;
     private array $expectPDU;
 
+    private \Closure $resolvedHandler;
+    private \Closure $rejectedHandler;
+
     public function __construct(int $timeout, int $seqNum, int ...$expectPDU)
     {
         $this->expiredAt = time() + $timeout;
@@ -37,5 +40,27 @@ final class ExpectsPDU
             implode('|', array_map(fn($id) => PDU::getIdentifiers()[$id] ?? sprintf('0x%08X', $id), $this->expectPDU)),
             $this->seqNum
         );
+    }
+
+    public function then(callable $handler): self
+    {
+        $this->resolvedHandler = \Closure::fromCallable($handler);
+        return $this;
+    }
+
+    public function else(callable $handler): self
+    {
+        $this->rejectedHandler = \Closure::fromCallable($handler);
+        return $this;
+    }
+
+    public function success(...$arguments): void
+    {
+        call_user_func($this->resolvedHandler, ...$arguments);
+    }
+
+    public function failure(...$arguments): void
+    {
+        call_user_func($this->rejectedHandler, ...$arguments);
     }
 }

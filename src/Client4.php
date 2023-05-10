@@ -87,7 +87,9 @@ final class Client4
 
         $sequenceNum = $this->session->newSequenceNum();
         $this->connection->send(new PDU(PDU::ID_UNBIND, PDU::STATUS_NO_ERROR, $sequenceNum));
-        $this->connection->wait(5, $sequenceNum, PDU::ID_UNBIND_RESP);
+        $this->connection->wait(5, $sequenceNum, PDU::ID_UNBIND_RESP)
+            ->then(fn() => $this->connection->close())
+            ->else(fn() => $this->connection->close());
     }
 
     //TODO send: submit_sm, data_sm, query_sm, cancel_sm, replace_sm, deliver_sm_resp
@@ -96,18 +98,22 @@ final class Client4
     private function processReceive(Connection4 $connection, PDU $pdu): void
     {
         // Remove expects PDU if any (prevents close client connection on timeout)
-        $connection->delExpects($pdu->getSeqNum(), $pdu->getID());
+        $deferred = $connection->delExpects($pdu->getSeqNum(), $pdu->getID());
 
         // Check errored response
         if (PDU::STATUS_NO_ERROR !== $pdu->getStatus()) {
+            if ($deferred) {
+                $deferred->failure($pdu);
+            }
             $connection->close('Error [' . $pdu->getStatus() . ']');
             return;
+        } elseif ($deferred) {
+            $deferred->success($pdu);
         }
 
         if (array_key_exists(~PDU::ID_GENERIC_NACK & $pdu->getID(), ConnectionInterface::BOUND_MAP)) {
             $this->logger->log(LogLevel::DEBUG, "Connecting to {$connection->getRemoteAddress()} OK");
             $this->connection->setStatus(ConnectionInterface::BOUND_MAP[~PDU::ID_GENERIC_NACK & $pdu->getID()]);
-            //TODO on bound, may attach events
         }
 
         if (PDU::ID_ENQUIRE_LINK === $pdu->getID()) {

@@ -131,13 +131,16 @@ final class Connection4
         return $this->expects;
     }
 
-    public function delExpects(int $seqNum, int $id): void
+    public function delExpects(int $seqNum, int $id): ?ExpectsPDU
     {
         foreach ($this->expects as $index => $expect) {
             if ($expect->getSeqNum() === $seqNum || $expect->isExpectPDU($id)) {
+                $deferred = $this->expects[$index];
                 unset($this->expects[$index]);
+                return $deferred;
             }
         }
+        return null;
     }
 
     public function getLastMessageTime(): int
