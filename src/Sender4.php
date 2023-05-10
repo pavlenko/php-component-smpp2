@@ -24,7 +24,7 @@ final class Sender4
     ) {
         $this->session = $session;
         $this->factory = $factory;
-        $this->logger = $logger ?: new NullLogger();
+        $this->logger  = $logger ?: new NullLogger();
 
         $this->loop = $factory->createDispatcher(function () {
             $this->processTimeout($this->connection);

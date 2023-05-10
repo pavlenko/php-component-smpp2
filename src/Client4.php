@@ -4,19 +4,18 @@ namespace PE\Component\SMPP;
 
 use PE\Component\Event\EmitterInterface;
 use PE\Component\Event\Event;
-use PE\Component\Loop\Loop;
 use PE\Component\Loop\LoopInterface;
 use PE\Component\SMPP\DTO\PDU;
-use PE\Component\Socket\SelectInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
+use Psr\Log\NullLogger;
 
 final class Client4
 {
     private SessionInterface $session;
     private StorageInterface $storage;
     private EmitterInterface $emitter;
-    private Factory4 $factory;
+    private FactoryInterface $factory;
     private LoggerInterface $logger;
 
     private Connection4 $connection;
@@ -26,19 +25,16 @@ final class Client4
         SessionInterface $session,
         StorageInterface $storage,
         EmitterInterface $emitter,
-        Factory4 $factory
+        FactoryInterface $factory,
+        LoggerInterface $logger = null
     ) {
         $this->session = $session;
         $this->storage = $storage;
         $this->emitter = $emitter;
         $this->factory = $factory;
+        $this->logger  = $logger ?: new NullLogger();
 
-        $this->logger = $factory->getLogger();
-        //$this->select = $factory->getSocketSelect();
-
-        //TODO pass to constructor
-        $this->loop = new Loop(1, function () {
-            $this->factory->getSocketSelect()->dispatch();
+        $this->loop = $factory->createDispatcher(function () {
             $this->processTimeout($this->connection);
             $this->processEnquire($this->connection);
             $this->processPending($this->connection);
