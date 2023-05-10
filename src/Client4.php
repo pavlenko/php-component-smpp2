@@ -109,7 +109,7 @@ final class Client4
         }
     }
 
-    private function processTimeout(Connection4 $connection)
+    private function processTimeout(Connection4 $connection): void
     {
         $expects = $connection->getExpects();
         foreach ($expects as $expect) {
@@ -119,7 +119,7 @@ final class Client4
         }
     }
 
-    private function processEnquire(Connection4 $connection)
+    private function processEnquire(Connection4 $connection): void
     {
         $overdue = time() - $connection->getLastMessageTime() > 15;
         if ($overdue) {
