@@ -48,10 +48,7 @@ final class Sender4
         $this->connection = $this->factory->createConnection($address);
         $this->connection->setInputHandler(fn(PDU $pdu) => $this->processReceive($this->connection, $pdu));
         $this->connection->setCloseHandler(function () {
-            $this->logger->log(
-                LogLevel::DEBUG,
-                "Connection to {$this->connection->getRemoteAddress()} closed"
-            );
+            $this->logger->log(LogLevel::DEBUG, "Connection to {$this->connection->getRemoteAddress()} closed");
             $this->loop->stop();
             $this->connection->setStatus(ConnectionInterface::STATUS_CLOSED);
         });
