@@ -35,14 +35,14 @@ final class Server4
         $this->logger  = $logger ?: new NullLogger();
 
         $this->loop = $factory->createDispatcher(function () {
-            foreach ($this->connections as $session) {
-                $this->processTimeout($session);
+            foreach ($this->connections as $connection) {
+                $this->processTimeout($connection);
             }
-            foreach ($this->connections as $session) {
-                $this->processEnquire($session);
+            foreach ($this->connections as $connection) {
+                $this->processEnquire($connection);
             }
-            foreach ($this->connections as $session) {
-                $this->processPending($session);
+            foreach ($this->connections as $connection) {
+                $this->processPending($connection);
             }
         });
 
@@ -166,6 +166,9 @@ final class Server4
 
     public function stop(): void
     {
-        //TODO
+        foreach ($this->connections as $connection) {
+            $this->detachConnection($connection);
+        }
+        $this->loop->stop();
     }
 }
