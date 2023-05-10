@@ -14,5 +14,7 @@ interface StorageInterface
 
     public function insert(PDU $pdu): void;
 
+    public function update(Message $message): void;
+
     public function delete(PDU $pdu): void;
 }

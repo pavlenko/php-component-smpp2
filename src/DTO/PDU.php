@@ -31,6 +31,8 @@ final class PDU
     public const KEY_NO_UNSUCCESS           = 'no_unsuccess';
     public const KEY_DL_NAME                = 'dl_name';
     public const KEY_MESSAGE_STATE          = 'message_state';
+    public const KEY_ERROR_CODE             = 'error_code';
+    public const KEY_FINAL_DATE             = 'final_date';
 
     public const ID_GENERIC_NACK          = 0x80_00_00_00;//<-- this is response
     public const ID_BIND_RECEIVER         = 0x00_00_00_01;
@@ -100,7 +102,7 @@ final class PDU
     public const STATUS_RX_TEMPORARY_APP_ERR_CODE    = 0x00000064;
     public const STATUS_RX_PERMANENT_APP_ERR_CODE    = 0x00000065;
     public const STATUS_RX_REJECTED_APP_ERR_CODE     = 0x00000066;
-    public const STATUS_QUERY_FAILED                 = 0x00000067;
+    public const STATUS_QUERY_SM_FAILED              = 0x00000067;
     public const STATUS_INVALID_OPTIONAL_PART        = 0x000000C0;
     public const STATUS_OPTIONAL_PART_NOT_ALLOWED    = 0x000000C1;
     public const STATUS_INVALID_PARAM_LENGTH         = 0x000000C2;

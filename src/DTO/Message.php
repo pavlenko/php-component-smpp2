@@ -13,18 +13,61 @@ final class Message
     public const STATUS_UNKNOWN       = 7;
     public const STATUS_REJECTED      = 8;
 
-    private string $id;
-    private int $status;
+    private Address $sourceAddress;
+    private Address $targetAddress;
+    private string $message;
+    private array $params;
+    private ?string $messageID = null;
+    private int $status = self::STATUS_ENROUTE;
+    private int $errorCode = 0;
+    private ?\DateTimeInterface $deliveredAt = null;
 
-    public function __construct(string $id, int $status)
+    public function __construct(Address $source, Address $target, string $message, array $params = [])
     {
-        $this->id     = $id;
-        $this->status = $status;
+        $this->sourceAddress = $source;
+        $this->targetAddress = $target;
+        $this->message = $message;
+        $this->params = $params;
     }
 
-    public function getID(): string
+    public function getSourceAddress(): Address
     {
-        return $this->id;
+        return $this->sourceAddress;
+    }
+
+    public function getTargetAddress(): Address
+    {
+        return $this->targetAddress;
+    }
+
+    public function getMessage(): string
+    {
+        return $this->message;
+    }
+
+    public function setMessage(string $message): void
+    {
+        $this->message = $message;
+    }
+
+    public function getParams(): array
+    {
+        return $this->params;
+    }
+
+    public function setParams(array $params): void
+    {
+        $this->params = $params;
+    }
+
+    public function getMessageID(): ?string
+    {
+        return $this->messageID;
+    }
+
+    public function setMessageID(string $messageID): void
+    {
+        $this->messageID = $messageID;
     }
 
     public function getStatus(): int
@@ -35,5 +78,25 @@ final class Message
     public function setStatus(int $status): void
     {
         $this->status = $status;
+    }
+
+    public function getErrorCode(): int
+    {
+        return $this->errorCode;
+    }
+
+    public function setErrorCode(int $errorCode): void
+    {
+        $this->errorCode = $errorCode;
+    }
+
+    public function getDeliveredAt(): ?\DateTimeInterface
+    {
+        return $this->deliveredAt;
+    }
+
+    public function setDeliveredAt(\DateTimeInterface $deliveredAt): void
+    {
+        $this->deliveredAt = $deliveredAt;
     }
 }

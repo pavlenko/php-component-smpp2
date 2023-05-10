@@ -5,6 +5,7 @@ namespace PE\Component\SMPP;
 use PE\Component\Event\EmitterInterface;
 use PE\Component\Event\Event;
 use PE\Component\Loop\LoopInterface;
+use PE\Component\SMPP\DTO\Message;
 use PE\Component\SMPP\DTO\PDU;
 use PE\Component\Socket\ClientInterface as SocketClientInterface;
 use Psr\Log\LoggerInterface;
@@ -144,18 +145,44 @@ final class Server4
                 $message = $this->storage->search($pdu->get(PDU::KEY_MESSAGE_ID), $pdu->get(PDU::KEY_SRC_ADDRESS));
                 if ($message) {
                     $connection->send(new PDU(PDU::ID_GENERIC_NACK | $pdu->getID(), 0, $pdu->getSeqNum(), [
-                        'message_id'    => $message->getID(),
-                        'final_date'    => new \DateTime(),//or null if no delivered
-                        'message_state' => $message->getStatus(),
-                        'error_code'    => 0,//or some code if errored delivery
+                        PDU::KEY_MESSAGE_ID    => $message->getMessageID(),
+                        PDU::KEY_MESSAGE_STATE => $message->getStatus(),
+                        PDU::KEY_FINAL_DATE    => $message->getDeliveredAt(),
+                        PDU::KEY_ERROR_CODE    => $message->getErrorCode(),
                     ]));
+                } else {
+                    $connection->send(new PDU(PDU::ID_QUERY_SM_RESP, PDU::STATUS_QUERY_SM_FAILED, $pdu->getSeqNum()));
                 }
                 break;
             case PDU::ID_CANCEL_SM:
-                //TODO remove message from storage
+                $message = $this->storage->search($pdu->get(PDU::KEY_MESSAGE_ID), $pdu->get(PDU::KEY_SRC_ADDRESS));
+                if ($message && Message::STATUS_ENROUTE === $message->getStatus()) {
+                    $message->setStatus(Message::STATUS_DELETED);
+                    $connection->send(new PDU(PDU::ID_CANCEL_SM_RESP, PDU::STATUS_NO_ERROR, $pdu->getSeqNum()));
+                } else {
+                    $connection->send(new PDU(PDU::ID_CANCEL_SM_RESP, PDU::STATUS_CANCEL_SM_FAILED, $pdu->getSeqNum()));
+                }
+                break;
             case PDU::ID_REPLACE_SM:
-                //TODO replace message in storage
-                $connection->send(new PDU(PDU::ID_GENERIC_NACK | $pdu->getID(), 0, $pdu->getSeqNum()));
+                $message = $this->storage->search($pdu->get(PDU::KEY_MESSAGE_ID), $pdu->get(PDU::KEY_SRC_ADDRESS));
+                if ($message && Message::STATUS_ENROUTE === $message->getStatus()) {
+                    $message->setMessage($pdu->get(PDU::KEY_SHORT_MESSAGE));
+                    $message->setParams([
+                        PDU::KEY_SCHEDULE_DELIVERY_TIME => $pdu->get(PDU::KEY_SCHEDULE_DELIVERY_TIME),
+                        PDU::KEY_VALIDITY_PERIOD        => $pdu->get(PDU::KEY_VALIDITY_PERIOD),
+                        PDU::KEY_REG_DELIVERY           => $pdu->get(PDU::KEY_REG_DELIVERY),
+                        PDU::KEY_SM_DEFAULT_MSG_ID      => $pdu->get(PDU::KEY_SM_DEFAULT_MSG_ID),
+                        PDU::KEY_SM_LENGTH              => $pdu->get(PDU::KEY_SM_LENGTH),
+                    ]);
+                    $this->storage->update($message);
+                    $connection->send(new PDU(PDU::ID_REPLACE_SM_RESP, PDU::STATUS_NO_ERROR, $pdu->getSeqNum()));
+                } else {
+                    $connection->send(new PDU(
+                        PDU::ID_REPLACE_SM_RESP,
+                        PDU::STATUS_REPLACE_SM_FAILED,
+                        $pdu->getSeqNum()
+                    ));
+                }
                 break;
             default:
                 return;
