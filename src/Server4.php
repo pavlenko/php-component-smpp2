@@ -129,6 +129,8 @@ final class Server4
                         $pdu->get(PDU::KEY_DST_ADDRESS),
                         $pdu->get(PDU::KEY_SHORT_MESSAGE),
                         [
+                            //TODO check fields
+                            PDU::KEY_SERVICE_TYPE           => $pdu->get(PDU::KEY_SERVICE_TYPE),
                             PDU::KEY_DATA_CODING            => $pdu->get(PDU::KEY_DATA_CODING),
                             PDU::KEY_SCHEDULE_DELIVERY_TIME => $pdu->get(PDU::KEY_SCHEDULE_DELIVERY_TIME),
                             PDU::KEY_REG_DELIVERY           => $pdu->get(PDU::KEY_REG_DELIVERY),
@@ -141,6 +143,23 @@ final class Server4
                 }
                 break;
             case PDU::ID_DATA_SM:
+                try {
+                    $message = new Message(
+                        $pdu->get(PDU::KEY_SRC_ADDRESS),
+                        $pdu->get(PDU::KEY_DST_ADDRESS),
+                        $pdu->get(PDU::KEY_SHORT_MESSAGE),
+                        [
+                            //TODO somehow simplify get params from PDU
+                            PDU::KEY_SERVICE_TYPE => $pdu->get(PDU::KEY_SERVICE_TYPE),
+                            PDU::KEY_DATA_CODING  => $pdu->get(PDU::KEY_DATA_CODING),
+                            PDU::KEY_REG_DELIVERY => $pdu->get(PDU::KEY_REG_DELIVERY),
+                        ]
+                    );
+                    $this->storage->insert($message);
+                    $connection->send(new PDU(PDU::ID_SUBMIT_SM_RESP, 0, $pdu->getSeqNum()));
+                } catch (\Throwable $exception) {
+                    $connection->send(new PDU(PDU::ID_SUBMIT_SM_RESP, PDU::STATUS_SUBMIT_SM_FAILED, $pdu->getSeqNum()));
+                }
                 $connection->send(new PDU(PDU::ID_GENERIC_NACK | $pdu->getID(), 0, $pdu->getSeqNum()));
                 break;
             case PDU::ID_QUERY_SM:
