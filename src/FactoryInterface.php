@@ -15,4 +15,6 @@ interface FactoryInterface
     public function createDispatcher(callable $dispatch): LoopInterface;
 
     public function createConnection(SocketClientInterface $client): Connection4;
+
+    public function generateID(): string;
 }

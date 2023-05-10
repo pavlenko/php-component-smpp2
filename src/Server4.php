@@ -136,8 +136,11 @@ final class Server4
                             PDU::KEY_REG_DELIVERY           => $pdu->get(PDU::KEY_REG_DELIVERY),
                         ]
                     );
+                    $message->setMessageID($this->factory->generateID());
                     $this->storage->insert($message);
-                    $connection->send(new PDU(PDU::ID_SUBMIT_SM_RESP, 0, $pdu->getSeqNum()));
+                    $connection->send(new PDU(PDU::ID_SUBMIT_SM_RESP, 0, $pdu->getSeqNum(), [
+                        PDU::KEY_MESSAGE_ID => $message->getMessageID()
+                    ]));
                 } catch (\Throwable $exception) {
                     $connection->send(new PDU(PDU::ID_SUBMIT_SM_RESP, PDU::STATUS_SUBMIT_SM_FAILED, $pdu->getSeqNum()));
                 }
@@ -155,12 +158,14 @@ final class Server4
                             PDU::KEY_REG_DELIVERY => $pdu->get(PDU::KEY_REG_DELIVERY),
                         ]
                     );
+                    $message->setMessageID($this->factory->generateID());
                     $this->storage->insert($message);
-                    $connection->send(new PDU(PDU::ID_SUBMIT_SM_RESP, 0, $pdu->getSeqNum()));
+                    $connection->send(new PDU(PDU::ID_DATA_SM_RESP, 0, $pdu->getSeqNum(), [
+                        PDU::KEY_MESSAGE_ID => $message->getMessageID()
+                    ]));
                 } catch (\Throwable $exception) {
-                    $connection->send(new PDU(PDU::ID_SUBMIT_SM_RESP, PDU::STATUS_SUBMIT_SM_FAILED, $pdu->getSeqNum()));
+                    $connection->send(new PDU(PDU::ID_DATA_SM_RESP, PDU::STATUS_DELIVERY_FAILURE, $pdu->getSeqNum()));
                 }
-                $connection->send(new PDU(PDU::ID_GENERIC_NACK | $pdu->getID(), 0, $pdu->getSeqNum()));
                 break;
             case PDU::ID_QUERY_SM:
                 $message = $this->storage->search($pdu->get(PDU::KEY_MESSAGE_ID), $pdu->get(PDU::KEY_SRC_ADDRESS));
