@@ -134,7 +134,7 @@ final class Connection4
     public function delExpects(int $seqNum, int $id): ?ExpectsPDU
     {
         foreach ($this->expects as $index => $expect) {
-            if ($expect->getSeqNum() === $seqNum || $expect->isExpectPDU($id)) {
+            if ($expect->isExpectPDU($seqNum, $id)) {
                 $deferred = $this->expects[$index];
                 unset($this->expects[$index]);
                 return $deferred;
@@ -153,7 +153,7 @@ final class Connection4
         $this->lastMessageTime = time();
     }
 
-    //TODO maybe use deferred instead of expects, or extend deferred
+    //TODO maybe pass instance instead of create inside
     public function wait(int $timeout, int $seqNum = 0, int ...$expectPDU): ExpectsPDU
     {
         $this->expects[] = $expects = new ExpectsPDU($timeout, $seqNum, ...$expectPDU);

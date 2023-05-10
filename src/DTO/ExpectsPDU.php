@@ -23,14 +23,9 @@ final class ExpectsPDU
         return $this->expiredAt;
     }
 
-    public function getSeqNum(): int
+    public function isExpectPDU(int $sequenceNum, int $id): bool
     {
-        return $this->seqNum;
-    }
-
-    public function isExpectPDU(int $id): bool
-    {
-        return in_array($id, $this->expectPDU);
+        return $this->seqNum === $sequenceNum || in_array($id, $this->expectPDU);
     }
 
     public function toLogger(): string
