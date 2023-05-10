@@ -108,8 +108,8 @@ final class Server4
             $connection->send(new PDU(PDU::ID_GENERIC_NACK | $pdu->getID(), 0, $pdu->getSeqNum()));
             $connection->setStatus(ConnectionInterface::BOUND_MAP[$pdu->getID()]);
             $connection->setSession(new Session(
-                $pdu->get('system_id'),
-                $pdu->get('password'),
+                $pdu->get(PDU::KEY_SYSTEM_ID),
+                $pdu->get(PDU::KEY_PASSWORD),
                 $pdu->get('address')
             ));
             return;
