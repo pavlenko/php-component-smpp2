@@ -9,7 +9,7 @@ use PE\Component\Socket\SelectInterface as SocketSelectInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
-class Factory4
+class Factory4 implements FactoryInterface
 {
     private SocketSelectInterface $socketSelect;
     private SocketFactoryInterface $socketFactory;
@@ -33,21 +33,17 @@ class Factory4
         return $this->socketSelect;
     }
 
-    public function getSerializer(): SerializerInterface
-    {
-        return $this->serializer;
-    }
-
     public function getLogger(): LoggerInterface
     {
         return $this->logger;
     }
 
-    public function createConnection(string $address): Connection4
+    public function createConnection(string $address, array $context = [], float $timeout = null): Connection4
     {
+        //TODO maybe split serializer to encoder/decoder
         return new Connection4(
-            $this->socketFactory->createClient($address),
-            $this->serializer,//TODO maybe split to encoder/decoder
+            $this->socketFactory->createClient($address, $context, $timeout),
+            $this->serializer,
             $this->logger
         );
     }
