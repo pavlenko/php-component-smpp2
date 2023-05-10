@@ -7,6 +7,31 @@ namespace PE\Component\SMPP\DTO;
  */
 final class PDU
 {
+    public const KEY_SYSTEM_ID              = 'system_id';
+    public const KEY_PASSWORD               = 'password';
+    public const KEY_SYSTEM_TYPE            = 'system_type';
+    public const KEY_INTERFACE_VERSION      = 'interface_version';
+    public const KEY_SRC_ADDRESS            = 'src_address';
+    public const KEY_DST_ADDRESS            = 'dst_address';
+    public const KEY_SERVICE_TYPE           = 'service_type';
+    public const KEY_ESM_CLASS              = 'esm_class';
+    public const KEY_PROTOCOL_ID            = 'protocol_id';
+    public const KEY_PRIORITY_FLAG          = 'priority_flag';
+    public const KEY_SCHEDULE_DELIVERY_TIME = 'schedule_delivery_time';
+    public const KEY_VALIDITY_PERIOD        = 'validity_period';
+    public const KEY_REG_DELIVERY           = 'reg_delivery';
+    public const KEY_REPLACE_IF_PRESENT     = 'replace_if_present_flag';
+    public const KEY_DATA_CODING            = 'data_coding';
+    public const KEY_SM_DEFAULT_MSG_ID      = 'sm_default_msg_id';
+    public const KEY_SM_LENGTH              = 'sm_length';
+    public const KEY_SHORT_MESSAGE          = 'short_message';
+    public const KEY_MESSAGE_ID             = 'message_id';
+    public const KEY_NUMBER_OF_DESTS        = 'number_of_dests';
+    public const KEY_DEST_FLAG              = 'dest_flag';
+    public const KEY_NO_UNSUCCESS           = 'no_unsuccess';
+    public const KEY_DL_NAME                = 'dl_name';
+    public const KEY_MESSAGE_STATE          = 'message_state';
+
     public const ID_GENERIC_NACK          = 0x80_00_00_00;//<-- this is response
     public const ID_BIND_RECEIVER         = 0x00_00_00_01;
     public const ID_BIND_RECEIVER_RESP    = 0x80_00_00_01;
@@ -83,6 +108,36 @@ final class PDU
     public const STATUS_INVALID_OPTIONAL_PARAM_VALUE = 0x000000C4;
     public const STATUS_DELIVERY_FAILURE             = 0x000000FE;
     public const STATUS_UNKNOWN_ERROR                = 0x000000FF;
+
+    public const ESM_MSG_MODE_DEFAULT    = 0b00_00_00_00;//esme->smsc
+    public const ESM_MSG_MODE_DATAGRAM   = 0b00_00_00_01;//esme->smsc
+    public const ESM_MSG_MODE_FORWARD    = 0b00_00_00_10;//esme->smsc
+    public const ESM_MSG_MODE_STORED     = 0b00_00_00_11;//esme->smsc
+
+    public const ESM_MSG_TYPE_DEFAULT              = 0b00_00_00_00;//both
+    public const ESM_MSG_TYPE_HAS_DELIVERY_RECEIPT = 0b00_00_01_00;//smsc->esme
+    public const ESM_MSG_TYPE_HAS_ACK_AUTO         = 0b00_00_10_00;//both
+    public const ESM_MSG_TYPE_HAS_ACK_MANUAL       = 0b00_01_00_00;//both
+    public const ESM_MSG_TYPE_HAS_DELIVERY_NOTIFY  = 0b00_10_00_00;//smsc->esme
+
+    public const ESM_SPECIAL_NONE        = 0b00_00_00_00;//both
+    public const ESM_SPECIAL_UDHI        = 0b01_00_00_00;//both
+    public const ESM_SPECIAL_REPLY_PATH  = 0b10_00_00_00;//both
+    public const ESM_SPECIAL_BOTH        = 0b11_00_00_00;//both
+
+    public const PRIORITY_DEFAULT   = 0;
+    public const PRIORITY_HIGH      = 1;
+    public const PRIORITY_URGENT    = 2;
+    public const PRIORITY_EMERGENCY = 3;
+
+    public const REG_DELIVERY_SMSC_NO          = 0b00_00_00_00;
+    public const REG_DELIVERY_SMSC_YES         = 0b00_00_00_01;
+    public const REG_DELIVERY_ESME_NO          = 0b00_00_00_00;
+    public const REG_DELIVERY_ESME_AUTO        = 0b00_00_01_00;
+    public const REG_DELIVERY_ESME_MANUAL      = 0b00_00_10_00;
+    public const REG_DELIVERY_ESME_BOTH        = 0b00_00_11_00;
+    public const REG_DELIVERY_INTERMEDIATE_NO  = 0b00_00_00_00;
+    public const REG_DELIVERY_INTERMEDIATE_YES = 0b00_01_00_00;
 
     public const DATA_CODING_DEFAULT      = 0;
     public const DATA_CODING_IA5          = 1; // IA5 (CCITT T.50)/ASCII (ANSI X3.4)

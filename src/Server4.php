@@ -141,13 +141,12 @@ final class Server4
                 $connection->send(new PDU(PDU::ID_GENERIC_NACK | $pdu->getID(), 0, $pdu->getSeqNum()));
                 break;
             case PDU::ID_QUERY_SM:
-                //TODO check message status in storage
-                $message = $this->storage->search($pdu->get('message_id'), $pdu->get('source_addr'));
+                $message = $this->storage->search($pdu->get(PDU::KEY_MESSAGE_ID), $pdu->get(PDU::KEY_SRC_ADDRESS));
                 if ($message) {
                     $connection->send(new PDU(PDU::ID_GENERIC_NACK | $pdu->getID(), 0, $pdu->getSeqNum(), [
-                        'message_id'    => $pdu->get('message_id'),
+                        'message_id'    => $message->getID(),
                         'final_date'    => new \DateTime(),//or null if no delivered
-                        'message_state' => 1,//
+                        'message_state' => $message->getStatus(),
                         'error_code'    => 0,//or some code if errored delivery
                     ]));
                 }
