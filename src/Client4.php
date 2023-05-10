@@ -6,6 +6,7 @@ use PE\Component\Event\EmitterInterface;
 use PE\Component\Event\Event;
 use PE\Component\Loop\LoopInterface;
 use PE\Component\SMPP\DTO\PDU;
+use PE\Component\SMPP\Exception\InvalidArgumentException;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 use Psr\Log\NullLogger;
@@ -43,6 +44,10 @@ final class Client4
 
     public function bind(string $address, int $bind): void
     {
+        if (!array_key_exists($bind, ConnectionInterface::BOUND_MAP)) {
+            throw new InvalidArgumentException('Invalid bind mode, allowed only one of PDU::ID_BIND_*');
+        }
+
         $this->logger->log(LogLevel::DEBUG, "Connecting to $address ...");
 
         $this->connection = $this->factory->createConnection($this->factory->createSocketClient($address));
@@ -54,14 +59,14 @@ final class Client4
         });
 
         $sequenceNum = $this->session->newSequenceNum();
-        $this->connection->send(new PDU(PDU::ID_BIND_RECEIVER, PDU::STATUS_NO_ERROR, $sequenceNum, [
+        $this->connection->send(new PDU($bind, PDU::STATUS_NO_ERROR, $sequenceNum, [
             'system_id'         => $this->session->getSystemID(),
             'password'          => $this->session->getPassword(),
             'system_type'       => '',
             'interface_version' => ConnectionInterface::INTERFACE_VER,
             'address'           => $this->session->getAddress(),
         ]));
-        $this->connection->wait(5, $sequenceNum, PDU::ID_BIND_RECEIVER_RESP);
+        $this->connection->wait(5, $sequenceNum, PDU::ID_GENERIC_NACK | $bind);
 
         $this->loop->run();
     }
@@ -100,6 +105,7 @@ final class Client4
         if (array_key_exists(~PDU::ID_GENERIC_NACK & $pdu->getID(), ConnectionInterface::BOUND_MAP)) {
             $this->logger->log(LogLevel::DEBUG, "Connecting to {$connection->getRemoteAddress()} OK");
             $this->connection->setStatus(ConnectionInterface::BOUND_MAP[~PDU::ID_GENERIC_NACK & $pdu->getID()]);
+            //TODO on bound, may attach events
         }
 
         if (PDU::ID_ENQUIRE_LINK === $pdu->getID()) {
