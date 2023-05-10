@@ -2,6 +2,8 @@
 
 namespace PE\Component\SMPP;
 
+use PE\Component\Loop\Loop;
+use PE\Component\Loop\LoopInterface;
 use PE\Component\SMPP\Util\Serializer;
 use PE\Component\SMPP\Util\SerializerInterface;
 use PE\Component\Socket\FactoryInterface as SocketFactoryInterface;
@@ -36,6 +38,14 @@ class Factory4 implements FactoryInterface
     public function getLogger(): LoggerInterface
     {
         return $this->logger;
+    }
+
+    public function createDispatcher(callable $dispatch): LoopInterface
+    {
+        return new Loop(1, function () use ($dispatch) {
+            $this->socketSelect->dispatch();
+            call_user_func($dispatch);
+        });
     }
 
     public function createConnection(string $address, array $context = [], float $timeout = null): Connection4

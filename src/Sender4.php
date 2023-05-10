@@ -2,13 +2,9 @@
 
 namespace PE\Component\SMPP;
 
-use PE\Component\Loop\Loop;
 use PE\Component\Loop\LoopInterface;
 use PE\Component\SMPP\DTO\PDU;
 use PE\Component\SMPP\DTO\SMS;
-use PE\Component\SMPP\Util\SerializerInterface;
-use PE\Component\Socket\Factory as SocketFactory;
-use PE\Component\Socket\Select;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 use Psr\Log\NullLogger;
@@ -16,25 +12,21 @@ use Psr\Log\NullLogger;
 final class Sender4
 {
     private SessionInterface $session;
-    private SerializerInterface $serializer;
+    private FactoryInterface $factory;
     private LoggerInterface $logger;
-    private Select $select;
     private ?Connection4 $connection = null;
     private LoopInterface $loop;
 
     public function __construct(
         SessionInterface $session,
-        SerializerInterface $serializer,
+        FactoryInterface $factory,
         LoggerInterface $logger = null
     ) {
         $this->session = $session;
-        $this->serializer = $serializer;
+        $this->factory = $factory;
         $this->logger = $logger ?: new NullLogger();
-        $this->select = new Select();//TODO pass to constructor
 
-        $this->loop = new Loop();//TODO pass to constructor
-        $this->loop->addPeriodicTimer(0.001, function () {
-            $this->select->dispatch();
+        $this->loop = $factory->createDispatcher(function () {
             $this->processTimeout($this->connection);
             if (empty($this->connection->getExpects())) {
                 $this->loop->stop();
@@ -51,11 +43,9 @@ final class Sender4
 
     public function bind(string $address): void
     {
-        $socket = (new SocketFactory($this->select))->createClient($address);
+        $this->logger->log(LogLevel::DEBUG, "Connecting to $address ...");
 
-        $this->logger->log(LogLevel::DEBUG, "Connecting to {$socket->getRemoteAddress()} ...");
-
-        $this->connection = new Connection4($socket, $this->serializer, $this->logger);//TODO pass to constructor
+        $this->connection = $this->factory->createConnection($address);
         $this->connection->setInputHandler(fn(PDU $pdu) => $this->processReceive($this->connection, $pdu));
         $this->connection->setCloseHandler(function () {
             $this->logger->log(
