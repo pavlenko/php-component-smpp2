@@ -121,34 +121,48 @@ final class Server4
                 return;
             case PDU::ID_ALERT_NOTIFICATION:
                 break;
-            case PDU::ID_DELIVER_SM:
+            case PDU::ID_SUBMIT_SM:
+                $connection->send(new PDU(PDU::ID_GENERIC_NACK | $pdu->getID(), 0, $pdu->getSeqNum()));
+                $this->storage->insert(new PDU(
+                    PDU::ID_DELIVER_SM,
+                    PDU::STATUS_NO_ERROR,
+                    $this->session->newSequenceNum(),
+                    [
+                        'short_message'          => $pdu->get('short_message'),
+                        'dest_address'           => $pdu->get('dest_address'),
+                        'source_address'         => $pdu->get('source_address'),
+                        'data_coding'            => $pdu->get('data_coding'),
+                        'schedule_delivery_time' => $pdu->get('schedule_delivery_time'),
+                        'registered_delivery'    => $pdu->get('registered_delivery'),
+                    ]
+                ));
+                break;
             case PDU::ID_DATA_SM:
+                $connection->send(new PDU(PDU::ID_GENERIC_NACK | $pdu->getID(), 0, $pdu->getSeqNum()));
+                break;
+            case PDU::ID_QUERY_SM:
+                //TODO check message status in storage
+                $message = $this->storage->search($pdu->get('message_id'), $pdu->get('source_addr'));
+                if ($message) {
+                    $connection->send(new PDU(PDU::ID_GENERIC_NACK | $pdu->getID(), 0, $pdu->getSeqNum(), [
+                        'message_id'    => $pdu->get('message_id'),
+                        'final_date'    => new \DateTime(),//or null if no delivered
+                        'message_state' => 1,//
+                        'error_code'    => 0,//or some code if errored delivery
+                    ]));
+                }
+                break;
+            case PDU::ID_CANCEL_SM:
+                //TODO remove message from storage
+            case PDU::ID_REPLACE_SM:
+                //TODO replace message in storage
                 $connection->send(new PDU(PDU::ID_GENERIC_NACK | $pdu->getID(), 0, $pdu->getSeqNum()));
                 break;
             default:
                 return;
         }
 
-        //TODO move to switch
-        if (PDU::ID_SUBMIT_SM === $pdu->getID()) {
-            $connection->send(new PDU(PDU::ID_SUBMIT_SM_RESP, 0, $pdu->getSeqNum()));
-            $this->storage->insert(new PDU(
-                PDU::ID_DELIVER_SM,
-                PDU::STATUS_NO_ERROR,
-                $this->session->newSequenceNum(),
-                [
-                    'short_message'          => $pdu->get('short_message'),
-                    'dest_address'           => $pdu->get('dest_address'),
-                    'source_address'         => $pdu->get('source_address'),
-                    'data_coding'            => $pdu->get('data_coding'),
-                    'schedule_delivery_time' => $pdu->get('schedule_delivery_time'),
-                    'registered_delivery'    => $pdu->get('registered_delivery'),
-                ]
-            ));
-        } else {
-            // Handle other requests redirected to user code
-            $this->emitter->dispatch(new Event('server.receive', $pdu));
-        }
+        $this->emitter->dispatch(new Event(PDU::getIdentifiers()[$pdu->getID()], $connection, $pdu));
     }
 
     private function processTimeout(Connection4 $connection): void

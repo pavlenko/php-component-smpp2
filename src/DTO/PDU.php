@@ -137,6 +137,7 @@ final class PDU
         return array_key_exists($name, $this->params);
     }
 
+    //TODO add helper methods for return typed result
     public function get(string $name, $default = null)
     {
         return $this->has($name) ? $this->params[$name] : $default;
