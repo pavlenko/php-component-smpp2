@@ -14,8 +14,9 @@ final class Sender4
     private SessionInterface $session;
     private FactoryInterface $factory;
     private LoggerInterface $logger;
-    private ?Connection4 $connection = null;
     private LoopInterface $loop;
+
+    private ?Connection4 $connection = null;
 
     public function __construct(
         SessionInterface $session,

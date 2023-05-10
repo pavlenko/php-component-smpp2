@@ -17,9 +17,9 @@ final class Client4
     private EmitterInterface $emitter;
     private FactoryInterface $factory;
     private LoggerInterface $logger;
+    private LoopInterface $loop;
 
     private Connection4 $connection;
-    private LoopInterface $loop;
 
     public function __construct(
         SessionInterface $session,

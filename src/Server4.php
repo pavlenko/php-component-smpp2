@@ -5,6 +5,7 @@ namespace PE\Component\SMPP;
 use PE\Component\Event\EmitterInterface;
 use PE\Component\Event\Event;
 use PE\Component\Loop\Loop;
+use PE\Component\Loop\LoopInterface;
 use PE\Component\SMPP\DTO\PDU;
 use PE\Component\SMPP\Util\SerializerInterface;
 use PE\Component\Socket\ClientInterface as SocketClientInterface;
@@ -19,29 +20,47 @@ final class Server4
 {
     private SessionInterface $session;
     private StorageInterface $storage;
+    private EmitterInterface $emitter;
+    private FactoryInterface $factory;
+    private LoggerInterface $logger;
+    private LoopInterface $loop;
+
 
     /**
      * @var \SplObjectStorage|SessionInterface[]
      */
     private \SplObjectStorage $sessions;
-    private EmitterInterface $emitter;
     private SerializerInterface $serializer;
-    private LoggerInterface $logger;
     private SocketSelectInterface $select;
 
     public function __construct(
         SessionInterface $session,
+        StorageInterface $storage,
         EmitterInterface $emitter,
+        FactoryInterface $factory,
         SerializerInterface $serializer,
         LoggerInterface $logger = null
     ) {
         $this->session    = $session;
-        $this->storage    = new Storage4();//TODO pass to constructor
-        $this->sessions   = new \SplObjectStorage();
+        $this->storage    = $storage;
         $this->emitter    = $emitter;
+
+        $this->sessions   = new \SplObjectStorage();
         $this->serializer = $serializer;
         $this->logger     = $logger ?: new NullLogger();
         $this->select     = new Select();//TODO pass to constructor
+
+        $this->loop = $factory->createDispatcher(function () {
+            foreach ($this->sessions as $session) {
+                $this->processTimeout($session);
+            }
+            foreach ($this->sessions as $session) {
+                $this->processEnquire($session);
+            }
+            foreach ($this->sessions as $session) {
+                $this->processPending($session);
+            }
+        });
     }
 
     public function bind(string $address): void
@@ -58,35 +77,12 @@ final class Server4
             $this->attachConnection($connection);
         });
 
-        $server->setErrorHandler(function ($error) {
-            $this->logger->log(LogLevel::ERROR, 'E: ' . $error);
-        });
-
-        $server->setCloseHandler(function ($error = null) {
-            $this->logger->log(LogLevel::DEBUG, 'C: ' . ($error ?: 'Closed'));
-        });
+        $server->setErrorHandler(fn($e) => $this->logger->log(LogLevel::ERROR, 'E: ' . $e));
+        $server->setCloseHandler(fn($e = null) => $this->logger->log(LogLevel::DEBUG, 'C: ' . ($e ?: 'Closed')));
 
         $this->logger->log(LogLevel::DEBUG, 'Listen to ' . $server->getAddress());
 
-        $loop = new Loop(1, fn() => $this->dispatch());//TODO pass to constructor
-        $loop->run();
-    }
-
-    public function dispatch(): void
-    {
-        $this->select->dispatch();
-
-        foreach ($this->sessions as $session) {
-            $this->processTimeout($session);
-        }
-
-        foreach ($this->sessions as $session) {
-            $this->processEnquire($session);
-        }
-
-        foreach ($this->sessions as $session) {
-            $this->processPending($session);
-        }
+        $this->loop->run();
     }
 
     private function attachConnection(Connection4 $connection): void
