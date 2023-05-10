@@ -45,7 +45,7 @@ final class Client4
     {
         $this->logger->log(LogLevel::DEBUG, "Connecting to $address ...");
 
-        $this->connection = $this->factory->createConnection($address);
+        $this->connection = $this->factory->createConnection($this->factory->createSocketClient($address));
         $this->connection->setInputHandler(fn(PDU $pdu) => $this->processReceive($this->connection, $pdu));
         $this->connection->setCloseHandler(function () {
             $this->logger->log(LogLevel::DEBUG, "Connection to {$this->connection->getRemoteAddress()} closed");

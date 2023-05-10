@@ -6,12 +6,14 @@ use PE\Component\Loop\Loop;
 use PE\Component\Loop\LoopInterface;
 use PE\Component\SMPP\Util\Serializer;
 use PE\Component\SMPP\Util\SerializerInterface;
+use PE\Component\Socket\ClientInterface as SocketClientInterface;
 use PE\Component\Socket\FactoryInterface as SocketFactoryInterface;
 use PE\Component\Socket\SelectInterface as SocketSelectInterface;
+use PE\Component\Socket\ServerInterface as SocketServerInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
-class Factory4 implements FactoryInterface
+final class Factory4 implements FactoryInterface
 {
     private SocketSelectInterface $socketSelect;
     private SocketFactoryInterface $socketFactory;
@@ -30,14 +32,14 @@ class Factory4 implements FactoryInterface
         $this->logger = $logger ?: new NullLogger();
     }
 
-    public function getSocketSelect(): SocketSelectInterface
+    public function createSocketClient(string $addr, array $ctx = [], float $timeout = null): SocketClientInterface
     {
-        return $this->socketSelect;
+        return $this->socketFactory->createClient($addr, $ctx, $timeout);
     }
 
-    public function getLogger(): LoggerInterface
+    public function createSocketServer(string $addr, array $ctx = []): SocketServerInterface
     {
-        return $this->logger;
+        return $this->socketFactory->createServer($addr, $ctx);
     }
 
     public function createDispatcher(callable $dispatch): LoopInterface
@@ -48,13 +50,9 @@ class Factory4 implements FactoryInterface
         });
     }
 
-    public function createConnection(string $address, array $context = [], float $timeout = null): Connection4
+    public function createConnection(SocketClientInterface $client): Connection4
     {
         //TODO maybe split serializer to encoder/decoder
-        return new Connection4(
-            $this->socketFactory->createClient($address, $context, $timeout),
-            $this->serializer,
-            $this->logger
-        );
+        return new Connection4($client, $this->serializer, $this->logger);
     }
 }

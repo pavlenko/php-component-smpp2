@@ -4,14 +4,9 @@ namespace PE\Component\SMPP;
 
 use PE\Component\Event\EmitterInterface;
 use PE\Component\Event\Event;
-use PE\Component\Loop\Loop;
 use PE\Component\Loop\LoopInterface;
 use PE\Component\SMPP\DTO\PDU;
-use PE\Component\SMPP\Util\SerializerInterface;
 use PE\Component\Socket\ClientInterface as SocketClientInterface;
-use PE\Component\Socket\Factory as SocketFactory;
-use PE\Component\Socket\Select;
-use PE\Component\Socket\SelectInterface as SocketSelectInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 use Psr\Log\NullLogger;
@@ -30,25 +25,19 @@ final class Server4
      * @var \SplObjectStorage|SessionInterface[]
      */
     private \SplObjectStorage $sessions;
-    private SerializerInterface $serializer;
-    private SocketSelectInterface $select;
 
     public function __construct(
         SessionInterface $session,
         StorageInterface $storage,
         EmitterInterface $emitter,
         FactoryInterface $factory,
-        SerializerInterface $serializer,
         LoggerInterface $logger = null
     ) {
-        $this->session    = $session;
-        $this->storage    = $storage;
-        $this->emitter    = $emitter;
-
-        $this->sessions   = new \SplObjectStorage();
-        $this->serializer = $serializer;
-        $this->logger     = $logger ?: new NullLogger();
-        $this->select     = new Select();//TODO pass to constructor
+        $this->session = $session;
+        $this->storage = $storage;
+        $this->emitter = $emitter;
+        $this->factory = $factory;
+        $this->logger  = $logger ?: new NullLogger();
 
         $this->loop = $factory->createDispatcher(function () {
             foreach ($this->sessions as $session) {
@@ -61,15 +50,15 @@ final class Server4
                 $this->processPending($session);
             }
         });
+
+        $this->sessions = new \SplObjectStorage();//TODO rename
     }
 
     public function bind(string $address): void
     {
-        $factory = new SocketFactory($this->select);//TODO pass to constructor
-
-        $server = $factory->createServer($address);
+        $server = $this->factory->createSocketServer($address);
         $server->setInputHandler(function (SocketClientInterface $client) {
-            $connection = new Connection4($client, $this->serializer, $this->logger);
+            $connection = $this->factory->createConnection($client);
             $connection->setInputHandler(fn(PDU $pdu) => $this->processReceive($connection, $pdu));
             $connection->setErrorHandler(fn($error) => $this->logger->log(LogLevel::ERROR, '< E: ' . $error));
             $connection->setCloseHandler(fn() => $this->detachConnection($connection));
