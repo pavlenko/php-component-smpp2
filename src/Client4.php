@@ -111,7 +111,7 @@ final class Client4
             if ($deferred) {
                 $deferred->failure($pdu);
             }
-            $connection->close('Error [' . $pdu->getStatus() . ']');
+            $connection->close('Error [' . (PDU::getStatuses()[$pdu->getStatus()] ?? $pdu->getStatus()) . ']');
             return;
         } elseif ($deferred) {
             $deferred->success($pdu);
@@ -131,7 +131,7 @@ final class Client4
                 break;
             case PDU::ID_DELIVER_SM:
             case PDU::ID_DATA_SM:
-                $connection->send(new PDU(PDU::ID_GENERIC_NACK & $pdu->getID(), 0, $pdu->getSeqNum()));
+                $connection->send(new PDU(PDU::ID_GENERIC_NACK | $pdu->getID(), 0, $pdu->getSeqNum()));
                 break;
             default:
                 return;

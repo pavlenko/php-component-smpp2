@@ -87,12 +87,20 @@ final class Server4
     private function processReceive(Connection4 $connection, PDU $pdu): void
     {
         // Remove expects PDU if any (prevents close client connection on timeout)
-        $connection->delExpects($pdu->getSeqNum(), $pdu->getID());
+        $deferred = $connection->delExpects($pdu->getSeqNum(), $pdu->getID());
 
         // Check errored response
         if (PDU::STATUS_NO_ERROR !== $pdu->getStatus()) {
-            $this->detachConnection($connection, ': error [' . $pdu->getStatus() . ']');
+            if ($deferred) {
+                $deferred->failure($pdu);
+            }
+            $this->detachConnection(
+                $connection,
+                ': error [' . (PDU::getStatuses()[$pdu->getStatus()] ?? $pdu->getStatus()) . ']'
+            );
             return;
+        } elseif ($deferred) {
+            $deferred->success($pdu);
         }
 
         if (array_key_exists($pdu->getID(), ConnectionInterface::BOUND_MAP)) {
@@ -103,12 +111,26 @@ final class Server4
                 $pdu->get('password'),
                 $pdu->get('address')
             ));
-        } elseif (PDU::ID_ENQUIRE_LINK === $pdu->getID()) {
-            $connection->send(new PDU(PDU::ID_ENQUIRE_LINK_RESP, 0, $pdu->getSeqNum()));
-        } elseif (PDU::ID_UNBIND === $pdu->getID()) {
-            // Handle unbind request
-            $connection->send(new PDU(PDU::ID_UNBIND_RESP, 0, $pdu->getSeqNum()));
-        } elseif (PDU::ID_SUBMIT_SM === $pdu->getID()) {
+            return;
+        }
+
+        switch ($pdu->getID()) {
+            case PDU::ID_ENQUIRE_LINK:
+            case PDU::ID_UNBIND:
+                $connection->send(new PDU(PDU::ID_GENERIC_NACK | $pdu->getID(), 0, $pdu->getSeqNum()));
+                return;
+            case PDU::ID_ALERT_NOTIFICATION:
+                break;
+            case PDU::ID_DELIVER_SM:
+            case PDU::ID_DATA_SM:
+                $connection->send(new PDU(PDU::ID_GENERIC_NACK | $pdu->getID(), 0, $pdu->getSeqNum()));
+                break;
+            default:
+                return;
+        }
+
+        //TODO move to switch
+        if (PDU::ID_SUBMIT_SM === $pdu->getID()) {
             $connection->send(new PDU(PDU::ID_SUBMIT_SM_RESP, 0, $pdu->getSeqNum()));
             $this->storage->insert(new PDU(
                 PDU::ID_DELIVER_SM,
