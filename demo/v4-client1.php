@@ -24,3 +24,4 @@ $client = new Client4(
     new ConsoleLogger(new ConsoleOutput(ConsoleOutput::VERBOSITY_DEBUG))
 );
 $client->bind('127.0.0.1:2775', PDU::ID_BIND_RECEIVER);
+$client->wait();

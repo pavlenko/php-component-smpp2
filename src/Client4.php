@@ -5,6 +5,7 @@ namespace PE\Component\SMPP;
 use PE\Component\Event\EmitterInterface;
 use PE\Component\Event\Event;
 use PE\Component\Loop\LoopInterface;
+use PE\Component\SMPP\DTO\Deferred;
 use PE\Component\SMPP\DTO\PDU;
 use PE\Component\SMPP\Exception\InvalidArgumentException;
 use Psr\Log\LoggerInterface;
@@ -42,7 +43,7 @@ final class Client4
         });
     }
 
-    public function bind(string $address, int $mode): void
+    public function bind(string $address, int $mode): Deferred
     {
         if (!array_key_exists($mode, ConnectionInterface::BOUND_MAP)) {
             throw new InvalidArgumentException('Invalid bind mode, allowed only one of PDU::ID_BIND_*');
@@ -62,16 +63,24 @@ final class Client4
         });
 
         $sequenceNum = $this->session->newSequenceNum();
-        $this->connection->send(new PDU($mode, PDU::STATUS_NO_ERROR, $sequenceNum, [
+        return $this->send(new PDU($mode, PDU::STATUS_NO_ERROR, $sequenceNum, [
             'system_id'         => $this->session->getSystemID(),
             'password'          => $this->session->getPassword(),
             'system_type'       => '',
             'interface_version' => ConnectionInterface::INTERFACE_VER,
             'address'           => $this->session->getAddress(),
         ]));
-        $this->connection->wait(5, $sequenceNum, PDU::ID_GENERIC_NACK | $mode);
+    }
 
-        $this->loop->run();//todo in separate method
+    public function send(PDU $pdu): Deferred
+    {
+        $this->connection->send($pdu);
+        return $this->connection->wait(5, $pdu->getSeqNum(), PDU::ID_GENERIC_NACK | $pdu->getID());
+    }
+
+    public function wait(): void
+    {
+        $this->loop->run();
     }
 
     public function exit(): void
@@ -81,18 +90,16 @@ final class Client4
         }
 
         if (ConnectionInterface::STATUS_CLOSED === $this->connection->getStatus()) {
-            $this->logger->log(LogLevel::ERROR, 'Cannot exit on closed connection');
+            $this->logger->log(LogLevel::WARNING, 'Cannot exit on closed connection');
             return;
         }
 
         $sequenceNum = $this->session->newSequenceNum();
-        $this->connection->send(new PDU(PDU::ID_UNBIND, PDU::STATUS_NO_ERROR, $sequenceNum));
-        $this->connection->wait(5, $sequenceNum, PDU::ID_UNBIND_RESP)
+        $this->send(new PDU(PDU::ID_UNBIND, PDU::STATUS_NO_ERROR, $sequenceNum))
             ->then(fn() => $this->connection->close())
             ->else(fn() => $this->connection->close());
     }
 
-    //TODO send: submit_sm, data_sm, query_sm, cancel_sm, replace_sm, deliver_sm_resp
     //TODO recv: submit_sm_resp, data_sm, data_sm_resp, query_sm_resp, cancel_sm_resp, replace_sm_resp, deliver_sm
 
     private function processReceive(Connection4 $connection, PDU $pdu): void

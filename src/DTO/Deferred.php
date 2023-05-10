@@ -2,7 +2,7 @@
 
 namespace PE\Component\SMPP\DTO;
 
-final class ExpectsPDU
+final class Deferred
 {
     private int $expiredAt;
     private int $seqNum;

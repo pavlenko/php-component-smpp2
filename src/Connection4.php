@@ -2,7 +2,7 @@
 
 namespace PE\Component\SMPP;
 
-use PE\Component\SMPP\DTO\ExpectsPDU;
+use PE\Component\SMPP\DTO\Deferred;
 use PE\Component\SMPP\DTO\PDU;
 use PE\Component\SMPP\Util\Buffer;
 use PE\Component\SMPP\Util\SerializerInterface;
@@ -22,7 +22,7 @@ final class Connection4
     private LoggerInterface $logger;
 
     /**
-     * @var ExpectsPDU[]
+     * @var Deferred[]
      */
     private array $expects = [];
     private string $buffer = '';
@@ -131,7 +131,7 @@ final class Connection4
         return $this->expects;
     }
 
-    public function delExpects(int $seqNum, int $id): ?ExpectsPDU
+    public function delExpects(int $seqNum, int $id): ?Deferred
     {
         foreach ($this->expects as $index => $expect) {
             if ($expect->isExpectPDU($seqNum, $id)) {
@@ -154,9 +154,9 @@ final class Connection4
     }
 
     //TODO maybe pass instance instead of create inside
-    public function wait(int $timeout, int $seqNum = 0, int ...$expectPDU): ExpectsPDU
+    public function wait(int $timeout, int $seqNum = 0, int ...$expectPDU): Deferred
     {
-        $this->expects[] = $expects = new ExpectsPDU($timeout, $seqNum, ...$expectPDU);
+        $this->expects[] = $expects = new Deferred($timeout, $seqNum, ...$expectPDU);
         $this->logger->log(LogLevel::DEBUG, '? ' . $expects->toLogger());
         return $expects;
     }
