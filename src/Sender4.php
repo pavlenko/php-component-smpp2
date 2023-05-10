@@ -9,6 +9,9 @@ use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 use Psr\Log\NullLogger;
 
+/**
+ * @deprecated move all logic to Client class
+ */
 final class Sender4
 {
     private SessionInterface $session;

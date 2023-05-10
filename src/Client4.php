@@ -19,7 +19,7 @@ final class Client4
     private LoggerInterface $logger;
     private LoopInterface $loop;
 
-    private Connection4 $connection;
+    private ?Connection4 $connection = null;
 
     public function __construct(
         SessionInterface $session,
@@ -41,7 +41,7 @@ final class Client4
         });
     }
 
-    public function bind(string $address): void
+    public function bind(string $address, int $bind): void
     {
         $this->logger->log(LogLevel::DEBUG, "Connecting to $address ...");
 
@@ -65,6 +65,26 @@ final class Client4
 
         $this->loop->run();
     }
+
+    public function exit(): void
+    {
+        if (null === $this->connection) {
+            throw new \RuntimeException('You must call bind() before any other operation');
+        }
+
+        if (ConnectionInterface::STATUS_CLOSED === $this->connection->getStatus()) {
+            $this->logger->log(LogLevel::ERROR, 'Cannot exit on closed connection');
+            return;
+        }
+
+        $sequenceNum = $this->session->newSequenceNum();
+        $this->connection->send(new PDU(PDU::ID_UNBIND, PDU::STATUS_NO_ERROR, $sequenceNum));
+        $this->connection->wait(5, $sequenceNum, PDU::ID_UNBIND_RESP);
+        //TODO $this->wait();
+    }
+
+    //TODO send: submit_sm, data_sm, query_sm, cancel_sm, replace_sm, deliver_sm_resp
+    //TODO recv: submit_sm_resp, data_sm, data_sm_resp, query_sm_resp, cancel_sm_resp, replace_sm_resp, deliver_sm
 
     private function processReceive(Connection4 $connection, PDU $pdu): void
     {
@@ -93,19 +113,6 @@ final class Client4
             );
             $connection->send(new PDU(PDU::ID_DELIVER_SM_RESP, 0, $pdu->getSeqNum()));
             $this->emitter->dispatch(new Event('DELIVER_SM', $connection, $pdu));
-
-//            $this->loop->addSingularTimer(5, function () use ($connection) {
-//                $sequenceNum = $this->session->newSequenceNum();
-//                $this->connection->send(new PDU(PDU::ID_SUBMIT_SM, PDU::STATUS_NO_ERROR, $sequenceNum, [
-//                    'short_message'          => 'WELCOME',
-//                    'dest_address'           => new Address(1, 1, '10001112233'),
-//                    'source_address'         => $this->session->getAddress(),
-//                    'data_coding'            => PDU::DATA_CODING_DEFAULT,
-//                    'schedule_delivery_time' => null,
-//                    'registered_delivery'    => false,
-//                ]));
-//                $this->connection->wait(5, $sequenceNum, PDU::ID_SUBMIT_SM_RESP);
-//            });
         }
     }
 
