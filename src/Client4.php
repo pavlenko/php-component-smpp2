@@ -114,20 +114,24 @@ final class Client4
         if (array_key_exists(~PDU::ID_GENERIC_NACK & $pdu->getID(), ConnectionInterface::BOUND_MAP)) {
             $this->logger->log(LogLevel::DEBUG, "Connecting to {$connection->getRemoteAddress()} OK");
             $this->connection->setStatus(ConnectionInterface::BOUND_MAP[~PDU::ID_GENERIC_NACK & $pdu->getID()]);
+            return;
         }
 
-        if (PDU::ID_ENQUIRE_LINK === $pdu->getID()) {
-            $connection->send(new PDU(PDU::ID_ENQUIRE_LINK_RESP, 0, $pdu->getSeqNum()));
+        switch ($pdu->getID()) {
+            case PDU::ID_ENQUIRE_LINK:
+                $connection->send(new PDU(PDU::ID_ENQUIRE_LINK_RESP, 0, $pdu->getSeqNum()));
+                return;
+            case PDU::ID_ALERT_NOTIFICATION:
+                break;
+            case PDU::ID_DELIVER_SM:
+            case PDU::ID_DATA_SM:
+                $connection->send(new PDU(PDU::ID_GENERIC_NACK & $pdu->getID(), 0, $pdu->getSeqNum()));
+                break;
+            default:
+                return;
         }
 
-        if (PDU::ID_DELIVER_SM === $pdu->getID()) {
-            $this->logger->log(
-                LogLevel::DEBUG,
-                "SMS from {$pdu->get('source_address')->getValue()}: {$pdu->get('short_message')}"
-            );
-            $connection->send(new PDU(PDU::ID_DELIVER_SM_RESP, 0, $pdu->getSeqNum()));
-            $this->emitter->dispatch(new Event('DELIVER_SM', $connection, $pdu));
-        }
+        $this->emitter->dispatch(new Event(PDU::getIdentifiers()[$pdu->getID()], $connection, $pdu));
     }
 
     private function processTimeout(Connection4 $connection): void
