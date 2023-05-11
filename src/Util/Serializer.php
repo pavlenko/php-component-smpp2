@@ -30,82 +30,82 @@ final class Serializer implements SerializerInterface
             case PDU::ID_BIND_TRANSMITTER:
             case PDU::ID_BIND_TRANSCEIVER:
                 $params = [
-                    'system_id'         => $buffer->shiftString(16),
-                    'password'          => $buffer->shiftString(9),
-                    'system_type'       => $buffer->shiftString(13),
-                    'interface_version' => $buffer->shiftInt8(),
-                    'address'           => $buffer->shiftAddress(41),
+                    PDU::KEY_SYSTEM_ID         => $buffer->shiftString(16),
+                    PDU::KEY_PASSWORD          => $buffer->shiftString(9),
+                    PDU::KEY_SYSTEM_TYPE       => $buffer->shiftString(13),
+                    PDU::KEY_INTERFACE_VERSION => $buffer->shiftInt8(),
+                    PDU::KEY_ADDRESS           => $buffer->shiftAddress(41),
                 ];
                 break;
             case PDU::ID_BIND_RECEIVER_RESP:
             case PDU::ID_BIND_TRANSMITTER_RESP:
             case PDU::ID_BIND_TRANSCEIVER_RESP:
-                $params = ['system_id' => $buffer->shiftString(16)];
+                $params = [PDU::KEY_SYSTEM_ID => $buffer->shiftString(16)];
                 break;
             case PDU::ID_CANCEL_SM:
                 $params = [
-                    'service_type'   => $buffer->shiftString(6),
-                    'message_id'     => $buffer->shiftString(16),
-                    'source_address' => $buffer->shiftAddress(21),
-                    'dest_address'   => $buffer->shiftAddress(21),
+                    PDU::KEY_SERVICE_TYPE => $buffer->shiftString(6),
+                    PDU::KEY_MESSAGE_ID   => $buffer->shiftString(16),
+                    PDU::KEY_SRC_ADDRESS  => $buffer->shiftAddress(21),
+                    PDU::KEY_DST_ADDRESS  => $buffer->shiftAddress(21),
                 ];
                 break;
             case PDU::ID_OUT_BIND:
                 $params = [
-                    'system_id' => $buffer->shiftString(16),
-                    'password'  => $buffer->shiftString(9),
+                    PDU::KEY_SYSTEM_ID => $buffer->shiftString(16),
+                    PDU::KEY_PASSWORD  => $buffer->shiftString(9),
                 ];
                 break;
             case PDU::ID_ALERT_NOTIFICATION:
                 $params = [
-                    'source_address' => $buffer->shiftAddress(65),
-                    'esme_address'   => $buffer->shiftAddress(65),
+                    PDU::KEY_SRC_ADDRESS  => $buffer->shiftAddress(65),
+                    PDU::KEY_ESME_ADDRESS => $buffer->shiftAddress(65),
                 ];
                 break;
             case PDU::ID_DELIVER_SM:
             case PDU::ID_SUBMIT_SM:
                 $params = [
-                    'service_type'            => $buffer->shiftString(6),
-                    'source_address'          => $buffer->shiftAddress(21),
-                    'dest_address'            => $buffer->shiftAddress(21),
-                    'esm_class'               => $buffer->shiftInt8(),
-                    'protocol_id'             => $buffer->shiftInt8(),
-                    'priority_flag'           => $buffer->shiftInt8(),
-                    'schedule_delivery_time'  => $buffer->shiftDateTime(),//->NULL ID_DELIVER_SM
-                    'validity_period'         => $buffer->shiftDateTime(),//->NULL ID_DELIVER_SM
-                    'registered_delivery'     => $buffer->shiftInt8(),
-                    'replace_if_present_flag' => $buffer->shiftInt8(),//->NULL ID_DELIVER_SM
-                    'data_coding'             => $buffer->shiftInt8(),
-                    'sm_default_msg_id'       => $buffer->shiftInt8(),//->NULL ID_DELIVER_SM
-                    'sm_length'               => $buffer->shiftInt8(),
-                    'short_message'           => $buffer->shiftString(254),
+                    PDU::KEY_SERVICE_TYPE            => $buffer->shiftString(6),
+                    PDU::KEY_SRC_ADDRESS          => $buffer->shiftAddress(21),
+                    PDU::KEY_DST_ADDRESS            => $buffer->shiftAddress(21),
+                    PDU::KEY_ESM_CLASS               => $buffer->shiftInt8(),
+                    PDU::KEY_PROTOCOL_ID             => $buffer->shiftInt8(),
+                    PDU::KEY_PRIORITY_FLAG           => $buffer->shiftInt8(),
+                    PDU::KEY_SCHEDULE_DELIVERY_TIME  => $buffer->shiftDateTime(),//->NULL ID_DELIVER_SM
+                    PDU::KEY_VALIDITY_PERIOD         => $buffer->shiftDateTime(),//->NULL ID_DELIVER_SM
+                    PDU::KEY_REG_DELIVERY     => $buffer->shiftInt8(),
+                    PDU::KEY_REPLACE_IF_PRESENT => $buffer->shiftInt8(),//->NULL ID_DELIVER_SM
+                    PDU::KEY_DATA_CODING             => $buffer->shiftInt8(),
+                    PDU::KEY_SM_DEFAULT_MSG_ID       => $buffer->shiftInt8(),//->NULL ID_DELIVER_SM
+                    PDU::KEY_SM_LENGTH               => $buffer->shiftInt8(),
+                    PDU::KEY_SHORT_MESSAGE           => $buffer->shiftString(254),
                 ];
                 break;
             case PDU::ID_DELIVER_SM_RESP:
             case PDU::ID_SUBMIT_SM_RESP:
             case PDU::ID_DATA_SM_RESP:
-                $params = ['message_id' => $buffer->shiftString(65)];
+                $params = [PDU::KEY_MESSAGE_ID => $buffer->shiftString(65)];
                 break;
             case PDU::ID_REPLACE_SM:
                 $params = [
-                    'message_id'              => $buffer->shiftString(65),
-                    'source_address'          => $buffer->shiftAddress(21),
-                    'schedule_delivery_time'  => $buffer->shiftDateTime(),
-                    'validity_period'         => $buffer->shiftDateTime(),
-                    'registered_delivery'     => $buffer->shiftInt8(),
-                    'sm_default_msg_id'       => $buffer->shiftInt8(),
-                    'sm_length'               => $buffer->shiftInt8(),
-                    'short_message'           => $buffer->shiftString(254),
+                    PDU::KEY_MESSAGE_ID              => $buffer->shiftString(65),
+                    PDU::KEY_SRC_ADDRESS          => $buffer->shiftAddress(21),
+                    PDU::KEY_SCHEDULE_DELIVERY_TIME  => $buffer->shiftDateTime(),
+                    PDU::KEY_VALIDITY_PERIOD         => $buffer->shiftDateTime(),
+                    PDU::KEY_REG_DELIVERY     => $buffer->shiftInt8(),
+                    PDU::KEY_SM_DEFAULT_MSG_ID       => $buffer->shiftInt8(),
+                    PDU::KEY_SM_LENGTH               => $buffer->shiftInt8(),
+                    PDU::KEY_SHORT_MESSAGE           => $buffer->shiftString(254),
                 ];
                 break;
             case PDU::ID_DATA_SM:
                 $params = [
-                    'service_type'        => $buffer->shiftString(6),
-                    'source_address'      => $buffer->shiftAddress(21),
-                    'dest_address'        => $buffer->shiftAddress(21),
-                    'esm_class'           => $buffer->shiftInt8(),
-                    'registered_delivery' => $buffer->shiftInt8(),
-                    'data_coding'         => $buffer->shiftInt8(),
+                    PDU::KEY_SERVICE_TYPE        => $buffer->shiftString(6),
+                    PDU::KEY_SRC_ADDRESS      => $buffer->shiftAddress(21),
+                    PDU::KEY_DST_ADDRESS        => $buffer->shiftAddress(21),
+                    PDU::KEY_ESM_CLASS           => $buffer->shiftInt8(),
+                    PDU::KEY_REG_DELIVERY => $buffer->shiftInt8(),
+                    PDU::KEY_DATA_CODING         => $buffer->shiftInt8(),
                 ];
                 break;
             default:
@@ -144,87 +144,88 @@ final class Serializer implements SerializerInterface
             case PDU::ID_BIND_RECEIVER:
             case PDU::ID_BIND_TRANSMITTER:
             case PDU::ID_BIND_TRANSCEIVER:
-                $body->writeString($pdu->get('system_id'));
-                $body->writeString($pdu->get('password'));
-                $body->writeString($pdu->get('system_type'));
-                $body->writeInt8($pdu->get('interface_version'));
-                $body->writeAddress($pdu->get('address'));
+                $body->writeString($pdu->get(PDU::KEY_SYSTEM_ID));
+                $body->writeString($pdu->get(PDU::KEY_PASSWORD));
+                $body->writeString($pdu->get(PDU::KEY_SYSTEM_TYPE));
+                $body->writeInt8($pdu->get(PDU::KEY_INTERFACE_VERSION));
+                $body->writeAddress($pdu->get(PDU::KEY_ADDRESS));
                 break;
             case PDU::ID_BIND_RECEIVER_RESP:
             case PDU::ID_BIND_TRANSMITTER_RESP:
             case PDU::ID_BIND_TRANSCEIVER_RESP:
-                $body->writeString($pdu->get('system_id'));
+                $body->writeString($pdu->get(PDU::KEY_SYSTEM_ID));
                 break;
             case PDU::ID_CANCEL_SM:
-                $body->writeString($pdu->get('service_type'));
-                $body->writeString($pdu->get('message_id'));
-                $body->writeAddress($pdu->get('source_address'));
-                $body->writeAddress($pdu->get('dest_address'));
+                $body->writeString($pdu->get(PDU::KEY_SERVICE_TYPE));
+                $body->writeString($pdu->get(PDU::KEY_MESSAGE_ID));
+                $body->writeAddress($pdu->get(PDU::KEY_SRC_ADDRESS));
+                $body->writeAddress($pdu->get(PDU::KEY_DST_ADDRESS));
                 break;
             case PDU::ID_OUT_BIND:
-                $body->writeString($pdu->get('system_id'));
-                $body->writeString($pdu->get('password'));
+                $body->writeString($pdu->get(PDU::KEY_SYSTEM_ID));
+                $body->writeString($pdu->get(PDU::KEY_PASSWORD));
                 break;
             case PDU::ID_ALERT_NOTIFICATION:
-                $body->writeAddress($pdu->get('source_address'));
-                $body->writeAddress($pdu->get('esme_address'));
+                $body->writeAddress($pdu->get(PDU::KEY_SRC_ADDRESS));
+                $body->writeAddress($pdu->get(PDU::KEY_ESME_ADDRESS));
                 break;
             case PDU::ID_DELIVER_SM:
-                $body->writeString($pdu->get('service_type'));
-                $body->writeAddress($pdu->get('source_address'));
-                $body->writeAddress($pdu->get('dest_address'));
-                $body->writeInt8($pdu->get('esm_class'));
-                $body->writeInt8($pdu->get('protocol_id'));
-                $body->writeInt8($pdu->get('priority_flag'));
+                $body->writeString($pdu->get(PDU::KEY_SERVICE_TYPE));
+                $body->writeAddress($pdu->get(PDU::KEY_SRC_ADDRESS));
+                $body->writeAddress($pdu->get(PDU::KEY_DST_ADDRESS));
+                $body->writeInt8($pdu->get(PDU::KEY_ESM_CLASS));
+                $body->writeInt8($pdu->get(PDU::KEY_PROTOCOL_ID));
+                $body->writeInt8($pdu->get(PDU::KEY_PRIORITY_FLAG));
                 $body->writeDateTime(null);
                 $body->writeDateTime(null);
-                $body->writeInt8($pdu->get('registered_delivery'));
+                $body->writeInt8($pdu->get(PDU::KEY_REG_DELIVERY));
                 $body->writeInt8(0);
-                $body->writeInt8($pdu->get('data_coding'));
+                $body->writeInt8($pdu->get(PDU::KEY_DATA_CODING));
                 $body->writeInt8(0);
-                $body->writeInt8($pdu->get('sm_length'));
-                $body->writeString($pdu->get('short_message'));
+                $body->writeInt8($pdu->get(PDU::KEY_SM_LENGTH));
+                $body->writeString($pdu->get(PDU::KEY_SHORT_MESSAGE));
                 break;
             case PDU::ID_SUBMIT_SM:
-                $body->writeString($pdu->get('service_type'));
-                $body->writeAddress($pdu->get('source_address'));
-                $body->writeAddress($pdu->get('dest_address'));
-                $body->writeInt8($pdu->get('esm_class'));
-                $body->writeInt8($pdu->get('protocol_id'));
-                $body->writeInt8($pdu->get('priority_flag'));
-                $body->writeDateTime($pdu->get('schedule_delivery_time'));
-                $body->writeDateTime($pdu->get('validity_period'));
-                $body->writeInt8($pdu->get('registered_delivery'));
-                $body->writeInt8($pdu->get('replace_if_present_flag'));
-                $body->writeInt8($pdu->get('data_coding'));
-                $body->writeInt8($pdu->get('sm_default_msg_id'));
-                $body->writeInt8($pdu->get('sm_length'));
-                $body->writeString($pdu->get('short_message'));
+                $body->writeString($pdu->get(PDU::KEY_SERVICE_TYPE));
+                $body->writeAddress($pdu->get(PDU::KEY_SRC_ADDRESS));
+                $body->writeAddress($pdu->get(PDU::KEY_DST_ADDRESS));
+                $body->writeInt8($pdu->get(PDU::KEY_ESM_CLASS));
+                $body->writeInt8($pdu->get(PDU::KEY_PROTOCOL_ID));
+                $body->writeInt8($pdu->get(PDU::KEY_PRIORITY_FLAG));
+                $body->writeDateTime($pdu->get(PDU::KEY_SCHEDULE_DELIVERY_TIME));
+                $body->writeDateTime($pdu->get(PDU::KEY_VALIDITY_PERIOD));
+                $body->writeInt8($pdu->get(PDU::KEY_REG_DELIVERY));
+                $body->writeInt8($pdu->get(PDU::KEY_REPLACE_IF_PRESENT));
+                $body->writeInt8($pdu->get(PDU::KEY_DATA_CODING));
+                $body->writeInt8($pdu->get(PDU::KEY_SM_DEFAULT_MSG_ID));
+                $body->writeInt8($pdu->get(PDU::KEY_SM_LENGTH));
+                $body->writeString($pdu->get(PDU::KEY_SHORT_MESSAGE));
                 break;
             case PDU::ID_DELIVER_SM_RESP:
                 $body->writeString('');//<-- message_id = NULL
                 break;
             case PDU::ID_SUBMIT_SM_RESP:
             case PDU::ID_DATA_SM_RESP:
-                $body->writeString($pdu->get('message_id'));
+                $body->writeString($pdu->get(PDU::KEY_MESSAGE_ID));
                 break;
             case PDU::ID_REPLACE_SM:
-                $body->writeString($pdu->get('message_id'));
-                $body->writeAddress($pdu->get('source_address'));
-                $body->writeDateTime($pdu->get('schedule_delivery_time'));
-                $body->writeDateTime($pdu->get('validity_period'));
-                $body->writeInt8($pdu->get('registered_delivery'));
-                $body->writeInt8($pdu->get('sm_default_msg_id'));
-                $body->writeInt8($pdu->get('sm_length'));
-                $body->writeString($pdu->get('short_message'));
+                $body->writeString($pdu->get(PDU::KEY_MESSAGE_ID));
+                $body->writeAddress($pdu->get(PDU::KEY_SRC_ADDRESS));
+                $body->writeDateTime($pdu->get(PDU::KEY_SCHEDULE_DELIVERY_TIME));
+                $body->writeDateTime($pdu->get(PDU::KEY_VALIDITY_PERIOD));
+                $body->writeInt8($pdu->get(PDU::KEY_REG_DELIVERY));
+                $body->writeInt8($pdu->get(PDU::KEY_SM_DEFAULT_MSG_ID));
+                $body->writeInt8($pdu->get(PDU::KEY_SM_LENGTH));
+                $body->writeString($pdu->get(PDU::KEY_SHORT_MESSAGE));
                 break;
             case PDU::ID_DATA_SM:
-                $body->writeString($pdu->get('service_type'));
-                $body->writeAddress($pdu->get('source_address'));
-                $body->writeAddress($pdu->get('dest_address'));
-                $body->writeInt8($pdu->get('esm_class'));
-                $body->writeInt8($pdu->get('registered_delivery'));
-                $body->writeInt8($pdu->get('data_coding'));
+                //TODO check fields
+                $body->writeString($pdu->get(PDU::KEY_SERVICE_TYPE));
+                $body->writeAddress($pdu->get(PDU::KEY_SRC_ADDRESS));
+                $body->writeAddress($pdu->get(PDU::KEY_DST_ADDRESS));
+                $body->writeInt8($pdu->get(PDU::KEY_ESM_CLASS));
+                $body->writeInt8($pdu->get(PDU::KEY_REG_DELIVERY));
+                $body->writeInt8($pdu->get(PDU::KEY_DATA_CODING));
                 break;
             default:
                 throw new \UnexpectedValueException('Unexpected PDU id');

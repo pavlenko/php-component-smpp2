@@ -11,6 +11,8 @@ final class PDU
     public const KEY_PASSWORD               = 'password';
     public const KEY_SYSTEM_TYPE            = 'system_type';
     public const KEY_INTERFACE_VERSION      = 'interface_version';
+    public const KEY_ADDRESS                = 'address';
+    public const KEY_ESME_ADDRESS           = 'esme_address';
     public const KEY_SRC_ADDRESS            = 'src_address';
     public const KEY_DST_ADDRESS            = 'dst_address';
     public const KEY_SERVICE_TYPE           = 'service_type';
