@@ -127,15 +127,18 @@ final class Server4
                     $message = new Message(
                         $pdu->get(PDU::KEY_SRC_ADDRESS),
                         $pdu->get(PDU::KEY_DST_ADDRESS),
-                        $pdu->get(PDU::KEY_SHORT_MESSAGE),
-                        [
-                            PDU::KEY_SERVICE_TYPE => $pdu->get(PDU::KEY_SERVICE_TYPE),
-                            PDU::KEY_DATA_CODING  => $pdu->get(PDU::KEY_DATA_CODING),
-                            PDU::KEY_REG_DELIVERY => $pdu->get(PDU::KEY_REG_DELIVERY),
-                        ]
+                        $pdu->get(PDU::KEY_SHORT_MESSAGE)
                     );
                     $message->setMessageID($this->factory->generateID());
                     $message->setScheduledAt($pdu->get(PDU::KEY_SCHEDULE_DELIVERY_TIME));
+                    $message->setParams([
+                        PDU::KEY_SERVICE_TYPE      => $pdu->get(PDU::KEY_SERVICE_TYPE),
+                        PDU::KEY_DATA_CODING       => $pdu->get(PDU::KEY_DATA_CODING),
+                        PDU::KEY_VALIDITY_PERIOD   => $pdu->get(PDU::KEY_VALIDITY_PERIOD),
+                        PDU::KEY_REG_DELIVERY      => $pdu->get(PDU::KEY_REG_DELIVERY),
+                        PDU::KEY_SM_DEFAULT_MSG_ID => $pdu->get(PDU::KEY_SM_DEFAULT_MSG_ID),
+                        PDU::KEY_SM_LENGTH         => $pdu->get(PDU::KEY_SM_LENGTH),
+                    ]);
                     $this->storage->insert($message);
                     $connection->send(new PDU(PDU::ID_SUBMIT_SM_RESP, 0, $pdu->getSeqNum(), [
                         PDU::KEY_MESSAGE_ID => $message->getMessageID()
@@ -149,14 +152,17 @@ final class Server4
                     $message = new Message(
                         $pdu->get(PDU::KEY_SRC_ADDRESS),
                         $pdu->get(PDU::KEY_DST_ADDRESS),
-                        $pdu->get(PDU::KEY_SHORT_MESSAGE),
-                        [
-                            PDU::KEY_SERVICE_TYPE => $pdu->get(PDU::KEY_SERVICE_TYPE),
-                            PDU::KEY_DATA_CODING  => $pdu->get(PDU::KEY_DATA_CODING),
-                            PDU::KEY_REG_DELIVERY => $pdu->get(PDU::KEY_REG_DELIVERY),
-                        ]
+                        $pdu->get(PDU::KEY_SHORT_MESSAGE)
                     );
                     $message->setMessageID($this->factory->generateID());
+                    $message->setParams([
+                        PDU::KEY_SERVICE_TYPE      => $pdu->get(PDU::KEY_SERVICE_TYPE),
+                        PDU::KEY_DATA_CODING       => $pdu->get(PDU::KEY_DATA_CODING),
+                        PDU::KEY_VALIDITY_PERIOD   => $pdu->get(PDU::KEY_VALIDITY_PERIOD),
+                        PDU::KEY_REG_DELIVERY      => $pdu->get(PDU::KEY_REG_DELIVERY),
+                        PDU::KEY_SM_DEFAULT_MSG_ID => $pdu->get(PDU::KEY_SM_DEFAULT_MSG_ID),
+                        PDU::KEY_SM_LENGTH         => $pdu->get(PDU::KEY_SM_LENGTH),
+                    ]);
                     $this->storage->insert($message);
                     $connection->send(new PDU(PDU::ID_DATA_SM_RESP, 0, $pdu->getSeqNum(), [
                         PDU::KEY_MESSAGE_ID => $message->getMessageID()
@@ -180,7 +186,7 @@ final class Server4
                 break;
             case PDU::ID_CANCEL_SM:
                 $message = $this->storage->search($pdu->get(PDU::KEY_MESSAGE_ID), $pdu->get(PDU::KEY_SRC_ADDRESS));
-                if ($message && Message::STATUS_ENROUTE === $message->getStatus()) {
+                if ($message && Message::STATUS_CREATED === $message->getStatus()) {
                     $message->setStatus(Message::STATUS_DELETED);
                     $connection->send(new PDU(PDU::ID_CANCEL_SM_RESP, PDU::STATUS_NO_ERROR, $pdu->getSeqNum()));
                 } else {
@@ -189,7 +195,7 @@ final class Server4
                 break;
             case PDU::ID_REPLACE_SM:
                 $message = $this->storage->search($pdu->get(PDU::KEY_MESSAGE_ID), $pdu->get(PDU::KEY_SRC_ADDRESS));
-                if ($message && Message::STATUS_ENROUTE === $message->getStatus()) {
+                if ($message && Message::STATUS_CREATED === $message->getStatus()) {
                     $message->setMessage($pdu->get(PDU::KEY_SHORT_MESSAGE));
                     $message->setScheduledAt($pdu->get(PDU::KEY_SCHEDULE_DELIVERY_TIME));
                     $message->setParams([
