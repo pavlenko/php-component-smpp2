@@ -5,6 +5,7 @@ namespace PE\Component\SMPP;
 use PE\Component\Event\EmitterInterface;
 use PE\Component\Event\Event;
 use PE\Component\Loop\LoopInterface;
+use PE\Component\SMPP\DTO\Deferred;
 use PE\Component\SMPP\DTO\Message;
 use PE\Component\SMPP\DTO\PDU;
 use PE\Component\Socket\ClientInterface as SocketClientInterface;
@@ -94,20 +95,16 @@ final class Server4
     private function processReceive(Connection4 $connection, PDU $pdu): void
     {
         // Remove expects PDU if any (prevents close client connection on timeout)
-        $deferred = $connection->delExpects($pdu->getSeqNum(), $pdu->getID());
+        $deferred = $connection->delExpects($pdu->getSeqNum(), $pdu->getID()) ?: new Deferred(0, 0);
 
         // Check errored response
         if (PDU::STATUS_NO_ERROR !== $pdu->getStatus()) {
-            if ($deferred) {
-                $deferred->failure($pdu);
-            }
             $this->detachConnection(
                 $connection,
                 ': error [' . (PDU::getStatuses()[$pdu->getStatus()] ?? $pdu->getStatus()) . ']'
             );
+            $deferred->failure($pdu);
             return;
-        } elseif ($deferred) {
-            $deferred->success($pdu);
         }
 
         if (array_key_exists($pdu->getID(), ConnectionInterface::BOUND_MAP)) {
@@ -116,8 +113,11 @@ final class Server4
             $connection->setSession(
                 new Session($pdu->get(PDU::KEY_SYSTEM_ID), $pdu->get(PDU::KEY_PASSWORD), $pdu->get('address'))
             );
+            $deferred->success($pdu);
             return;
         }
+
+        $deferred->success($pdu);//TODO are need here???
 
         switch ($pdu->getID()) {
             case PDU::ID_ENQUIRE_LINK:

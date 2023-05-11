@@ -104,24 +104,23 @@ final class Client4
     private function processReceive(Connection4 $connection, PDU $pdu): void
     {
         // Remove expects PDU if any (prevents close client connection on timeout)
-        $deferred = $connection->delExpects($pdu->getSeqNum(), $pdu->getID());
+        $deferred = $connection->delExpects($pdu->getSeqNum(), $pdu->getID()) ?: new Deferred(0, 0);
 
         // Check errored response
         if (PDU::STATUS_NO_ERROR !== $pdu->getStatus()) {
-            if ($deferred) {
-                $deferred->failure($pdu);
-            }
             $connection->close('Error [' . (PDU::getStatuses()[$pdu->getStatus()] ?? $pdu->getStatus()) . ']');
+            $deferred->failure($pdu);
             return;
-        } elseif ($deferred) {
-            $deferred->success($pdu);
         }
 
         if (array_key_exists(~PDU::ID_GENERIC_NACK & $pdu->getID(), ConnectionInterface::BOUND_MAP)) {
             $this->logger->log(LogLevel::DEBUG, "Connecting to {$connection->getRemoteAddress()} OK");
             $this->connection->setStatus(ConnectionInterface::BOUND_MAP[~PDU::ID_GENERIC_NACK & $pdu->getID()]);
+            $deferred->success($pdu);
             return;
         }
+
+        $deferred->success($pdu);//TODO are need here???
 
         switch ($pdu->getID()) {
             case PDU::ID_ENQUIRE_LINK:
