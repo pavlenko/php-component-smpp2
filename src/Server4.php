@@ -179,7 +179,7 @@ final class Server4
                 $search = (new Search())
                     ->setMessageID($pdu->get(PDU::KEY_MESSAGE_ID))
                     ->setSourceAddress($pdu->get(PDU::KEY_SRC_ADDRESS));
-                $message = $this->storage->search2($search);
+                $message = $this->storage->search($search);
                 if ($message) {
                     $connection->send(new PDU(PDU::ID_GENERIC_NACK | $pdu->getID(), 0, $pdu->getSeqNum(), [
                         PDU::KEY_MESSAGE_ID    => $message->getMessageID(),
@@ -196,7 +196,7 @@ final class Server4
                     ->setMessageID($pdu->get(PDU::KEY_MESSAGE_ID))
                     ->setStatus(Message::STATUS_CREATED)
                     ->setSourceAddress($pdu->get(PDU::KEY_SRC_ADDRESS));
-                $message = $this->storage->search2($search);
+                $message = $this->storage->search($search);
                 if ($message) {
                     $message->setStatus(Message::STATUS_DELETED);
                     $connection->send(new PDU(PDU::ID_CANCEL_SM_RESP, PDU::STATUS_NO_ERROR, $pdu->getSeqNum()));
@@ -209,7 +209,7 @@ final class Server4
                     ->setMessageID($pdu->get(PDU::KEY_MESSAGE_ID))
                     ->setStatus(Message::STATUS_CREATED)
                     ->setSourceAddress($pdu->get(PDU::KEY_SRC_ADDRESS));
-                $message = $this->storage->search2($search);
+                $message = $this->storage->search($search);
                 if ($message) {
                     $message->setMessage($pdu->get(PDU::KEY_SHORT_MESSAGE));
                     $message->setScheduledAt($pdu->get(PDU::KEY_SCHEDULE_DELIVERY_TIME));
@@ -269,7 +269,7 @@ final class Server4
             ->setTargetAddress($connection->getSession()->getAddress())
             ->setCheckSchedule();
 
-        $message = $this->storage->search2($search);
+        $message = $this->storage->search($search);
         if ($message) {
             $sequenceNum = $this->session->newSequenceNum();
             $connection->send(new PDU(PDU::ID_DELIVER_SM, 0, $sequenceNum, [

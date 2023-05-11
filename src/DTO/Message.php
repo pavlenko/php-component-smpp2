@@ -2,6 +2,7 @@
 
 namespace PE\Component\SMPP\DTO;
 
+//TODO all required params for submit_sm, data_sm
 final class Message
 {
     public const STATUS_CREATED       = 0;

@@ -168,15 +168,15 @@ final class Client4
             return;
         }
 
-        $pdu = $this->storage->select();//TODO get message for submit
-        if ($pdu) {
-            $connection->send($pdu);
-            $connection->wait(
-                $this->session->getResponseTimeout(),
-                $pdu->getSeqNum(),
-                PDU::ID_GENERIC_NACK | $pdu->getID()
-            );
-            $this->storage->delete($pdu);
+        $message = $this->storage->select();
+        if ($message) {
+            $this->send(PDU::ID_SUBMIT_SM, [
+                PDU::KEY_SHORT_MESSAGE          => $message->getMessage(),
+                PDU::KEY_DST_ADDRESS            => $message->getTargetAddress(),
+                PDU::KEY_SRC_ADDRESS            => $message->getSourceAddress(),
+                PDU::KEY_SCHEDULE_DELIVERY_TIME => $message->getScheduledAt(),
+            ] + $message->getParams());
+            $this->storage->delete($message);
         }
     }
 }
