@@ -57,7 +57,7 @@ final class Server4
         $server->setInputHandler(function (SocketClientInterface $client) {
             $connection = $this->factory->createConnection($client);
             $connection->setInputHandler(fn(PDU $pdu) => $this->processReceive($connection, $pdu));
-            $connection->setErrorHandler(fn($error) => $this->logger->log(LogLevel::ERROR, '< E: ' . $error));
+            $connection->setErrorHandler(fn($error) => $this->logger->log(LogLevel::ERROR, '< E: ' . $error));//TODO do not close immediately - try send error response before
             $connection->setCloseHandler(fn() => $this->detachConnection($connection));
 
             $this->attachConnection($connection);
