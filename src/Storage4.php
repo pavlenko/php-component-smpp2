@@ -30,10 +30,10 @@ final class Storage4 implements StorageInterface
             if (null !== $messageID && $message->getMessageID() !== $messageID) {
                 continue;
             }
-            if (null !== $sourceAddress && $message->getSourceAddress() !== $sourceAddress) {
+            if (null !== $sourceAddress && (string) $message->getSourceAddress() !== (string) $sourceAddress) {
                 continue;
             }
-            if (null !== $targetAddress && $message->getTargetAddress() !== $targetAddress) {
+            if (null !== $targetAddress && (string) $message->getTargetAddress() !== (string) $targetAddress) {
                 continue;
             }
             if (null !== $checkScheduled && $message->getScheduledAt() > $now) {

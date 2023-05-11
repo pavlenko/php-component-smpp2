@@ -64,4 +64,9 @@ final class Address
     {
         return $this->value;
     }
+
+    public function __toString(): string
+    {
+        return sprintf('Address(ton: %d, npi: %d, value: %s)', $this->ton, $this->npi, $this->value);
+    }
 }

@@ -14,11 +14,12 @@ use Symfony\Component\Console\Output\ConsoleOutput;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
+$logger = new ConsoleLogger(new ConsoleOutput(ConsoleOutput::VERBOSITY_DEBUG));
 $server = new Server4(
     new Session('SERVER'),
     new Storage4(),
     new Emitter(),
-    new Factory4($select = new Select(), new Factory($select)),
-    new ConsoleLogger(new ConsoleOutput(ConsoleOutput::VERBOSITY_DEBUG))
+    new Factory4($select = new Select(), new Factory($select), null, $logger),
+    $logger
 );
 $server->bind('127.0.0.1:2775');

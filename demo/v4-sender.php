@@ -29,12 +29,13 @@ require_once __DIR__ . '/../vendor/autoload.php';
 //$sender->wait();
 //$sender->exit();
 
+$logger = new ConsoleLogger(new ConsoleOutput(ConsoleOutput::VERBOSITY_DEBUG));
 $client = new Client4(
     new Session('ID', null, $source = new Address(Address::TON_INTERNATIONAL, Address::NPI_ISDN, '10001112233')),
     new Storage4(),
     new Emitter(),
-    new Factory4($select = new Select(), new Factory($select)),
-    new ConsoleLogger(new ConsoleOutput(ConsoleOutput::VERBOSITY_DEBUG))
+    new Factory4($select = new Select(), new Factory($select), null, $logger),
+    $logger
 );
 $client->bind('127.0.0.1:2775', PDU::ID_BIND_TRANSMITTER)
     ->then(function () use ($client, $source) {

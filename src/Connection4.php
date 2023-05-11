@@ -30,6 +30,9 @@ final class Connection4
     private ?SessionInterface $session = null;
     private int $lastMessageTime = 0;
 
+    private ?string $clientAddress = null;
+    private ?string $remoteAddress = null;
+
     public function __construct(
         SocketClientInterface $client,
         SerializerInterface $serializer,
@@ -90,20 +93,18 @@ final class Connection4
 
     public function getClientAddress(): ?string
     {
-        static $address = null;
-        if (null === $address) {
-            $address = $this->client->getClientAddress();
+        if (null === $this->clientAddress) {
+            $this->clientAddress = $this->client->getClientAddress();
         }
-        return $address;
+        return $this->clientAddress;
     }
 
     public function getRemoteAddress(): ?string
     {
-        static $address = null;
-        if (null === $address) {
-            $address = $this->client->getRemoteAddress();
+        if (null === $this->remoteAddress) {
+            $this->remoteAddress = $this->client->getRemoteAddress();
         }
-        return $address;
+        return $this->remoteAddress;
     }
 
     public function getStatus(): int
