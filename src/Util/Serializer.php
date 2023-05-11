@@ -65,20 +65,20 @@ final class Serializer implements SerializerInterface
             case PDU::ID_DELIVER_SM:
             case PDU::ID_SUBMIT_SM:
                 $params = [
-                    PDU::KEY_SERVICE_TYPE            => $buffer->shiftString(6),
-                    PDU::KEY_SRC_ADDRESS          => $buffer->shiftAddress(21),
+                    PDU::KEY_SERVICE_TYPE           => $buffer->shiftString(6),
+                    PDU::KEY_SRC_ADDRESS            => $buffer->shiftAddress(21),
                     PDU::KEY_DST_ADDRESS            => $buffer->shiftAddress(21),
-                    PDU::KEY_ESM_CLASS               => $buffer->shiftInt8(),
-                    PDU::KEY_PROTOCOL_ID             => $buffer->shiftInt8(),
-                    PDU::KEY_PRIORITY_FLAG           => $buffer->shiftInt8(),
-                    PDU::KEY_SCHEDULE_DELIVERY_TIME  => $buffer->shiftDateTime(),//->NULL ID_DELIVER_SM
-                    PDU::KEY_VALIDITY_PERIOD         => $buffer->shiftDateTime(),//->NULL ID_DELIVER_SM
-                    PDU::KEY_REG_DELIVERY     => $buffer->shiftInt8(),
-                    PDU::KEY_REPLACE_IF_PRESENT => $buffer->shiftInt8(),//->NULL ID_DELIVER_SM
-                    PDU::KEY_DATA_CODING             => $buffer->shiftInt8(),
-                    PDU::KEY_SM_DEFAULT_MSG_ID       => $buffer->shiftInt8(),//->NULL ID_DELIVER_SM
-                    PDU::KEY_SM_LENGTH               => $buffer->shiftInt8(),
-                    PDU::KEY_SHORT_MESSAGE           => $buffer->shiftString(254),
+                    PDU::KEY_ESM_CLASS              => $buffer->shiftInt8(),
+                    PDU::KEY_PROTOCOL_ID            => $buffer->shiftInt8(),
+                    PDU::KEY_PRIORITY_FLAG          => $buffer->shiftInt8(),
+                    PDU::KEY_SCHEDULE_DELIVERY_TIME => $buffer->shiftDateTime(),//->NULL ID_DELIVER_SM
+                    PDU::KEY_VALIDITY_PERIOD        => $buffer->shiftDateTime(),//->NULL ID_DELIVER_SM
+                    PDU::KEY_REG_DELIVERY           => $buffer->shiftInt8(),
+                    PDU::KEY_REPLACE_IF_PRESENT     => $buffer->shiftInt8(),//->NULL ID_DELIVER_SM
+                    PDU::KEY_DATA_CODING            => $buffer->shiftInt8(),
+                    PDU::KEY_SM_DEFAULT_MSG_ID      => $buffer->shiftInt8(),//->NULL ID_DELIVER_SM
+                    PDU::KEY_SM_LENGTH              => $buffer->shiftInt8(),
+                    PDU::KEY_SHORT_MESSAGE          => $buffer->shiftString(254),
                 ];
                 break;
             case PDU::ID_DELIVER_SM_RESP:
@@ -88,24 +88,24 @@ final class Serializer implements SerializerInterface
                 break;
             case PDU::ID_REPLACE_SM:
                 $params = [
-                    PDU::KEY_MESSAGE_ID              => $buffer->shiftString(65),
-                    PDU::KEY_SRC_ADDRESS          => $buffer->shiftAddress(21),
-                    PDU::KEY_SCHEDULE_DELIVERY_TIME  => $buffer->shiftDateTime(),
-                    PDU::KEY_VALIDITY_PERIOD         => $buffer->shiftDateTime(),
-                    PDU::KEY_REG_DELIVERY     => $buffer->shiftInt8(),
-                    PDU::KEY_SM_DEFAULT_MSG_ID       => $buffer->shiftInt8(),
-                    PDU::KEY_SM_LENGTH               => $buffer->shiftInt8(),
-                    PDU::KEY_SHORT_MESSAGE           => $buffer->shiftString(254),
+                    PDU::KEY_MESSAGE_ID             => $buffer->shiftString(65),
+                    PDU::KEY_SRC_ADDRESS            => $buffer->shiftAddress(21),
+                    PDU::KEY_SCHEDULE_DELIVERY_TIME => $buffer->shiftDateTime(),
+                    PDU::KEY_VALIDITY_PERIOD        => $buffer->shiftDateTime(),
+                    PDU::KEY_REG_DELIVERY           => $buffer->shiftInt8(),
+                    PDU::KEY_SM_DEFAULT_MSG_ID      => $buffer->shiftInt8(),
+                    PDU::KEY_SM_LENGTH              => $buffer->shiftInt8(),
+                    PDU::KEY_SHORT_MESSAGE          => $buffer->shiftString(254),
                 ];
                 break;
             case PDU::ID_DATA_SM:
                 $params = [
-                    PDU::KEY_SERVICE_TYPE        => $buffer->shiftString(6),
-                    PDU::KEY_SRC_ADDRESS      => $buffer->shiftAddress(21),
-                    PDU::KEY_DST_ADDRESS        => $buffer->shiftAddress(21),
-                    PDU::KEY_ESM_CLASS           => $buffer->shiftInt8(),
+                    PDU::KEY_SERVICE_TYPE => $buffer->shiftString(6),
+                    PDU::KEY_SRC_ADDRESS  => $buffer->shiftAddress(21),
+                    PDU::KEY_DST_ADDRESS  => $buffer->shiftAddress(21),
+                    PDU::KEY_ESM_CLASS    => $buffer->shiftInt8(),
                     PDU::KEY_REG_DELIVERY => $buffer->shiftInt8(),
-                    PDU::KEY_DATA_CODING         => $buffer->shiftInt8(),
+                    PDU::KEY_DATA_CODING  => $buffer->shiftInt8(),
                 ];
                 break;
             default:
@@ -219,7 +219,6 @@ final class Serializer implements SerializerInterface
                 $body->writeString($pdu->get(PDU::KEY_SHORT_MESSAGE));
                 break;
             case PDU::ID_DATA_SM:
-                //TODO check fields
                 $body->writeString($pdu->get(PDU::KEY_SERVICE_TYPE));
                 $body->writeAddress($pdu->get(PDU::KEY_SRC_ADDRESS));
                 $body->writeAddress($pdu->get(PDU::KEY_DST_ADDRESS));

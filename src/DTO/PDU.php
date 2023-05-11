@@ -162,6 +162,8 @@ final class PDU
     private int $seqNum;
     private array $params;
 
+    //TODO add required(string $key, $type) method
+    //TODO add optional(string $key, $type, $default) method
     //TODO remove status arg, create setter instead???
     public function __construct(int $id, int $status, int $seqNum, array $params = [])
     {
