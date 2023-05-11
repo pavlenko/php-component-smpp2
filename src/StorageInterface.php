@@ -15,6 +15,8 @@ interface StorageInterface
         bool $checkScheduled = false
     ): ?Message;
 
+    public function search2(Search $search): ?Message;
+
     public function select(Address $address = null): ?PDU;
 
     public function insert(Message $message): void;

@@ -45,6 +45,33 @@ final class Storage4 implements StorageInterface
         return null;
     }
 
+    public function search2(Search $search): ?Message
+    {
+        $now = new \DateTime();
+        foreach ($this->data as $message) {
+            if (null !== $search->getMessageID() && $message->getMessageID() !== $search->getMessageID()) {
+                continue;
+            }
+            if (null !== $search->getSourceAddress()
+                && (string) $message->getSourceAddress() !== (string) $search->getSourceAddress()) {
+                continue;
+            }
+            if (null !== $search->getTargetAddress()
+                && (string) $message->getTargetAddress() !== (string) $search->getTargetAddress()) {
+                continue;
+            }
+            if ($search->isCheckSchedule() && $message->getScheduledAt() > $now) {
+                continue;
+            }
+            if (null !== $search->getStatus() && $message->getStatus() !== $search->getStatus()) {
+                continue;
+            }
+            return $message;
+        }
+
+        return null;
+    }
+
     public function select(Address $address = null): ?PDU
     {
         foreach ($this->data as $pdu) {
