@@ -113,6 +113,14 @@ final class PDU
     public const STATUS_DELIVERY_FAILURE             = 0x000000FE;
     public const STATUS_UNKNOWN_ERROR                = 0x000000FF;
 
+    public const SERVICE_TYPE_NONE = null;
+    public const SERVICE_TYPE_CMT  = 'CMT';
+    public const SERVICE_TYPE_CPT  = 'CPT';
+    public const SERVICE_TYPE_VMN  = 'VMN';
+    public const SERVICE_TYPE_VMA  = 'VMA';
+    public const SERVICE_TYPE_WAP  = 'WAP';
+    public const SERVICE_TYPE_USSD = 'USSD';
+
     public const ESM_MSG_MODE_DEFAULT    = 0b00_00_00_00;//esme->smsc
     public const ESM_MSG_MODE_DATAGRAM   = 0b00_00_00_01;//esme->smsc
     public const ESM_MSG_MODE_FORWARD    = 0b00_00_00_10;//esme->smsc

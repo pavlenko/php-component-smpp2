@@ -5,6 +5,10 @@ namespace PE\Component\SMPP\Util;
 use PE\Component\SMPP\DTO\Address;
 use PE\Component\SMPP\DTO\TLV;
 
+/**
+ * string = NULL -> "\0" in buffer
+ * integer = NULL -> zero filled bytes
+ */
 final class Buffer
 {
     private string $buffer;
