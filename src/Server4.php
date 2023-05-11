@@ -227,9 +227,10 @@ final class Server4
 
     private function processTimeout(Connection4 $connection): void
     {
-        $expects = $connection->getExpects();
-        foreach ($expects as $expect) {
-            if ($expect->getExpiredAt() < time()) {
+        $deferredList = $connection->getExpects();
+        foreach ($deferredList as $deferred) {
+            if ($deferred->getExpiredAt() < time()) {
+                $deferred->failure(null);
                 $this->detachConnection($connection, ': timed out');
             }
         }
