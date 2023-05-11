@@ -43,39 +43,38 @@ final class Decoder
 
     private function decodeUint08(string $buffer, int &$pos, bool $required): ?int
     {
-        //TODO check unpack return false - value not exists, if returns 0 - success but default
-        $value = @unpack('C', $buffer, $pos)[1] ?: null;
+        $value = @unpack('C', $buffer, $pos);
         $pos += 1;
 
-        if ($required && empty($value)) {
+        if ($required && false === $value) {
             throw new \UnexpectedValueException('Malformed PDU');
         }
 
-        return $value;
+        return $value[1] ?? null;
     }
 
     private function decodeUint16(string $buffer, int &$pos, bool $required): ?int
     {
-        $value = @unpack('n', $buffer, $pos)[1] ?: null;
+        $value = @unpack('n', $buffer, $pos);
         $pos += 2;
 
-        if ($required && empty($value)) {
+        if ($required && false === $value) {
             throw new \UnexpectedValueException('Malformed PDU');
         }
 
-        return $value;
+        return $value[1] ?? null;
     }
 
     private function decodeUint32(string $buffer, int &$pos, bool $required): ?int
     {
-        $value = @unpack('N', $buffer, $pos)[1] ?: null;
+        $value = @unpack('N', $buffer, $pos);
         $pos += 4;
 
-        if ($required && empty($value)) {
+        if ($required && false === $value) {
             throw new \UnexpectedValueException('Malformed PDU');
         }
 
-        return $value;
+        return $value[1] ?? null;
     }
 
     private function decodeString(string $buffer, int &$pos, bool $required, int $min = null, int $max = null): ?string
