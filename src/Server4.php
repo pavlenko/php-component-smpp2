@@ -107,11 +107,9 @@ final class Server4
         if (array_key_exists($pdu->getID(), ConnectionInterface::BOUND_MAP)) {
             $connection->send(new PDU(PDU::ID_GENERIC_NACK | $pdu->getID(), 0, $pdu->getSeqNum()));
             $connection->setStatus(ConnectionInterface::BOUND_MAP[$pdu->getID()]);
-            $connection->setSession(new Session(
-                $pdu->get(PDU::KEY_SYSTEM_ID),
-                $pdu->get(PDU::KEY_PASSWORD),
-                $pdu->get('address')
-            ));
+            $connection->setSession(
+                new Session($pdu->get(PDU::KEY_SYSTEM_ID), $pdu->get(PDU::KEY_PASSWORD), $pdu->get('address'))
+            );
             return;
         }
 
