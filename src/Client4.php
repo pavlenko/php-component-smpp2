@@ -152,12 +152,12 @@ final class Client4
 
     private function processEnquire(Connection4 $connection): void
     {
-        $overdue = time() - $connection->getLastMessageTime() > 15;
+        $overdue = time() - $connection->getLastMessageTime() > $this->session->getInactiveTimeout();
         if ($overdue) {
             $sequenceNum = $this->session->newSequenceNum();
 
             $connection->send(new PDU(PDU::ID_ENQUIRE_LINK, 0, $sequenceNum));
-            $connection->wait(5, $sequenceNum, PDU::ID_ENQUIRE_LINK_RESP);
+            $connection->wait($this->session->getResponseTimeout(), $sequenceNum, PDU::ID_ENQUIRE_LINK_RESP);
         }
     }
 
@@ -167,10 +167,14 @@ final class Client4
             return;
         }
 
-        $pdu = $this->storage->select();
+        $pdu = $this->storage->select();//TODO get message for submit
         if ($pdu) {
             $connection->send($pdu);
-            $connection->wait(5, $pdu->getSeqNum(), PDU::ID_GENERIC_NACK | $pdu->getID());
+            $connection->wait(
+                $this->session->getResponseTimeout(),
+                $pdu->getSeqNum(),
+                PDU::ID_GENERIC_NACK | $pdu->getID()
+            );
             $this->storage->delete($pdu);
         }
     }

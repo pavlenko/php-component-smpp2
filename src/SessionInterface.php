@@ -6,6 +6,9 @@ use PE\Component\SMPP\DTO\Address;
 
 interface SessionInterface
 {
+    public const DEFAULT_RESPONSE_TIMEOUT = 5;
+    public const DEFAULT_INACTIVE_TIMEOUT = 60;
+
     /**
      * Get system id
      *
@@ -40,4 +43,18 @@ interface SessionInterface
      * @return int
      */
     public function newSequenceNum(): int;
+
+    /**
+     * Get max response timeout in seconds
+     *
+     * @return int
+     */
+    public function getResponseTimeout(): int;
+
+    /**
+     * Get max inactive timeout in seconds
+     *
+     * @return int
+     */
+    public function getInactiveTimeout(): int;
 }

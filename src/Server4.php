@@ -74,7 +74,13 @@ final class Server4
     {
         $this->logger->log(LogLevel::DEBUG, '< New connection from ' . $connection->getRemoteAddress());
         $this->connections->attach($connection);
-        $connection->wait(5, 0, PDU::ID_BIND_RECEIVER, PDU::ID_BIND_TRANSMITTER, PDU::ID_BIND_TRANSCEIVER);
+        $connection->wait(
+            $this->session->getResponseTimeout(),
+            0,
+            PDU::ID_BIND_RECEIVER,
+            PDU::ID_BIND_TRANSMITTER,
+            PDU::ID_BIND_TRANSCEIVER
+        );
     }
 
     private function detachConnection(Connection4 $connection, string $message = null): void
@@ -231,12 +237,12 @@ final class Server4
 
     private function processEnquire(Connection4 $connection): void
     {
-        $overdue = time() - $connection->getLastMessageTime() > 15;
+        $overdue = time() - $connection->getLastMessageTime() > $this->session->getInactiveTimeout();
         if ($overdue) {
             $sequenceNum = $this->session->newSequenceNum();
 
             $connection->send(new PDU(PDU::ID_ENQUIRE_LINK, 0, $sequenceNum));
-            $connection->wait(5, $sequenceNum, PDU::ID_ENQUIRE_LINK_RESP);
+            $connection->wait($this->session->getResponseTimeout(), $sequenceNum, PDU::ID_ENQUIRE_LINK_RESP);
         }
     }
 
@@ -256,7 +262,7 @@ final class Server4
                 PDU::KEY_SCHEDULE_DELIVERY_TIME => $message->getScheduledAt(),
             ] + $message->getParams()));
             $connection
-                ->wait(5, $sequenceNum, PDU::ID_DELIVER_SM_RESP)
+                ->wait($this->session->getResponseTimeout(), $sequenceNum, PDU::ID_DELIVER_SM_RESP)
                 ->then(fn() => $message->setStatus(Message::STATUS_DELIVERED))
                 ->else(fn() => $message->setStatus(Message::STATUS_REJECTED));
             $message->setStatus(Message::STATUS_ENROUTE);
