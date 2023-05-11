@@ -8,7 +8,12 @@ use PE\Component\SMPP\DTO\PDU;
 
 interface StorageInterface
 {
-    public function search(string $messageID, Address $src = null): ?Message;
+    public function search(
+        string $messageID = null,
+        Address $sourceAddress = null,
+        Address $targetAddress = null,
+        bool $checkScheduled = false
+    ): ?Message;
 
     public function select(Address $address = null): ?PDU;
 

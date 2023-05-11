@@ -4,6 +4,7 @@ namespace PE\Component\SMPP\DTO;
 
 final class Message
 {
+    public const STATUS_CREATED       = 0;
     public const STATUS_ENROUTE       = 1;
     public const STATUS_DELIVERED     = 2;
     public const STATUS_EXPIRED       = 3;
@@ -18,8 +19,9 @@ final class Message
     private string $message;
     private array $params;
     private ?string $messageID = null;
-    private int $status = self::STATUS_ENROUTE;
+    private int $status = self::STATUS_CREATED;
     private int $errorCode = 0;
+    private ?\DateTimeInterface $scheduledAt = null;
     private ?\DateTimeInterface $deliveredAt = null;
 
     public function __construct(Address $source, Address $target, string $message, array $params = [])
@@ -90,12 +92,22 @@ final class Message
         $this->errorCode = $errorCode;
     }
 
+    public function getScheduledAt(): ?\DateTimeInterface
+    {
+        return $this->scheduledAt;
+    }
+
+    public function setScheduledAt(?\DateTimeInterface $scheduledAt): void
+    {
+        $this->scheduledAt = $scheduledAt;
+    }
+
     public function getDeliveredAt(): ?\DateTimeInterface
     {
         return $this->deliveredAt;
     }
 
-    public function setDeliveredAt(\DateTimeInterface $deliveredAt): void
+    public function setDeliveredAt(?\DateTimeInterface $deliveredAt): void
     {
         $this->deliveredAt = $deliveredAt;
     }

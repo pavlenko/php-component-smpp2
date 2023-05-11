@@ -3,14 +3,47 @@
 namespace PE\Component\SMPP;
 
 use PE\Component\SMPP\DTO\Address;
+use PE\Component\SMPP\DTO\Message;
 use PE\Component\SMPP\DTO\PDU;
 
 final class Storage4 implements StorageInterface
 {
     /**
-     * @var PDU[]
+     * @var Message[]
      */
     private array $data = [];
+
+    public function search(
+        string $messageID = null,
+        Address $sourceAddress = null,
+        Address $targetAddress = null,
+        bool $checkScheduled = false
+    ): ?Message {
+        if (null === $messageID && null === $sourceAddress && null === $targetAddress) {
+            throw new \UnexpectedValueException(
+                'You must pass at least one of $messageID, $sourceAddress, $targetAddress'
+            );
+        }
+
+        $now = new \DateTime();
+        foreach ($this->data as $message) {
+            if (null !== $messageID && $message->getMessageID() !== $messageID) {
+                continue;
+            }
+            if (null !== $sourceAddress && $message->getSourceAddress() !== $sourceAddress) {
+                continue;
+            }
+            if (null !== $targetAddress && $message->getTargetAddress() !== $targetAddress) {
+                continue;
+            }
+            if (null !== $checkScheduled && $message->getScheduledAt() > $now) {
+                continue;
+            }
+            return $message;
+        }
+
+        return null;
+    }
 
     public function select(Address $address = null): ?PDU
     {
@@ -23,9 +56,9 @@ final class Storage4 implements StorageInterface
         return null;
     }
 
-    public function insert(PDU $pdu): void
+    public function insert(Message $message): void
     {
-        $this->data[spl_object_hash($pdu)] = $pdu;
+        $this->data[spl_object_hash($message)] = $message;
     }
 
     public function delete(PDU $pdu): void
