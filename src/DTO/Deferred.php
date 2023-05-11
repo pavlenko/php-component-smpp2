@@ -16,6 +16,9 @@ final class Deferred
         $this->expiredAt = time() + $timeout;
         $this->seqNum    = $seqNum;
         $this->expectPDU = $expectPDU;
+
+        $this->resolvedHandler = fn() => null;
+        $this->rejectedHandler = fn() => null;
     }
 
     public function getExpiredAt(): ?int

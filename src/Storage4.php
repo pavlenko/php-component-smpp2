@@ -61,6 +61,11 @@ final class Storage4 implements StorageInterface
         $this->data[spl_object_hash($message)] = $message;
     }
 
+    public function update(Message $message): void
+    {
+        // TODO: Implement update() method.
+    }
+
     public function delete(PDU $pdu): void
     {
         unset($this->data[spl_object_hash($pdu)]);
