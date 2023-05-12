@@ -233,6 +233,8 @@ final class PDU
         return array_map(fn($name) => substr($name, 7), $constants);
     }
 
+    //TODO maybe change to toString and create full formatted string dump with all params for debug
+    //TODO maybe create special dumper class
     public function toLogger(): string
     {
         $identifiers = self::getIdentifiers();
