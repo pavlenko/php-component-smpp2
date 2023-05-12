@@ -5,6 +5,7 @@ namespace PE\Component\SMPP;
 use PE\Component\SMPP\DTO\Deferred;
 use PE\Component\SMPP\DTO\PDU;
 use PE\Component\SMPP\Util\Buffer;
+use PE\Component\SMPP\Util\Decoder;
 use PE\Component\SMPP\Util\SerializerInterface;
 use PE\Component\Socket\ClientInterface as SocketClientInterface;
 use Psr\Log\LoggerInterface;
@@ -43,12 +44,14 @@ final class Connection4
             try {
                 $this->buffer .= $data;
 
+                $decoder = new Decoder();
                 $reader = new Buffer($this->buffer);
                 while ($reader->bytesLeft() >= 16) {
                     $length = $reader->shiftInt32();
                     if (strlen($this->buffer) >= $length) {
                         $reader->shiftBytes($length - 4);
-                        $pdu = $this->serializer->decode(substr($this->buffer, 4, $length));
+                        //$pdu = $this->serializer->decode(substr($this->buffer, 4, $length));
+                        $pdu = $decoder->decode(substr($this->buffer, 4, $length));
 
                         $this->buffer = substr($this->buffer, $length);
                         $this->logger->log(LogLevel::DEBUG, '< ' . $pdu->toLogger());
