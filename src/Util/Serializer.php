@@ -80,7 +80,7 @@ final class Serializer implements SerializerInterface
 //                    PDU::KEY_SM_LENGTH              => $buffer->shiftInt8(),
 //                    PDU::KEY_SHORT_MESSAGE          => $buffer->shiftString(254),
 //                ];
-                $params = (new Decoder())->decode("\x00\x00\x00\x00", $pdu)->getParams();
+                $params = (new Decoder())->decode($pdu)->getParams();
                 break;
             case PDU::ID_DELIVER_SM_RESP:
             case PDU::ID_SUBMIT_SM_RESP:
@@ -193,7 +193,7 @@ final class Serializer implements SerializerInterface
                 $body->writeInt8($pdu->get(PDU::KEY_ESM_CLASS));
                 $body->writeInt8($pdu->get(PDU::KEY_PROTOCOL_ID));
                 $body->writeInt8($pdu->get(PDU::KEY_PRIORITY_FLAG));
-                $body->writeDateTime($pdu->get(PDU::KEY_SCHEDULE_DELIVERY_TIME));
+                $body->writeString($pdu->get(PDU::KEY_SCHEDULE_DELIVERY_TIME));//$body->writeDateTime($pdu->get(PDU::KEY_SCHEDULE_DELIVERY_TIME));
                 $body->writeDateTime($pdu->get(PDU::KEY_VALIDITY_PERIOD));
                 $body->writeInt8($pdu->get(PDU::KEY_REG_DELIVERY));
                 $body->writeInt8($pdu->get(PDU::KEY_REPLACE_IF_PRESENT));
