@@ -32,9 +32,9 @@ final class Decoder
             case PDU::ID_BIND_TRANSMITTER:
             case PDU::ID_BIND_TRANSCEIVER:
                 $params = [
-                    PDU::KEY_SYSTEM_ID         => $this->decodeString($buffer, $pos, true, 16),
-                    PDU::KEY_PASSWORD          => $this->decodeString($buffer, $pos, false, 9),
-                    PDU::KEY_SYSTEM_TYPE       => $this->decodeString($buffer, $pos, false, 13),
+                    PDU::KEY_SYSTEM_ID         => $this->decodeString($buffer, $pos, true, null, 16),
+                    PDU::KEY_PASSWORD          => $this->decodeString($buffer, $pos, false, null, 9),
+                    PDU::KEY_SYSTEM_TYPE       => $this->decodeString($buffer, $pos, false, null, 13),
                     PDU::KEY_INTERFACE_VERSION => $this->decodeUint08($buffer, $pos, true),
                     PDU::KEY_ADDRESS           => $this->decodeAddress($buffer, $pos, false, 41),
                 ];
@@ -42,12 +42,12 @@ final class Decoder
             case PDU::ID_BIND_RECEIVER_RESP:
             case PDU::ID_BIND_TRANSMITTER_RESP:
             case PDU::ID_BIND_TRANSCEIVER_RESP:
-                $params = [PDU::KEY_SYSTEM_ID => $this->decodeString($buffer, $pos, true, 16)];
+                $params = [PDU::KEY_SYSTEM_ID => $this->decodeString($buffer, $pos, true, null, 16)];
                 break;
             case PDU::ID_SUBMIT_SM:
             case PDU::ID_DELIVER_SM:
                 $params = [
-                    PDU::KEY_SERVICE_TYPE           => $this->decodeString($buffer, $pos, false, 6),
+                    PDU::KEY_SERVICE_TYPE           => $this->decodeString($buffer, $pos, false, null, 6),
                     PDU::KEY_SRC_ADDRESS            => $this->decodeAddress($buffer, $pos, false, 21),
                     PDU::KEY_DST_ADDRESS            => $this->decodeAddress($buffer, $pos, true, 21),
                     PDU::KEY_ESM_CLASS              => (int) $this->decodeUint08($buffer, $pos, false),
@@ -60,7 +60,7 @@ final class Decoder
                     PDU::KEY_DATA_CODING            => (int) $this->decodeUint08($buffer, $pos, false),
                     PDU::KEY_SM_DEFAULT_MSG_ID      => (int) $this->decodeUint08($buffer, $pos, false),
                     PDU::KEY_SM_LENGTH              => (int) $this->decodeUint08($buffer, $pos, false),
-                    PDU::KEY_SHORT_MESSAGE          => $this->decodeString($buffer, $pos, true, 254),
+                    PDU::KEY_SHORT_MESSAGE          => $this->decodeString($buffer, $pos, true, null, 254),
                 ];
                 if (PDU::ID_DELIVER_SM === $id) {
                     unset(
@@ -74,11 +74,11 @@ final class Decoder
             case PDU::ID_SUBMIT_SM_RESP:
             case PDU::ID_DELIVER_SM_RESP:
             case PDU::ID_DATA_SM_RESP:
-                $params = [PDU::KEY_MESSAGE_ID => $this->decodeString($buffer, $pos, true, 65)];
+                $params = [PDU::KEY_MESSAGE_ID => $this->decodeString($buffer, $pos, true, null, 65)];
                 break;
             case PDU::ID_DATA_SM:
                 $params = [
-                    PDU::KEY_SERVICE_TYPE => $this->decodeString($buffer, $pos, false, 6),
+                    PDU::KEY_SERVICE_TYPE => $this->decodeString($buffer, $pos, false, null, 6),
                     PDU::KEY_SRC_ADDRESS  => $this->decodeAddress($buffer, $pos, false, 21),
                     PDU::KEY_DST_ADDRESS  => $this->decodeAddress($buffer, $pos, true, 21),
                     PDU::KEY_ESM_CLASS    => (int) $this->decodeUint08($buffer, $pos, false),
@@ -88,13 +88,13 @@ final class Decoder
                 break;
             case PDU::ID_QUERY_SM:
                 $params = [
-                    PDU::KEY_MESSAGE_ID  => $this->decodeString($buffer, $pos, true, 65),
+                    PDU::KEY_MESSAGE_ID  => $this->decodeString($buffer, $pos, true, null, 65),
                     PDU::KEY_SRC_ADDRESS => $this->decodeAddress($buffer, $pos, false, 21),
                 ];
                 break;
             case PDU::ID_QUERY_SM_RESP:
                 $params = [
-                    PDU::KEY_MESSAGE_ID    => $this->decodeString($buffer, $pos, true, 65),
+                    PDU::KEY_MESSAGE_ID    => $this->decodeString($buffer, $pos, true, null, 65),
                     PDU::KEY_FINAL_DATE    => $this->decodeDateTime($buffer, $pos, false),
                     PDU::KEY_MESSAGE_STATE => $this->decodeUint08($buffer, $pos, true),
                     PDU::KEY_ERROR_CODE    => $this->decodeUint08($buffer, $pos, false),
@@ -102,21 +102,21 @@ final class Decoder
                 break;
             case PDU::ID_CANCEL_SM:
                 $params = [
-                    PDU::KEY_MESSAGE_ID  => $this->decodeString($buffer, $pos, true, 65),
+                    PDU::KEY_MESSAGE_ID  => $this->decodeString($buffer, $pos, true, null, 65),
                     PDU::KEY_SRC_ADDRESS => $this->decodeAddress($buffer, $pos, true, 21),
                     PDU::KEY_DST_ADDRESS => $this->decodeAddress($buffer, $pos, false, 21),
                 ];
                 break;
             case PDU::ID_REPLACE_SM:
                 $params = [
-                    PDU::KEY_MESSAGE_ID             => $this->decodeString($buffer, $pos, true, 65),
+                    PDU::KEY_MESSAGE_ID             => $this->decodeString($buffer, $pos, true, null, 65),
                     PDU::KEY_SRC_ADDRESS            => $this->decodeAddress($buffer, $pos, true, 21),
                     PDU::KEY_SCHEDULE_DELIVERY_TIME => $this->decodeDateTime($buffer, $pos, false),
                     PDU::KEY_VALIDITY_PERIOD        => $this->decodeDateTime($buffer, $pos, false),
                     PDU::KEY_REG_DELIVERY           => (int) $this->decodeUint08($buffer, $pos, false),
                     PDU::KEY_SM_DEFAULT_MSG_ID      => (int) $this->decodeUint08($buffer, $pos, false),
                     PDU::KEY_SM_LENGTH              => (int) $this->decodeUint08($buffer, $pos, false),
-                    PDU::KEY_SHORT_MESSAGE          => $this->decodeString($buffer, $pos, true, 254),
+                    PDU::KEY_SHORT_MESSAGE          => $this->decodeString($buffer, $pos, true, null, 254),
                 ];
                 break;
             case PDU::ID_ALERT_NOTIFICATION:
@@ -213,7 +213,7 @@ final class Decoder
         return $value[1];
     }
 
-    private function decodeString(string $buffer, int &$pos, bool $required, int $max = null, int $min = null): ?string
+    private function decodeString(string $buffer, int &$pos, bool $required, ?int $min, ?int $max): ?string
     {
         $error = sprintf('Required STRING value at position %d in "%s"', $pos, $this->toPrintable($buffer));
         $value = '';
@@ -239,7 +239,7 @@ final class Decoder
         $error = sprintf('Required ADDRESS value at position %d in "%s"', $pos, $this->toPrintable($buffer));
         $ton   = $this->decodeUint08($buffer, $pos, false);
         $npi   = $this->decodeUint08($buffer, $pos, false);
-        $value = $this->decodeString($buffer, $pos, false, $max);
+        $value = $this->decodeString($buffer, $pos, false, null, $max);
 
         if ($required && null === $value) {
             throw new InvalidPDUException($error);
@@ -251,7 +251,7 @@ final class Decoder
     private function decodeDateTime(string $buffer, int &$pos, bool $required): ?\DateTimeInterface
     {
         $error = sprintf('Malformed DATETIME _PARAM_ at position %d in "%s"', $pos, $this->toPrintable($buffer));
-        $value = $this->decodeString($buffer, $pos, false, 17);
+        $value = $this->decodeString($buffer, $pos, false, null, 17);
 
         if (null !== $value) {
             if (strlen($value) < 17) {
@@ -335,19 +335,19 @@ final class Decoder
                 break;
             case TLV::TAG_RECEIPTED_MESSAGE_ID:
             case TLV::TAG_CALLBACK_NUM_ATAG:
-                $value = $this->decodeString($buffer, $pos, true, 65);
+                $value = $this->decodeString($buffer, $pos, true, null, 65);
                 break;
             case TLV::TAG_ADDITIONAL_STATUS_INFO_TEXT:
-                $value = $this->decodeString($buffer, $pos, true, 256);
+                $value = $this->decodeString($buffer, $pos, true, null, 256);
                 break;
             case TLV::TAG_CALLBACK_NUM:
-                $value = $this->decodeString($buffer, $pos, true, 19, 4);
+                $value = $this->decodeString($buffer, $pos, true, 4, 19);
                 break;
             case TLV::TAG_NETWORK_ERROR_CODE:
                 $value = $this->decodeString($buffer, $pos, true, 3, 3);
                 break;
             case TLV::TAG_MESSAGE_PAYLOAD:
-                $value = $this->decodeString($buffer, $pos, true);
+                $value = $this->decodeString($buffer, $pos, true, null, null);
                 break;
             case TLV::TAG_ALERT_ON_MESSAGE_DELIVERY:
             default:

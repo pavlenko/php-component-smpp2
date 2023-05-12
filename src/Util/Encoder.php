@@ -3,6 +3,7 @@
 namespace PE\Component\SMPP\Util;
 
 use PE\Component\SMPP\DTO\PDU;
+use PE\Component\SMPP\Exception\InvalidPDUException;
 use PE\Component\SMPP\Exception\UnknownPDUException;
 
 final class Encoder
@@ -25,125 +26,174 @@ final class Encoder
             case PDU::ID_BIND_RECEIVER:
             case PDU::ID_BIND_TRANSMITTER:
             case PDU::ID_BIND_TRANSCEIVER:
-                $this->encodeString($body, true, null, 16, $pdu->get(PDU::KEY_SYSTEM_ID));
-                $this->encodeString($body, false, null, 9, $pdu->get(PDU::KEY_PASSWORD));
-                $this->encodeString($body, false, null, 13, $pdu->get(PDU::KEY_SYSTEM_TYPE));
-                $this->encodeUint08($body, true, $pdu->get(PDU::KEY_INTERFACE_VERSION));
-                $this->encodeAddress($body, false, 41, $pdu->get(PDU::KEY_ADDRESS));
+                $body .= $this->encodeString(true, null, 16, $pdu->get(PDU::KEY_SYSTEM_ID));
+                $body .= $this->encodeString(false, null, 9, $pdu->get(PDU::KEY_PASSWORD));
+                $body .= $this->encodeString(false, null, 13, $pdu->get(PDU::KEY_SYSTEM_TYPE));
+                $body .= $this->encodeUint08(true, $pdu->get(PDU::KEY_INTERFACE_VERSION));
+                $body .= $this->encodeAddress(false, 41, $pdu->get(PDU::KEY_ADDRESS));
                 break;
             case PDU::ID_BIND_RECEIVER_RESP:
             case PDU::ID_BIND_TRANSMITTER_RESP:
             case PDU::ID_BIND_TRANSCEIVER_RESP:
-                $params = [PDU::KEY_SYSTEM_ID => $this->decodeString($buffer, $pos, true, 16)];
+                $body .= $this->encodeString(true, null, 16, $pdu->get(PDU::KEY_SYSTEM_ID));
                 break;
             case PDU::ID_SUBMIT_SM:
+                $body .= $this->encodeString(false, null, 6, $pdu->get(PDU::KEY_SERVICE_TYPE));
+                $body .= $this->encodeAddress(false, 21, $pdu->get(PDU::KEY_SRC_ADDRESS));
+                $body .= $this->encodeAddress(true, 21, $pdu->get(PDU::KEY_DST_ADDRESS));
+                $body .= $this->encodeUint08(false, $pdu->get(PDU::KEY_ESM_CLASS));
+                $body .= $this->encodeUint08(false, $pdu->get(PDU::KEY_PROTOCOL_ID));
+                $body .= $this->encodeUint08(false, $pdu->get(PDU::KEY_PRIORITY_FLAG));
+                $body .= $this->encodeDateTime(false, $pdu->get(PDU::KEY_SCHEDULE_DELIVERY_TIME));
+                $body .= $this->encodeDateTime(false, $pdu->get(PDU::KEY_VALIDITY_PERIOD));
+                $body .= $this->encodeUint08(false, $pdu->get(PDU::KEY_REG_DELIVERY));
+                $body .= $this->encodeUint08(false, $pdu->get(PDU::KEY_REPLACE_IF_PRESENT));
+                $body .= $this->encodeUint08(false, $pdu->get(PDU::KEY_DATA_CODING));
+                $body .= $this->encodeUint08(false, $pdu->get(PDU::KEY_SM_DEFAULT_MSG_ID));
+                $body .= $this->encodeUint08(false, $pdu->get(PDU::KEY_SM_LENGTH));
+                $body .= $this->encodeString(true, null, 254, $pdu->get(PDU::KEY_SHORT_MESSAGE));
+                break;
             case PDU::ID_DELIVER_SM:
-                $params = [
-                    PDU::KEY_SERVICE_TYPE           => $this->decodeString($buffer, $pos, false, 6),
-                    PDU::KEY_SRC_ADDRESS            => $this->decodeAddress($buffer, $pos, false, 21),
-                    PDU::KEY_DST_ADDRESS            => $this->decodeAddress($buffer, $pos, true, 21),
-                    PDU::KEY_ESM_CLASS              => (int) $this->decodeUint08($buffer, $pos, false),
-                    PDU::KEY_PROTOCOL_ID            => (int) $this->decodeUint08($buffer, $pos, false),
-                    PDU::KEY_PRIORITY_FLAG          => (int) $this->decodeUint08($buffer, $pos, false),
-                    PDU::KEY_SCHEDULE_DELIVERY_TIME => $this->decodeDateTime($buffer, $pos, false),
-                    PDU::KEY_VALIDITY_PERIOD        => $this->decodeDateTime($buffer, $pos, false),
-                    PDU::KEY_REG_DELIVERY           => (int) $this->decodeUint08($buffer, $pos, false),
-                    PDU::KEY_REPLACE_IF_PRESENT     => (int) $this->decodeUint08($buffer, $pos, false),
-                    PDU::KEY_DATA_CODING            => (int) $this->decodeUint08($buffer, $pos, false),
-                    PDU::KEY_SM_DEFAULT_MSG_ID      => (int) $this->decodeUint08($buffer, $pos, false),
-                    PDU::KEY_SM_LENGTH              => (int) $this->decodeUint08($buffer, $pos, false),
-                    PDU::KEY_SHORT_MESSAGE          => $this->decodeString($buffer, $pos, true, 254),
-                ];
-                if (PDU::ID_DELIVER_SM === $id) {
-                    unset(
-                        $params[PDU::KEY_SCHEDULE_DELIVERY_TIME],
-                        $params[PDU::KEY_VALIDITY_PERIOD],
-                        $params[PDU::KEY_REPLACE_IF_PRESENT],
-                        $params[PDU::KEY_SM_DEFAULT_MSG_ID],
-                    );
-                }
+                $body .= $this->encodeString(false, null, 6, $pdu->get(PDU::KEY_SERVICE_TYPE));
+                $body .= $this->encodeAddress(false, 21, $pdu->get(PDU::KEY_SRC_ADDRESS));
+                $body .= $this->encodeAddress(true, 21, $pdu->get(PDU::KEY_DST_ADDRESS));
+                $body .= $this->encodeUint08(false, $pdu->get(PDU::KEY_ESM_CLASS));
+                $body .= $this->encodeUint08(false, $pdu->get(PDU::KEY_PROTOCOL_ID));
+                $body .= $this->encodeUint08(false, $pdu->get(PDU::KEY_PRIORITY_FLAG));
+                $body .= $this->encodeDateTime(false, null);
+                $body .= $this->encodeDateTime(false, null);
+                $body .= $this->encodeUint08(false, $pdu->get(PDU::KEY_REG_DELIVERY));
+                $body .= $this->encodeUint08(false, null);
+                $body .= $this->encodeUint08(false, $pdu->get(PDU::KEY_DATA_CODING));
+                $body .= $this->encodeUint08(false, null);
+                $body .= $this->encodeUint08(false, $pdu->get(PDU::KEY_SM_LENGTH));
+                $body .= $this->encodeString(true, null, 254, $pdu->get(PDU::KEY_SHORT_MESSAGE));
                 break;
             case PDU::ID_SUBMIT_SM_RESP:
-            case PDU::ID_DELIVER_SM_RESP:
             case PDU::ID_DATA_SM_RESP:
-                $params = [PDU::KEY_MESSAGE_ID => $this->decodeString($buffer, $pos, true, 65)];
+                $body .= $this->encodeString(true, null, 65, $pdu->get(PDU::KEY_MESSAGE_ID));
+                break;
+            case PDU::ID_DELIVER_SM_RESP:
+                $body .= $this->encodeString(false, null, null, null);
                 break;
             case PDU::ID_DATA_SM:
-                $params = [
-                    PDU::KEY_SERVICE_TYPE => $this->decodeString($buffer, $pos, false, 6),
-                    PDU::KEY_SRC_ADDRESS  => $this->decodeAddress($buffer, $pos, false, 21),
-                    PDU::KEY_DST_ADDRESS  => $this->decodeAddress($buffer, $pos, true, 21),
-                    PDU::KEY_ESM_CLASS    => (int) $this->decodeUint08($buffer, $pos, false),
-                    PDU::KEY_REG_DELIVERY => (int) $this->decodeUint08($buffer, $pos, false),
-                    PDU::KEY_DATA_CODING  => (int) $this->decodeUint08($buffer, $pos, false),
-                ];
+                $body .= $this->encodeString(false, null, 6, $pdu->get(PDU::KEY_SERVICE_TYPE));
+                $body .= $this->encodeAddress(false, 21, $pdu->get(PDU::KEY_SRC_ADDRESS));
+                $body .= $this->encodeAddress(true, 21, $pdu->get(PDU::KEY_DST_ADDRESS));
+                $body .= $this->encodeUint08(false, $pdu->get(PDU::KEY_ESM_CLASS));
+                $body .= $this->encodeUint08(false, $pdu->get(PDU::KEY_REG_DELIVERY));
+                $body .= $this->encodeUint08(false, $pdu->get(PDU::KEY_DATA_CODING));
                 break;
             case PDU::ID_QUERY_SM:
-                $params = [
-                    PDU::KEY_MESSAGE_ID  => $this->decodeString($buffer, $pos, true, 65),
-                    PDU::KEY_SRC_ADDRESS => $this->decodeAddress($buffer, $pos, false, 21),
-                ];
+                $body .= $this->encodeString(true, null, 65, $pdu->get(PDU::KEY_MESSAGE_ID));
+                $body .= $this->encodeAddress(false, 21, $pdu->get(PDU::KEY_SRC_ADDRESS));
                 break;
             case PDU::ID_QUERY_SM_RESP:
-                $params = [
-                    PDU::KEY_MESSAGE_ID    => $this->decodeString($buffer, $pos, true, 65),
-                    PDU::KEY_FINAL_DATE    => $this->decodeDateTime($buffer, $pos, false),
-                    PDU::KEY_MESSAGE_STATE => $this->decodeUint08($buffer, $pos, true),
-                    PDU::KEY_ERROR_CODE    => $this->decodeUint08($buffer, $pos, false),
-                ];
+                $body .= $this->encodeString(true, null, 65, $pdu->get(PDU::KEY_MESSAGE_ID));
+                $body .= $this->encodeDateTime(false, $pdu->get(PDU::KEY_FINAL_DATE));
+                $body .= $this->encodeUint08(true, $pdu->get(PDU::KEY_MESSAGE_STATE));
+                $body .= $this->encodeUint08(false, $pdu->get(PDU::KEY_ERROR_CODE));
                 break;
             case PDU::ID_CANCEL_SM:
-                $params = [
-                    PDU::KEY_MESSAGE_ID  => $this->decodeString($buffer, $pos, true, 65),
-                    PDU::KEY_SRC_ADDRESS => $this->decodeAddress($buffer, $pos, true, 21),
-                    PDU::KEY_DST_ADDRESS => $this->decodeAddress($buffer, $pos, false, 21),
-                ];
+                $body .= $this->encodeString(true, null, 65, $pdu->get(PDU::KEY_MESSAGE_ID));
+                $body .= $this->encodeAddress(true, 21, $pdu->get(PDU::KEY_SRC_ADDRESS));
+                $body .= $this->encodeAddress(false, 21, $pdu->get(PDU::KEY_DST_ADDRESS));
                 break;
             case PDU::ID_REPLACE_SM:
-                $params = [
-                    PDU::KEY_MESSAGE_ID             => $this->decodeString($buffer, $pos, true, 65),
-                    PDU::KEY_SRC_ADDRESS            => $this->decodeAddress($buffer, $pos, true, 21),
-                    PDU::KEY_SCHEDULE_DELIVERY_TIME => $this->decodeDateTime($buffer, $pos, false),
-                    PDU::KEY_VALIDITY_PERIOD        => $this->decodeDateTime($buffer, $pos, false),
-                    PDU::KEY_REG_DELIVERY           => (int) $this->decodeUint08($buffer, $pos, false),
-                    PDU::KEY_SM_DEFAULT_MSG_ID      => (int) $this->decodeUint08($buffer, $pos, false),
-                    PDU::KEY_SM_LENGTH              => (int) $this->decodeUint08($buffer, $pos, false),
-                    PDU::KEY_SHORT_MESSAGE          => $this->decodeString($buffer, $pos, true, 254),
-                ];
+                $body .= $this->encodeString(true, null, 65, $pdu->get(PDU::KEY_MESSAGE_ID));
+                $body .= $this->encodeAddress(true, 21, $pdu->get(PDU::KEY_SRC_ADDRESS));
+                $body .= $this->encodeDateTime(false, $pdu->get(PDU::KEY_SCHEDULE_DELIVERY_TIME));
+                $body .= $this->encodeDateTime(false, $pdu->get(PDU::KEY_VALIDITY_PERIOD));
+                $body .= $this->encodeUint08(false, $pdu->get(PDU::KEY_REG_DELIVERY));
+                $body .= $this->encodeUint08(false, $pdu->get(PDU::KEY_SM_DEFAULT_MSG_ID));
+                $body .= $this->encodeUint08(false, $pdu->get(PDU::KEY_SM_LENGTH));
+                $body .= $this->encodeString(true, null, 254, $pdu->get(PDU::KEY_SHORT_MESSAGE));
                 break;
             case PDU::ID_ALERT_NOTIFICATION:
-                $params = [
-                    PDU::KEY_SRC_ADDRESS  => $this->decodeAddress($buffer, $pos, true, 65),
-                    PDU::KEY_ESME_ADDRESS => $this->decodeAddress($buffer, $pos, true, 65),
-                ];
+                $body .= $this->encodeAddress(true, 65, $pdu->get(PDU::KEY_SRC_ADDRESS));
+                $body .= $this->encodeAddress(true, 65, $pdu->get(PDU::KEY_ESME_ADDRESS));
                 break;
             default:
-                throw new UnknownPDUException(sprintf('Unknown pdu id: 0x%08X', $id));
+                throw new UnknownPDUException(sprintf('Unknown pdu id: 0x%08X', $pdu->getID()));
         }
 
-        $head->writeInt32(strlen($body) + 16);
-        $head->writeInt32($pdu->getID());
-        $head->writeInt32($pdu->getStatus());
-        $head->writeInt32($pdu->getSeqNum());
+        $head .= $this->encodeUint32(true, strlen($body) + 16);
+        $head .= $this->encodeUint32(true, $pdu->getID());
+        $head .= $this->encodeUint32(false, $pdu->getStatus());
+        $head .= $this->encodeUint32(true, $pdu->getSeqNum());
 
-        return $buffer;
+        return $head . $body;
     }
 
-    public function encodeUint08(string &$buffer, bool $required, $value): void
-    {}
+    public function encodeUint08(bool $required, $value): string
+    {
+        if (null !== $value) {
+            $filtered = filter_var($value, FILTER_VALIDATE_INT);
+            if (false === $filtered || !(0 < $filtered && $filtered < 0xFF)) {
+                throw new InvalidPDUException(
+                    'Invalid UINT08 value, got ' . is_object($value) ? get_class($value) : gettype($value)
+                );
+            }
+            $value = $filtered;
+        }
 
-    public function encodeUint16(string &$buffer, bool $required, $value): void
-    {}
+        if ($required && empty($value)) {
+            throw new InvalidPDUException('Required UINT08 value');
+        }
 
-    public function encodeUint32(string &$buffer, bool $required, $value): void
-    {}
+        return pack('C', $value ?? 0);
+    }
 
-    public function encodeString(string &$buffer, bool $required, int $min = null, int $max = null, $value = null): void
-    {}
+    public function encodeUint16(bool $required, $value): string
+    {
+        if (null !== $value) {
+            $filtered = filter_var($value, FILTER_VALIDATE_INT);
+            if (false === $filtered || !(0 < $filtered && $filtered < 0xFFFF)) {
+                throw new InvalidPDUException(
+                    'Invalid UINT16 value, got ' . is_object($value) ? get_class($value) : gettype($value)
+                );
+            }
+            $value = $filtered;
+        }
 
-    public function encodeAddress(string &$buffer, bool $required, $value, int $max = null): void
-    {}
+        if ($required && empty($value)) {
+            throw new InvalidPDUException('Required UINT16 value');
+        }
 
-    public function encodeDateTime(string &$buffer, bool $required, $value): void
-    {}
+        return pack('n', $value ?? 0);
+    }
+
+    public function encodeUint32(bool $required, $value): string
+    {
+        if (null !== $value) {
+            $filtered = filter_var($value, FILTER_VALIDATE_INT);
+            if (false === $filtered || !(0 < $filtered && $filtered < 0xFFFFFFFF)) {
+                throw new InvalidPDUException(
+                    'Invalid UINT32 value, got ' . is_object($value) ? get_class($value) : gettype($value)
+                );
+            }
+            $value = $filtered;
+        }
+
+        if ($required && empty($value)) {
+            throw new InvalidPDUException('Required UINT32 value');
+        }
+
+        return pack('N', $value ?? 0);
+    }
+
+    public function encodeString(bool $required, ?int $min, ?int $max, $value): string
+    {
+        //TODO
+    }
+
+    public function encodeAddress(bool $required, int $max, $value): string
+    {
+        //TODO
+    }
+
+    public function encodeDateTime(bool $required, $value): string
+    {
+        //TODO
+    }
 }
