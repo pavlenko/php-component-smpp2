@@ -4,6 +4,7 @@ namespace PE\Component\SMPP\Util;
 
 use PE\Component\SMPP\DTO\Address;
 use PE\Component\SMPP\DTO\PDU;
+use PE\Component\SMPP\Exception\MalformedPDUException;
 
 final class Decoder
 {
@@ -43,40 +44,65 @@ final class Decoder
 
     private function decodeUint08(string $buffer, int &$pos, bool $required): ?int
     {
-        $value = @unpack('C', $buffer, $pos);
-        $pos += 1;
+        $error = null;
+        set_error_handler(function ($_, $message) use (&$error) {
+            $error = $message;
+            if (false !== ($pos = strpos($error, '): '))) {
+                $error = substr($error, $pos + 3);
+            }
+        });
+        $value = unpack('C', $buffer, $pos);
+        restore_error_handler();
 
-        if ($required && false === $value) {
-            throw new \UnexpectedValueException('Malformed PDU');
+        if (false === $value) {
+            throw new MalformedPDUException($error);
         }
 
-        return $value[1] ?? null;
+        $pos += 1;
+        return $value[1];
     }
 
     private function decodeUint16(string $buffer, int &$pos, bool $required): ?int
     {
-        $value = @unpack('n', $buffer, $pos);
-        $pos += 2;
+        $error = null;
+        set_error_handler(function ($_, $message) use (&$error) {
+            $error = $message;
+            if (false !== ($pos = strpos($error, '): '))) {
+                $error = substr($error, $pos + 3);
+            }
+        });
+        $value = unpack('n', $buffer, $pos);
+        restore_error_handler();
 
-        if ($required && false === $value) {
-            throw new \UnexpectedValueException('Malformed PDU');
+        if (false === $value) {
+            throw new MalformedPDUException($error);
         }
 
-        return $value[1] ?? null;
+        $pos += 2;
+        return $value[1];
     }
 
     private function decodeUint32(string $buffer, int &$pos, bool $required): ?int
     {
-        $value = @unpack('N', $buffer, $pos);
-        $pos += 4;
+        $error = null;
+        set_error_handler(function ($_, $message) use (&$error) {
+            $error = $message;
+            if (false !== ($pos = strpos($error, '): '))) {
+                $error = substr($error, $pos + 3);
+            }
+        });
+        $value = unpack('N', $buffer, $pos);
+        restore_error_handler();
 
-        if ($required && false === $value) {
-            throw new \UnexpectedValueException('Malformed PDU');
+        if (false === $value) {
+            throw new MalformedPDUException($error);
         }
 
-        return $value[1] ?? null;
+        $pos += 4;
+        return $value[1];
     }
 
+    //TODO check
     private function decodeString(string $buffer, int &$pos, bool $required, int $min = null, int $max = null): ?string
     {
         $value = '';
@@ -86,12 +112,13 @@ final class Decoder
         $pos++;//<-- skip null char
 
         if ($required && empty($value) || null !== $min && strlen($value) < $min) {
-            throw new \UnexpectedValueException('Malformed PDU');
+            //throw new MalformedPDUException('Malformed PDU');
         }
 
         return $value ?: null;
     }
 
+    //TODO check
     private function decodeAddress(string $buffer, int &$pos, bool $required, int $max): ?Address
     {
         $ton   = $this->decodeUint08($buffer, $pos, false);
@@ -99,7 +126,7 @@ final class Decoder
         $value = $this->decodeString($buffer, $pos, false, null, $max);
 
         if ($required && empty($value)) {
-            throw new \UnexpectedValueException('Malformed PDU');
+            //throw new \UnexpectedValueException('Malformed PDU');
         }
 
         return null !== $value ? new Address((int) $ton, (int) $npi, $value) : null;
@@ -107,14 +134,15 @@ final class Decoder
 
     private function decodeDateTime(string $buffer, int &$pos, bool $required): ?\DateTimeInterface
     {
+        //TODO check if need to parse date when no required
         $value = $this->decodeString($buffer, $pos, $required, null, 17);//use $min = null for check later
         $value = substr($value, 0, 12);
-        $value = \DateTimeImmutable::createFromFormat('ymdHis', $value) ?: null;
+        $value = \DateTimeImmutable::createFromFormat('ymdHis', $value);
 
-        if ($required && empty($value)) {
-            throw new \UnexpectedValueException('Malformed PDU');
+        if ($required && false === $value) {
+            throw new MalformedPDUException('Malformed PDU');
         }
 
-        return $value;
+        return $value ?: null;
     }
 }
