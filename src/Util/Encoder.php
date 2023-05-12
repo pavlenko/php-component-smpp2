@@ -4,6 +4,7 @@ namespace PE\Component\SMPP\Util;
 
 use PE\Component\SMPP\DTO\Address;
 use PE\Component\SMPP\DTO\PDU;
+use PE\Component\SMPP\DTO\TLV;
 use PE\Component\SMPP\Exception\InvalidPDUException;
 use PE\Component\SMPP\Exception\UnknownPDUException;
 
@@ -118,6 +119,12 @@ final class Encoder
                 throw new UnknownPDUException(sprintf('Unknown pdu id: 0x%08X', $pdu->getID()));
         }
 
+        foreach ($pdu->getParams() as $key => $tlv) {
+            if (!is_string($key)) {
+                $body .= $this->encodeTLV($tlv);
+            }
+        }
+
         $head .= $this->encodeUint32(true, strlen($body) + 16);
         $head .= $this->encodeUint32(true, $pdu->getID());
         $head .= $this->encodeUint32(false, $pdu->getStatus());
@@ -126,7 +133,7 @@ final class Encoder
         return $head . $body;
     }
 
-    public function encodeUint08(bool $required, $value): string
+    private function encodeUint08(bool $required, $value): string
     {
         if (null !== $value) {
             $filtered = filter_var($value, FILTER_VALIDATE_INT);
@@ -145,7 +152,7 @@ final class Encoder
         return pack('C', $value ?? 0);
     }
 
-    public function encodeUint16(bool $required, $value): string
+    private function encodeUint16(bool $required, $value): string
     {
         if (null !== $value) {
             $filtered = filter_var($value, FILTER_VALIDATE_INT);
@@ -164,7 +171,7 @@ final class Encoder
         return pack('n', $value ?? 0);
     }
 
-    public function encodeUint32(bool $required, $value): string
+    private function encodeUint32(bool $required, $value): string
     {
         if (null !== $value) {
             $filtered = filter_var($value, FILTER_VALIDATE_INT);
@@ -183,7 +190,7 @@ final class Encoder
         return pack('N', $value ?? 0);
     }
 
-    public function encodeString(bool $required, ?int $min, ?int $max, $value): string
+    private function encodeString(bool $required, ?int $min, ?int $max, $value): string
     {
         if (null !== $value) {
             if (!is_string($value)) {
@@ -206,7 +213,7 @@ final class Encoder
         return $value . "\0";
     }
 
-    public function encodeAddress(bool $required, int $max, $value): string
+    private function encodeAddress(bool $required, int $max, $value): string
     {
         if (null !== $value) {
             if (!$value instanceof Address) {
@@ -225,7 +232,7 @@ final class Encoder
         return $value;
     }
 
-    public function encodeDateTime(bool $required, $value): string
+    private function encodeDateTime(bool $required, $value): string
     {
         if (null !== $value) {
             if (!$value instanceof \DateTimeInterface) {
@@ -240,5 +247,91 @@ final class Encoder
         }
 
         return $value;
+    }
+
+    private function encodeTLV($tlv): string
+    {
+        if (!$tlv instanceof TLV) {
+            throw new InvalidPDUException('Invalid TLV value');
+        }
+
+        switch ($tlv->getTag()) {
+            case TLV::TAG_DEST_ADDR_SUBUNIT:
+            case TLV::TAG_DEST_NETWORK_TYPE:
+            case TLV::TAG_DEST_BEARER_TYPE:
+            case TLV::TAG_SOURCE_ADDR_SUBUNIT:
+            case TLV::TAG_SOURCE_NETWORK_TYPE:
+            case TLV::TAG_SOURCE_BEARER_TYPE:
+            case TLV::TAG_PAYLOAD_TYPE:
+            case TLV::TAG_MS_MSG_WAIT_FACILITIES:
+            case TLV::TAG_MS_AVAILABILITY_STATUS:
+            case TLV::TAG_MS_VALIDITY:
+            case TLV::TAG_PRIVACY_INDICATOR:
+            case TLV::TAG_USER_RESPONSE_CODE:
+            case TLV::TAG_LANGUAGE_INDICATOR:
+            case TLV::TAG_SAR_TOTAL_SEGMENTS:
+            case TLV::TAG_SAR_SEGMENT_SEQNUM:
+            case TLV::TAG_SC_INTERFACE_VERSION:
+            case TLV::TAG_CALLBACK_NUM_PRES_IND:
+            case TLV::TAG_NUMBER_OF_MESSAGES:
+            case TLV::TAG_DPF_RESULT:
+            case TLV::TAG_SET_DPF:
+            case TLV::TAG_DELIVERY_FAILURE_REASON:
+            case TLV::TAG_MORE_MESSAGES_TO_SEND:
+            case TLV::TAG_MESSAGE_STATE:
+            case TLV::TAG_USSD_SERVICE_OP:
+            case TLV::TAG_DISPLAY_TIME:
+            case TLV::TAG_ITS_REPLY_TYPE:
+                $buffer = $this->encodeUint08(false, $tlv->getValue());
+                $length = 1;
+                break;
+            case TLV::TAG_DESTINATION_PORT:
+            case TLV::TAG_DEST_TELEMATICS_ID:
+            case TLV::TAG_SOURCE_PORT:
+            case TLV::TAG_SOURCE_TELEMATICS_ID:
+            case TLV::TAG_USER_MESSAGE_REFERENCE:
+            case TLV::TAG_SAR_MSG_REF_NUM:
+            case TLV::TAG_SMS_SIGNAL:
+            case TLV::TAG_ITS_SESSION_INFO:
+                $buffer = $this->encodeUint16(false, $tlv->getValue());
+                $length = 2;
+                break;
+            case TLV::TAG_QOS_TIME_TO_LIVE:
+                $buffer = $this->encodeUint32(false, $tlv->getValue());
+                $length = 4;
+                break;
+            case TLV::TAG_SOURCE_SUBADDRESS:
+            case TLV::TAG_DEST_SUBADDRESS:
+                $buffer = $this->encodeString(true, 2, 23, $tlv->getValue());
+                $length = strlen($tlv->getValue());
+                break;
+            case TLV::TAG_RECEIPTED_MESSAGE_ID:
+            case TLV::TAG_CALLBACK_NUM_ATAG:
+                $buffer = $this->encodeString(true, null, 65, $tlv->getValue());
+                $length = strlen($tlv->getValue());
+                break;
+            case TLV::TAG_ADDITIONAL_STATUS_INFO_TEXT:
+                $buffer = $this->encodeString(true, null, 256, $tlv->getValue());
+                $length = strlen($tlv->getValue());
+                break;
+            case TLV::TAG_CALLBACK_NUM:
+                $buffer = $this->encodeString(true, 4, 19, $tlv->getValue());
+                $length = strlen($tlv->getValue());
+                break;
+            case TLV::TAG_NETWORK_ERROR_CODE:
+                $buffer = $this->encodeString(true, 3, 3, $tlv->getValue());
+                $length = strlen($tlv->getValue());
+                break;
+            case TLV::TAG_MESSAGE_PAYLOAD:
+                $buffer = $this->encodeString(true, null, null, $tlv->getValue());
+                $length = strlen($tlv->getValue());
+                break;
+            case TLV::TAG_ALERT_ON_MESSAGE_DELIVERY:
+            default:
+                $buffer = null;
+                $length = 0;
+        }
+
+        return $this->encodeUint16(true, $tlv->getTag()) . $this->encodeUint16(true, $length) . $buffer;
     }
 }

@@ -331,7 +331,7 @@ final class Decoder
                 break;
             case TLV::TAG_SOURCE_SUBADDRESS:
             case TLV::TAG_DEST_SUBADDRESS:
-                $value = $this->decodeString($buffer, $pos, true, 23, 2);
+                $value = $this->decodeString($buffer, $pos, true, 2, 23);
                 break;
             case TLV::TAG_RECEIPTED_MESSAGE_ID:
             case TLV::TAG_CALLBACK_NUM_ATAG:
