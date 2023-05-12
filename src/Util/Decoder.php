@@ -14,10 +14,17 @@ final class Decoder
     {
         $pos    = 0;
         $id     = (int) $this->decodeUint32($buffer, $pos, true);
-        $status = (int) $this->decodeUint32($buffer, $pos, false);
+        $status = (int) $this->decodeUint32($buffer, $pos, (bool) ($id & PDU::ID_GENERIC_NACK));
         $seqNum = (int) $this->decodeUint32($buffer, $pos, true);
 
         switch ($id) {
+            case PDU::ID_GENERIC_NACK:
+            case PDU::ID_UNBIND:
+            case PDU::ID_UNBIND_RESP:
+            case PDU::ID_ENQUIRE_LINK:
+            case PDU::ID_ENQUIRE_LINK_RESP:
+                // Has not body just known ID
+                break;
             case PDU::ID_BIND_RECEIVER:
             case PDU::ID_BIND_TRANSMITTER:
             case PDU::ID_BIND_TRANSCEIVER:
@@ -35,6 +42,7 @@ final class Decoder
                 $params = [PDU::KEY_SYSTEM_ID => $this->decodeString($buffer, $pos, true, 16)];
                 break;
             case PDU::ID_SUBMIT_SM:
+            case PDU::ID_DELIVER_SM:
                 $params = [
                     PDU::KEY_SERVICE_TYPE           => $this->decodeString($buffer, $pos, false, 6),
                     PDU::KEY_SRC_ADDRESS            => $this->decodeAddress($buffer, $pos, false, 21),
@@ -51,8 +59,17 @@ final class Decoder
                     PDU::KEY_SM_LENGTH              => $this->decodeUint08($buffer, $pos, false),
                     PDU::KEY_SHORT_MESSAGE          => $this->decodeString($buffer, $pos, true, 254),
                 ];
+                if (PDU::ID_DELIVER_SM === $id) {
+                    unset(
+                        $params[PDU::KEY_SCHEDULE_DELIVERY_TIME],
+                        $params[PDU::KEY_VALIDITY_PERIOD],
+                        $params[PDU::KEY_REPLACE_IF_PRESENT],
+                        $params[PDU::KEY_SM_DEFAULT_MSG_ID],
+                    );
+                }
                 break;
             case PDU::ID_SUBMIT_SM_RESP:
+            case PDU::ID_DELIVER_SM_RESP:
                 $params = [PDU::KEY_MESSAGE_ID => $this->decodeString($buffer, $pos, true, 65)];
                 break;
             default:
