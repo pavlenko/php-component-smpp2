@@ -193,7 +193,7 @@ final class Serializer implements SerializerInterface
                 $body->writeInt8($pdu->get(PDU::KEY_ESM_CLASS));
                 $body->writeInt8($pdu->get(PDU::KEY_PROTOCOL_ID));
                 $body->writeInt8($pdu->get(PDU::KEY_PRIORITY_FLAG));
-                $body->writeString($pdu->get(PDU::KEY_SCHEDULE_DELIVERY_TIME));//$body->writeDateTime($pdu->get(PDU::KEY_SCHEDULE_DELIVERY_TIME));
+                $body->writeDateTime($pdu->get(PDU::KEY_SCHEDULE_DELIVERY_TIME));
                 $body->writeDateTime($pdu->get(PDU::KEY_VALIDITY_PERIOD));
                 $body->writeInt8($pdu->get(PDU::KEY_REG_DELIVERY));
                 $body->writeInt8($pdu->get(PDU::KEY_REPLACE_IF_PRESENT));
