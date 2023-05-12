@@ -6,6 +6,7 @@ use PE\Component\SMPP\DTO\Deferred;
 use PE\Component\SMPP\DTO\PDU;
 use PE\Component\SMPP\Util\Buffer;
 use PE\Component\SMPP\Util\Decoder;
+use PE\Component\SMPP\Util\Encoder;
 use PE\Component\SMPP\Util\SerializerInterface;
 use PE\Component\Socket\ClientInterface as SocketClientInterface;
 use Psr\Log\LoggerInterface;
@@ -168,7 +169,8 @@ final class Connection4
     public function send(PDU $pdu): void
     {
         $this->logger->log(LogLevel::DEBUG, '> ' . $pdu->toLogger());
-        $this->client->write($this->serializer->encode($pdu));
+        //$this->client->write($this->serializer->encode($pdu));
+        $this->client->write((new Encoder())->encode($pdu));
         $this->updLastMessageTime();
     }
 

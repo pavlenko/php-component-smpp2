@@ -137,11 +137,20 @@ final class Encoder
     {
         if (null !== $value) {
             $filtered = filter_var($value, FILTER_VALIDATE_INT);
-            if (false === $filtered || !(0 < $filtered && $filtered < 0xFF)) {
+            if (false === $filtered) {
                 throw new InvalidPDUException(
-                    'Invalid UINT08 value, got ' . is_object($value) ? get_class($value) : gettype($value)
+                    'Invalid UINT08 value, got ' . (is_object($value) ? get_class($value) : gettype($value))
                 );
             }
+
+            if (0 > $filtered) {
+                throw new InvalidPDUException('Invalid UINT32 range, min > ' . $value);
+            }
+
+            if (0xFF < $filtered) {
+                throw new InvalidPDUException('Invalid UINT32 range, max < ' . $value);
+            }
+
             $value = $filtered;
         }
 
@@ -156,11 +165,20 @@ final class Encoder
     {
         if (null !== $value) {
             $filtered = filter_var($value, FILTER_VALIDATE_INT);
-            if (false === $filtered || !(0 < $filtered && $filtered < 0xFFFF)) {
+            if (false === $filtered) {
                 throw new InvalidPDUException(
-                    'Invalid UINT16 value, got ' . is_object($value) ? get_class($value) : gettype($value)
+                    'Invalid UINT16 value, got ' . (is_object($value) ? get_class($value) : gettype($value))
                 );
             }
+
+            if (0 > $filtered) {
+                throw new InvalidPDUException('Invalid UINT32 range, min > ' . $value);
+            }
+
+            if (0xFFFF < $filtered) {
+                throw new InvalidPDUException('Invalid UINT32 range, max < ' . $value);
+            }
+
             $value = $filtered;
         }
 
@@ -175,11 +193,20 @@ final class Encoder
     {
         if (null !== $value) {
             $filtered = filter_var($value, FILTER_VALIDATE_INT);
-            if (false === $filtered || !(0 < $filtered && $filtered < 0xFFFFFFFF)) {
+            if (false === $filtered) {
                 throw new InvalidPDUException(
-                    'Invalid UINT32 value, got ' . is_object($value) ? get_class($value) : gettype($value)
+                    'Invalid UINT32 value, got ' . (is_object($value) ? get_class($value) : gettype($value))
                 );
             }
+
+            if (0 > $filtered) {
+                throw new InvalidPDUException('Invalid UINT32 range, min > ' . $value);
+            }
+
+            if (0xFFFFFFFF < $filtered) {
+                throw new InvalidPDUException('Invalid UINT32 range, max < ' . $value);
+            }
+
             $value = $filtered;
         }
 
@@ -195,7 +222,7 @@ final class Encoder
         if (null !== $value) {
             if (!is_string($value)) {
                 throw new InvalidPDUException(
-                    'Invalid STRING value, got ' . is_object($value) ? get_class($value) : gettype($value)
+                    'Invalid STRING value, got ' . (is_object($value) ? get_class($value) : gettype($value))
                 );
             }
 
@@ -217,7 +244,9 @@ final class Encoder
     {
         if (null !== $value) {
             if (!$value instanceof Address) {
-                throw new InvalidPDUException('Invalid ADDRESS value');
+                throw new InvalidPDUException(
+                    'Invalid ADDRESS value, got ' . (is_object($value) ? get_class($value) : gettype($value))
+                );
             }
 
             $value = $this->encodeUint08(false, $value->getTON())
@@ -236,7 +265,9 @@ final class Encoder
     {
         if (null !== $value) {
             if (!$value instanceof \DateTimeInterface) {
-                throw new InvalidPDUException('Invalid DATETIME value');
+                throw new InvalidPDUException(
+                    'Invalid DATETIME value, got ' . (is_object($value) ? get_class($value) : gettype($value))
+                );
             }
 
             $value = $value->format('ymdHis') . '000+';
@@ -246,16 +277,18 @@ final class Encoder
             throw new InvalidPDUException('Required DATETIME value');
         }
 
-        return $value;
+        return $value . "\0";
     }
 
-    private function encodeTLV($tlv): string
+    private function encodeTLV($value): string
     {
-        if (!$tlv instanceof TLV) {
-            throw new InvalidPDUException('Invalid TLV value');
+        if (!$value instanceof TLV) {
+            throw new InvalidPDUException(
+                'Invalid TLV value, got ' . (is_object($value) ? get_class($value) : gettype($value))
+            );
         }
 
-        switch ($tlv->getTag()) {
+        switch ($value->getTag()) {
             case TLV::TAG_DEST_ADDR_SUBUNIT:
             case TLV::TAG_DEST_NETWORK_TYPE:
             case TLV::TAG_DEST_BEARER_TYPE:
@@ -282,7 +315,7 @@ final class Encoder
             case TLV::TAG_USSD_SERVICE_OP:
             case TLV::TAG_DISPLAY_TIME:
             case TLV::TAG_ITS_REPLY_TYPE:
-                $buffer = $this->encodeUint08(false, $tlv->getValue());
+                $buffer = $this->encodeUint08(false, $value->getValue());
                 $length = 1;
                 break;
             case TLV::TAG_DESTINATION_PORT:
@@ -293,38 +326,38 @@ final class Encoder
             case TLV::TAG_SAR_MSG_REF_NUM:
             case TLV::TAG_SMS_SIGNAL:
             case TLV::TAG_ITS_SESSION_INFO:
-                $buffer = $this->encodeUint16(false, $tlv->getValue());
+                $buffer = $this->encodeUint16(false, $value->getValue());
                 $length = 2;
                 break;
             case TLV::TAG_QOS_TIME_TO_LIVE:
-                $buffer = $this->encodeUint32(false, $tlv->getValue());
+                $buffer = $this->encodeUint32(false, $value->getValue());
                 $length = 4;
                 break;
             case TLV::TAG_SOURCE_SUBADDRESS:
             case TLV::TAG_DEST_SUBADDRESS:
-                $buffer = $this->encodeString(true, 2, 23, $tlv->getValue());
-                $length = strlen($tlv->getValue());
+                $buffer = $this->encodeString(true, 2, 23, $value->getValue());
+                $length = strlen($value->getValue());
                 break;
             case TLV::TAG_RECEIPTED_MESSAGE_ID:
             case TLV::TAG_CALLBACK_NUM_ATAG:
-                $buffer = $this->encodeString(true, null, 65, $tlv->getValue());
-                $length = strlen($tlv->getValue());
+                $buffer = $this->encodeString(true, null, 65, $value->getValue());
+                $length = strlen($value->getValue());
                 break;
             case TLV::TAG_ADDITIONAL_STATUS_INFO_TEXT:
-                $buffer = $this->encodeString(true, null, 256, $tlv->getValue());
-                $length = strlen($tlv->getValue());
+                $buffer = $this->encodeString(true, null, 256, $value->getValue());
+                $length = strlen($value->getValue());
                 break;
             case TLV::TAG_CALLBACK_NUM:
-                $buffer = $this->encodeString(true, 4, 19, $tlv->getValue());
-                $length = strlen($tlv->getValue());
+                $buffer = $this->encodeString(true, 4, 19, $value->getValue());
+                $length = strlen($value->getValue());
                 break;
             case TLV::TAG_NETWORK_ERROR_CODE:
-                $buffer = $this->encodeString(true, 3, 3, $tlv->getValue());
-                $length = strlen($tlv->getValue());
+                $buffer = $this->encodeString(true, 3, 3, $value->getValue());
+                $length = strlen($value->getValue());
                 break;
             case TLV::TAG_MESSAGE_PAYLOAD:
-                $buffer = $this->encodeString(true, null, null, $tlv->getValue());
-                $length = strlen($tlv->getValue());
+                $buffer = $this->encodeString(true, null, null, $value->getValue());
+                $length = strlen($value->getValue());
                 break;
             case TLV::TAG_ALERT_ON_MESSAGE_DELIVERY:
             default:
@@ -332,6 +365,6 @@ final class Encoder
                 $length = 0;
         }
 
-        return $this->encodeUint16(true, $tlv->getTag()) . $this->encodeUint16(true, $length) . $buffer;
+        return $this->encodeUint16(true, $value->getTag()) . $this->encodeUint16(true, $length) . $buffer;
     }
 }
