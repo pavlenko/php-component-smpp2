@@ -50,12 +50,12 @@ final class Address
         $this->value = $value;
     }
 
-    public function getTon(): int
+    public function getTON(): int
     {
         return $this->ton;
     }
 
-    public function getNpi(): int
+    public function getNPI(): int
     {
         return $this->npi;
     }

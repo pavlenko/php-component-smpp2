@@ -2,6 +2,7 @@
 
 namespace PE\Component\SMPP\Util;
 
+use PE\Component\SMPP\DTO\Address;
 use PE\Component\SMPP\DTO\PDU;
 use PE\Component\SMPP\Exception\InvalidPDUException;
 use PE\Component\SMPP\Exception\UnknownPDUException;
@@ -184,16 +185,60 @@ final class Encoder
 
     public function encodeString(bool $required, ?int $min, ?int $max, $value): string
     {
-        //TODO
+        if (null !== $value) {
+            if (!is_string($value)) {
+                throw new InvalidPDUException(
+                    'Invalid STRING value, got ' . is_object($value) ? get_class($value) : gettype($value)
+                );
+            }
+
+            if ((null !== $min && strlen($value) < $min) || (null !== $max && strlen($value) > $max)) {
+                throw new InvalidPDUException('Invalid STRING length');
+            }
+
+            $value = trim($value);
+        }
+
+        if ($required && empty($value)) {
+            throw new InvalidPDUException('Required STRING value');
+        }
+
+        return $value . "\0";
     }
 
     public function encodeAddress(bool $required, int $max, $value): string
     {
-        //TODO
+        if (null !== $value) {
+            if (!$value instanceof Address) {
+                throw new InvalidPDUException('Invalid ADDRESS value');
+            }
+
+            $value = $this->encodeUint08(false, $value->getTON())
+                . $this->encodeUint08(false, $value->getNPI())
+                . $this->encodeString(false, null, $max, $value->getValue());
+        }
+
+        if ($required && empty($value)) {
+            throw new InvalidPDUException('Required ADDRESS value');
+        }
+
+        return $value;
     }
 
     public function encodeDateTime(bool $required, $value): string
     {
-        //TODO
+        if (null !== $value) {
+            if (!$value instanceof \DateTimeInterface) {
+                throw new InvalidPDUException('Invalid DATETIME value');
+            }
+
+            $value = $value->format('ymdHis') . '000+';
+        }
+
+        if ($required && empty($value)) {
+            throw new InvalidPDUException('Required DATETIME value');
+        }
+
+        return $value;
     }
 }

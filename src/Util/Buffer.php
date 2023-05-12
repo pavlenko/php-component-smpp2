@@ -144,8 +144,8 @@ final class Buffer
 
     public function writeAddress(?Address $value): void
     {
-        $this->writeInt8($value ? $value->getTon() : 0);
-        $this->writeInt8($value ? $value->getNpi() : 0);
+        $this->writeInt8($value ? $value->getTON() : 0);
+        $this->writeInt8($value ? $value->getNPI() : 0);
         $this->writeString($value ? $value->getValue() : '');
     }
 
