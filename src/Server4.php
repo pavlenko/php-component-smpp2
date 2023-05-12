@@ -108,7 +108,9 @@ final class Server4
         }
 
         if (array_key_exists($pdu->getID(), ConnectionInterface::BOUND_MAP)) {
-            $connection->send(new PDU(PDU::ID_GENERIC_NACK | $pdu->getID(), 0, $pdu->getSeqNum()));
+            $connection->send(new PDU(PDU::ID_GENERIC_NACK | $pdu->getID(), 0, $pdu->getSeqNum(), [
+                PDU::KEY_SYSTEM_ID => $this->session->getSystemID(),
+            ]));
             $connection->setStatus(ConnectionInterface::BOUND_MAP[$pdu->getID()]);
             $connection->setSession(
                 new Session($pdu->get(PDU::KEY_SYSTEM_ID), $pdu->get(PDU::KEY_PASSWORD), $pdu->get('address'))
@@ -117,7 +119,7 @@ final class Server4
             return;
         }
 
-        $deferred->success($pdu);//TODO are need here???
+        $deferred->success($pdu);
 
         switch ($pdu->getID()) {
             case PDU::ID_ENQUIRE_LINK:

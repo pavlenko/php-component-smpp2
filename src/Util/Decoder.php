@@ -15,7 +15,7 @@ final class Decoder
     {
         $pos    = 0;
         $id     = (int) $this->decodeUint32($buffer, $pos, true);
-        $status = (int) $this->decodeUint32($buffer, $pos, (bool) ($id & PDU::ID_GENERIC_NACK));
+        $status = (int) $this->decodeUint32($buffer, $pos, false);
         $seqNum = (int) $this->decodeUint32($buffer, $pos, true);
 
         switch ($id) {
@@ -129,6 +129,11 @@ final class Decoder
                 throw new UnknownPDUException(sprintf('Unknown pdu id: 0x%08X', $id));
         }
 
+        while (strlen($buffer) > $pos) {
+            $tlv = $this->decodeTLV($buffer, $pos);
+            $params[$tlv->getTag()] = $tlv->getValue();
+        }
+
         return new PDU($id, $status, $seqNum, $params ?? []);
     }
 
@@ -199,6 +204,7 @@ final class Decoder
         }
 
         if ($required && 0 === $value[1]) {
+            dump($buffer);
             $error = sprintf('Required UINT32 value at position %d in "%s"', $pos, $this->toPrintable($buffer));
             throw new InvalidPDUException($error);
         }
@@ -277,6 +283,7 @@ final class Decoder
             throw new MalformedPDUException('Malformed TLV value');
         }
 
+        //TODO decode tlv by tag key
         $value = new TLV($tag, substr($buffer, $pos, $length));
         $pos += $length;
         return $value;
