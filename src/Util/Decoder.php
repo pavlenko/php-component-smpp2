@@ -4,6 +4,7 @@ namespace PE\Component\SMPP\Util;
 
 use PE\Component\SMPP\DTO\Address;
 use PE\Component\SMPP\DTO\PDU;
+use PE\Component\SMPP\DTO\TLV;
 use PE\Component\SMPP\Exception\InvalidPDUException;
 use PE\Component\SMPP\Exception\MalformedPDUException;
 use PE\Component\SMPP\Exception\UnknownPDUException;
@@ -260,6 +261,24 @@ final class Decoder
             throw new InvalidPDUException($error);
         }
 
+        return $value;
+    }
+
+    private function decodeTLV(string $buffer, int &$pos): TLV
+    {
+        if ((strlen($buffer) - $pos) < 4) {
+            throw new MalformedPDUException('Malformed TLV header');
+        }
+
+        $tag    = $this->decodeUint16($buffer, $pos, true);
+        $length = $this->decodeUint16($buffer, $pos, true);
+
+        if ((strlen($buffer) - $pos) < $length) {
+            throw new MalformedPDUException('Malformed TLV value');
+        }
+
+        $value = new TLV($tag, substr($buffer, $pos, $length));
+        $pos += $length;
         return $value;
     }
 
