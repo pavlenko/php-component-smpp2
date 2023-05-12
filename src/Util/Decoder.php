@@ -23,6 +23,8 @@ final class Decoder
             case PDU::ID_UNBIND_RESP:
             case PDU::ID_ENQUIRE_LINK:
             case PDU::ID_ENQUIRE_LINK_RESP:
+            case PDU::ID_CANCEL_SM_RESP:
+            case PDU::ID_REPLACE_SM_RESP:
                 // Has not body just known ID
                 break;
             case PDU::ID_BIND_RECEIVER:
@@ -47,16 +49,16 @@ final class Decoder
                     PDU::KEY_SERVICE_TYPE           => $this->decodeString($buffer, $pos, false, 6),
                     PDU::KEY_SRC_ADDRESS            => $this->decodeAddress($buffer, $pos, false, 21),
                     PDU::KEY_DST_ADDRESS            => $this->decodeAddress($buffer, $pos, true, 21),
-                    PDU::KEY_ESM_CLASS              => $this->decodeUint08($buffer, $pos, false),
-                    PDU::KEY_PROTOCOL_ID            => $this->decodeUint08($buffer, $pos, false),
-                    PDU::KEY_PRIORITY_FLAG          => $this->decodeUint08($buffer, $pos, false),
+                    PDU::KEY_ESM_CLASS              => (int) $this->decodeUint08($buffer, $pos, false),
+                    PDU::KEY_PROTOCOL_ID            => (int) $this->decodeUint08($buffer, $pos, false),
+                    PDU::KEY_PRIORITY_FLAG          => (int) $this->decodeUint08($buffer, $pos, false),
                     PDU::KEY_SCHEDULE_DELIVERY_TIME => $this->decodeDateTime($buffer, $pos, false),
                     PDU::KEY_VALIDITY_PERIOD        => $this->decodeDateTime($buffer, $pos, false),
-                    PDU::KEY_REG_DELIVERY           => $this->decodeUint08($buffer, $pos, false),
-                    PDU::KEY_REPLACE_IF_PRESENT     => $this->decodeUint08($buffer, $pos, false),
-                    PDU::KEY_DATA_CODING            => $this->decodeUint08($buffer, $pos, false),
-                    PDU::KEY_SM_DEFAULT_MSG_ID      => $this->decodeUint08($buffer, $pos, false),
-                    PDU::KEY_SM_LENGTH              => $this->decodeUint08($buffer, $pos, false),
+                    PDU::KEY_REG_DELIVERY           => (int) $this->decodeUint08($buffer, $pos, false),
+                    PDU::KEY_REPLACE_IF_PRESENT     => (int) $this->decodeUint08($buffer, $pos, false),
+                    PDU::KEY_DATA_CODING            => (int) $this->decodeUint08($buffer, $pos, false),
+                    PDU::KEY_SM_DEFAULT_MSG_ID      => (int) $this->decodeUint08($buffer, $pos, false),
+                    PDU::KEY_SM_LENGTH              => (int) $this->decodeUint08($buffer, $pos, false),
                     PDU::KEY_SHORT_MESSAGE          => $this->decodeString($buffer, $pos, true, 254),
                 ];
                 if (PDU::ID_DELIVER_SM === $id) {
@@ -70,7 +72,57 @@ final class Decoder
                 break;
             case PDU::ID_SUBMIT_SM_RESP:
             case PDU::ID_DELIVER_SM_RESP:
+            case PDU::ID_DATA_SM_RESP:
                 $params = [PDU::KEY_MESSAGE_ID => $this->decodeString($buffer, $pos, true, 65)];
+                break;
+            case PDU::ID_DATA_SM:
+                $params = [
+                    PDU::KEY_SERVICE_TYPE => $this->decodeString($buffer, $pos, false, 6),
+                    PDU::KEY_SRC_ADDRESS  => $this->decodeAddress($buffer, $pos, false, 21),
+                    PDU::KEY_DST_ADDRESS  => $this->decodeAddress($buffer, $pos, true, 21),
+                    PDU::KEY_ESM_CLASS    => (int) $this->decodeUint08($buffer, $pos, false),
+                    PDU::KEY_REG_DELIVERY => (int) $this->decodeUint08($buffer, $pos, false),
+                    PDU::KEY_DATA_CODING  => (int) $this->decodeUint08($buffer, $pos, false),
+                ];
+                break;
+            case PDU::ID_QUERY_SM:
+                $params = [
+                    PDU::KEY_MESSAGE_ID  => $this->decodeString($buffer, $pos, true, 65),
+                    PDU::KEY_SRC_ADDRESS => $this->decodeAddress($buffer, $pos, false, 21),
+                ];
+                break;
+            case PDU::ID_QUERY_SM_RESP:
+                $params = [
+                    PDU::KEY_MESSAGE_ID    => $this->decodeString($buffer, $pos, true, 65),
+                    PDU::KEY_FINAL_DATE    => $this->decodeDateTime($buffer, $pos, false),
+                    PDU::KEY_MESSAGE_STATE => $this->decodeUint08($buffer, $pos, true),
+                    PDU::KEY_ERROR_CODE    => $this->decodeUint08($buffer, $pos, false),
+                ];
+                break;
+            case PDU::ID_CANCEL_SM:
+                $params = [
+                    PDU::KEY_MESSAGE_ID  => $this->decodeString($buffer, $pos, true, 65),
+                    PDU::KEY_SRC_ADDRESS => $this->decodeAddress($buffer, $pos, true, 21),
+                    PDU::KEY_DST_ADDRESS => $this->decodeAddress($buffer, $pos, false, 21),
+                ];
+                break;
+            case PDU::ID_REPLACE_SM:
+                $params = [
+                    PDU::KEY_MESSAGE_ID             => $this->decodeString($buffer, $pos, true, 65),
+                    PDU::KEY_SRC_ADDRESS            => $this->decodeAddress($buffer, $pos, true, 21),
+                    PDU::KEY_SCHEDULE_DELIVERY_TIME => $this->decodeDateTime($buffer, $pos, false),
+                    PDU::KEY_VALIDITY_PERIOD        => $this->decodeDateTime($buffer, $pos, false),
+                    PDU::KEY_REG_DELIVERY           => (int) $this->decodeUint08($buffer, $pos, false),
+                    PDU::KEY_SM_DEFAULT_MSG_ID      => (int) $this->decodeUint08($buffer, $pos, false),
+                    PDU::KEY_SM_LENGTH              => (int) $this->decodeUint08($buffer, $pos, false),
+                    PDU::KEY_SHORT_MESSAGE          => $this->decodeString($buffer, $pos, true, 254),
+                ];
+                break;
+            case PDU::ID_ALERT_NOTIFICATION:
+                $params = [
+                    PDU::KEY_SRC_ADDRESS  => $this->decodeAddress($buffer, $pos, true, 65),
+                    PDU::KEY_ESME_ADDRESS => $this->decodeAddress($buffer, $pos, true, 65),
+                ];
                 break;
             default:
                 throw new UnknownPDUException(sprintf('Unknown pdu id: 0x%08X', $id));
