@@ -29,13 +29,14 @@ final class Serializer implements SerializerInterface
             case PDU::ID_BIND_RECEIVER:
             case PDU::ID_BIND_TRANSMITTER:
             case PDU::ID_BIND_TRANSCEIVER:
-                $params = [
-                    PDU::KEY_SYSTEM_ID         => $buffer->shiftString(16),
-                    PDU::KEY_PASSWORD          => $buffer->shiftString(9),
-                    PDU::KEY_SYSTEM_TYPE       => $buffer->shiftString(13),
-                    PDU::KEY_INTERFACE_VERSION => $buffer->shiftInt8(),
-                    PDU::KEY_ADDRESS           => $buffer->shiftAddress(41),
-                ];
+//                $params = [
+//                    PDU::KEY_SYSTEM_ID         => $buffer->shiftString(16),
+//                    PDU::KEY_PASSWORD          => $buffer->shiftString(9),
+//                    PDU::KEY_SYSTEM_TYPE       => $buffer->shiftString(13),
+//                    PDU::KEY_INTERFACE_VERSION => $buffer->shiftInt8(),
+//                    PDU::KEY_ADDRESS           => $buffer->shiftAddress(41),
+//                ];
+                $params = (new Decoder())->decode($pdu)->getParams();
                 break;
             case PDU::ID_BIND_RECEIVER_RESP:
             case PDU::ID_BIND_TRANSMITTER_RESP:

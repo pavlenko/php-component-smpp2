@@ -17,6 +17,17 @@ final class Decoder
         $seqNum = (int) $this->decodeUint32($buffer, $pos, true);
 
         switch ($id) {
+            case PDU::ID_BIND_RECEIVER:
+            case PDU::ID_BIND_TRANSMITTER:
+            case PDU::ID_BIND_TRANSCEIVER:
+                $params = [
+                    PDU::KEY_SYSTEM_ID         => $this->decodeString($buffer, $pos, true, 16),
+                    PDU::KEY_PASSWORD          => $this->decodeString($buffer, $pos, false, 9),
+                    PDU::KEY_SYSTEM_TYPE       => $this->decodeString($buffer, $pos, false, 13),
+                    PDU::KEY_INTERFACE_VERSION => $this->decodeUint08($buffer, $pos, true),
+                    PDU::KEY_ADDRESS           => $this->decodeAddress($buffer, $pos, false, 41),
+                ];
+                break;
             case PDU::ID_SUBMIT_SM:
                 $params = [
                     PDU::KEY_SERVICE_TYPE           => $this->decodeString($buffer, $pos, false, 6),

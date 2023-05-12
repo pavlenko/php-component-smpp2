@@ -45,7 +45,6 @@ $client->bind('127.0.0.1:2775', PDU::ID_BIND_TRANSMITTER)
                 PDU::KEY_SHORT_MESSAGE => 'HELLO',
                 PDU::KEY_SRC_ADDRESS   => $source,
                 PDU::KEY_DST_ADDRESS   => new Address(Address::TON_INTERNATIONAL, Address::NPI_ISDN, '10001112244'),
-                PDU::KEY_SCHEDULE_DELIVERY_TIME => 'invalid0001111111'
             ])
             ->then(fn() => $client->exit()/*TODO success*/)
             ->else(fn() => $client->exit()/*TODO failure*/);
