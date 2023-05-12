@@ -6,6 +6,7 @@ use PE\Component\SMPP\DTO\Address;
 use PE\Component\SMPP\DTO\PDU;
 use PE\Component\SMPP\Exception\InvalidPDUException;
 use PE\Component\SMPP\Exception\MalformedPDUException;
+use PE\Component\SMPP\Exception\UnknownPDUException;
 
 final class Decoder
 {
@@ -28,6 +29,11 @@ final class Decoder
                     PDU::KEY_ADDRESS           => $this->decodeAddress($buffer, $pos, false, 41),
                 ];
                 break;
+            case PDU::ID_BIND_RECEIVER_RESP:
+            case PDU::ID_BIND_TRANSMITTER_RESP:
+            case PDU::ID_BIND_TRANSCEIVER_RESP:
+                $params = [PDU::KEY_SYSTEM_ID => $this->decodeString($buffer, $pos, true, 16)];
+                break;
             case PDU::ID_SUBMIT_SM:
                 $params = [
                     PDU::KEY_SERVICE_TYPE           => $this->decodeString($buffer, $pos, false, 6),
@@ -49,6 +55,8 @@ final class Decoder
             case PDU::ID_SUBMIT_SM_RESP:
                 $params = [PDU::KEY_MESSAGE_ID => $this->decodeString($buffer, $pos, true, 65)];
                 break;
+            default:
+                throw new UnknownPDUException(sprintf('Unknown pdu id: 0x%08X', $id));
         }
 
         return new PDU($id, $status, $seqNum, $params ?? []);

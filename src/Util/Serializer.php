@@ -41,7 +41,8 @@ final class Serializer implements SerializerInterface
             case PDU::ID_BIND_RECEIVER_RESP:
             case PDU::ID_BIND_TRANSMITTER_RESP:
             case PDU::ID_BIND_TRANSCEIVER_RESP:
-                $params = [PDU::KEY_SYSTEM_ID => $buffer->shiftString(16)];
+//                $params = [PDU::KEY_SYSTEM_ID => $buffer->shiftString(16)];
+                $params = (new Decoder())->decode($pdu)->getParams();
                 break;
             case PDU::ID_CANCEL_SM:
                 $params = [
