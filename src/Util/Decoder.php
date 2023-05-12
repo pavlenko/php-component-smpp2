@@ -4,6 +4,7 @@ namespace PE\Component\SMPP\Util;
 
 use PE\Component\SMPP\DTO\Address;
 use PE\Component\SMPP\DTO\PDU;
+use PE\Component\SMPP\Exception\InvalidPDUException;
 use PE\Component\SMPP\Exception\MalformedPDUException;
 
 final class Decoder
@@ -57,6 +58,13 @@ final class Decoder
         if (false === $value) {
             throw new MalformedPDUException($error);
         }
+        if ($required && 0 === $value[1]) {
+            throw new InvalidPDUException(sprintf(
+                'Invalid UINT08 value at position %d in "%s"',
+                $pos,
+                "\\x" . substr(chunk_split(bin2hex($buffer), 2, "\\x"), 0, -2)
+            ));
+        }
 
         $pos += 1;
         return $value[1];
@@ -77,6 +85,13 @@ final class Decoder
         if (false === $value) {
             throw new MalformedPDUException($error);
         }
+        if ($required && 0 === $value[1]) {
+            throw new InvalidPDUException(sprintf(
+                'Invalid UINT16 value at position %d in "%s"',
+                $pos,
+                "\\x" . substr(chunk_split(bin2hex($buffer), 2, "\\x"), 0, -2)
+            ));
+        }
 
         $pos += 2;
         return $value[1];
@@ -96,6 +111,13 @@ final class Decoder
 
         if (false === $value) {
             throw new MalformedPDUException($error);
+        }
+        if ($required && 0 === $value[1]) {
+            throw new InvalidPDUException(sprintf(
+                'Invalid UINT32 value at position %d in "%s"',
+                $pos,
+                "\\x" . substr(chunk_split(bin2hex($buffer), 2, "\\x"), 0, -2)
+            ));
         }
 
         $pos += 4;

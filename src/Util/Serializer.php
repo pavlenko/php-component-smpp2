@@ -80,7 +80,7 @@ final class Serializer implements SerializerInterface
 //                    PDU::KEY_SM_LENGTH              => $buffer->shiftInt8(),
 //                    PDU::KEY_SHORT_MESSAGE          => $buffer->shiftString(254),
 //                ];
-                $params = (new Decoder())->decode($pdu)->getParams();
+                $params = (new Decoder())->decode("\x00\x00\x00\x00", $pdu)->getParams();
                 break;
             case PDU::ID_DELIVER_SM_RESP:
             case PDU::ID_SUBMIT_SM_RESP:
