@@ -61,7 +61,7 @@ final class Decoder
 
         if ($required && 0 === $value[1]) {
             $error = sprintf('Required UINT08 value at position %d in "%s"', $pos, $this->toPrintable($buffer));
-            throw new InvalidPDUException();
+            throw new InvalidPDUException($error);
         }
 
         $pos += 1;
@@ -86,7 +86,7 @@ final class Decoder
 
         if ($required && 0 === $value[1]) {
             $error = sprintf('Required UINT16 value at position %d in "%s"', $pos, $this->toPrintable($buffer));
-            throw new InvalidPDUException();
+            throw new InvalidPDUException($error);
         }
 
         $pos += 2;
@@ -111,7 +111,7 @@ final class Decoder
 
         if ($required && 0 === $value[1]) {
             $error = sprintf('Required UINT32 value at position %d in "%s"', $pos, $this->toPrintable($buffer));
-            throw new InvalidPDUException();
+            throw new InvalidPDUException($error);
         }
 
         $pos += 4;
