@@ -60,11 +60,8 @@ final class Decoder
         }
 
         if ($required && 0 === $value[1]) {
-            throw new InvalidPDUException(sprintf(
-                'Required UINT08 value at position %d in "%s"',
-                $pos,
-                "\\x" . substr(chunk_split(bin2hex($buffer), 2, "\\x"), 0, -2)
-            ));
+            $error = sprintf('Required UINT08 value at position %d in "%s"', $pos, $this->toPrintable($buffer));
+            throw new InvalidPDUException();
         }
 
         $pos += 1;
@@ -88,11 +85,8 @@ final class Decoder
         }
 
         if ($required && 0 === $value[1]) {
-            throw new InvalidPDUException(sprintf(
-                'Required UINT16 value at position %d in "%s"',
-                $pos,
-                "\\x" . substr(chunk_split(bin2hex($buffer), 2, "\\x"), 0, -2)
-            ));
+            $error = sprintf('Required UINT16 value at position %d in "%s"', $pos, $this->toPrintable($buffer));
+            throw new InvalidPDUException();
         }
 
         $pos += 2;
@@ -116,11 +110,8 @@ final class Decoder
         }
 
         if ($required && 0 === $value[1]) {
-            throw new InvalidPDUException(sprintf(
-                'Required UINT32 value at position %d in "%s"',
-                $pos,
-                "\\x" . substr(chunk_split(bin2hex($buffer), 2, "\\x"), 0, -2)
-            ));
+            $error = sprintf('Required UINT32 value at position %d in "%s"', $pos, $this->toPrintable($buffer));
+            throw new InvalidPDUException();
         }
 
         $pos += 4;
@@ -129,12 +120,9 @@ final class Decoder
 
     private function decodeString(string $buffer, int &$pos, bool $required, int $max = null): ?string
     {
-        $error = sprintf(
-            'Required STRING value at position %d in "%s"',
-            $pos,
-            "\\x" . substr(chunk_split(bin2hex($buffer), 2, "\\x"), 0, -2)
-        );
+        $error = sprintf('Required STRING value at position %d in "%s"', $pos, $this->toPrintable($buffer));
         $value = '';
+
         while (strlen($buffer) > $pos && $buffer[$pos] !== "\0" && strlen($value) < $max) {
             $value .= $buffer[$pos++];
         }
@@ -149,12 +137,7 @@ final class Decoder
 
     private function decodeAddress(string $buffer, int &$pos, bool $required, int $max): ?Address
     {
-        $error = sprintf(
-            'Required ADDRESS value at position %d in "%s"',
-            $pos,
-            "\\x" . substr(chunk_split(bin2hex($buffer), 2, "\\x"), 0, -2)
-        );
-
+        $error = sprintf('Required ADDRESS value at position %d in "%s"', $pos, $this->toPrintable($buffer));
         $ton   = $this->decodeUint08($buffer, $pos, false);
         $npi   = $this->decodeUint08($buffer, $pos, false);
         $value = $this->decodeString($buffer, $pos, false, $max);
@@ -168,11 +151,7 @@ final class Decoder
 
     private function decodeDateTime(string $buffer, int &$pos, bool $required): ?\DateTimeInterface
     {
-        $error = sprintf(
-            'Malformed DATETIME _PARAM_ at position %d in "%s"',
-            $pos,
-            "\\x" . substr(chunk_split(bin2hex($buffer), 2, "\\x"), 0, -2)
-        );
+        $error = sprintf('Malformed DATETIME _PARAM_ at position %d in "%s"', $pos, $this->toPrintable($buffer));
         $value = $this->decodeString($buffer, $pos, false, 17);
 
         if (null !== $value) {
@@ -189,13 +168,31 @@ final class Decoder
         }
 
         if ($required && null === $value) {
-            throw new InvalidPDUException(sprintf(
-                'Required DATETIME value at position %d in "%s"',
-                $pos,
-                "\\x" . substr(chunk_split(bin2hex($buffer), 2, "\\x"), 0, -2)
-            ));
+            $error = sprintf('Required DATETIME value at position %d in "%s"', $pos, $this->toPrintable($buffer));
+            throw new InvalidPDUException($error);
         }
 
         return $value;
+    }
+
+    private function toPrintable(string $value): string
+    {
+        return preg_replace_callback('/[\x00-\x1F\x7F]+/', function ($c) {
+            $map = [
+                "\t" => '\t',
+                "\n" => '\n',
+                "\v" => '\v',
+                "\f" => '\f',
+                "\r" => '\r',
+            ];
+
+            $c = $c[$i = 0];
+            $s = '';
+            do {
+                $s .= $map[$c[$i]] ?? sprintf('\x%02X', \ord($c[$i]));
+            } while (isset($c[++$i]));
+
+            return $s;
+        }, $value);
     }
 }
