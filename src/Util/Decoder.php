@@ -213,7 +213,7 @@ final class Decoder
         return $value[1];
     }
 
-    private function decodeString(string $buffer, int &$pos, bool $required, int $max = null): ?string
+    private function decodeString(string $buffer, int &$pos, bool $required, int $max = null, int $min = null): ?string
     {
         $error = sprintf('Required STRING value at position %d in "%s"', $pos, $this->toPrintable($buffer));
         $value = '';
@@ -222,6 +222,10 @@ final class Decoder
             $value .= $buffer[$pos++];
         }
         $pos++;//<-- skip null char
+
+        if (null !== $min && strlen($value) < $min) {
+            throw new MalformedPDUException(str_replace('Required STRING value', 'Invalid STRING length', $error));
+        }
 
         if ($required && '' === $value) {
             throw new InvalidPDUException($error);
@@ -283,10 +287,75 @@ final class Decoder
             throw new MalformedPDUException('Malformed TLV value');
         }
 
-        //TODO decode tlv by tag key
-        $value = new TLV($tag, substr($buffer, $pos, $length));
+        switch ($tag) {
+            case TLV::TAG_DEST_ADDR_SUBUNIT:
+            case TLV::TAG_DEST_NETWORK_TYPE:
+            case TLV::TAG_DEST_BEARER_TYPE:
+            case TLV::TAG_SOURCE_ADDR_SUBUNIT:
+            case TLV::TAG_SOURCE_NETWORK_TYPE:
+            case TLV::TAG_SOURCE_BEARER_TYPE:
+            case TLV::TAG_PAYLOAD_TYPE:
+            case TLV::TAG_MS_MSG_WAIT_FACILITIES:
+            case TLV::TAG_MS_AVAILABILITY_STATUS:
+            case TLV::TAG_MS_VALIDITY:
+            case TLV::TAG_PRIVACY_INDICATOR:
+            case TLV::TAG_USER_RESPONSE_CODE:
+            case TLV::TAG_LANGUAGE_INDICATOR:
+            case TLV::TAG_SAR_TOTAL_SEGMENTS:
+            case TLV::TAG_SAR_SEGMENT_SEQNUM:
+            case TLV::TAG_SC_INTERFACE_VERSION:
+            case TLV::TAG_CALLBACK_NUM_PRES_IND:
+            case TLV::TAG_NUMBER_OF_MESSAGES:
+            case TLV::TAG_DPF_RESULT:
+            case TLV::TAG_SET_DPF:
+            case TLV::TAG_DELIVERY_FAILURE_REASON:
+            case TLV::TAG_MORE_MESSAGES_TO_SEND:
+            case TLV::TAG_MESSAGE_STATE:
+            case TLV::TAG_USSD_SERVICE_OP:
+            case TLV::TAG_DISPLAY_TIME:
+            case TLV::TAG_ITS_REPLY_TYPE:
+                $value = (int) $this->decodeUint08($buffer, $pos, false);
+                break;
+            case TLV::TAG_DESTINATION_PORT:
+            case TLV::TAG_DEST_TELEMATICS_ID:
+            case TLV::TAG_SOURCE_PORT:
+            case TLV::TAG_SOURCE_TELEMATICS_ID:
+            case TLV::TAG_USER_MESSAGE_REFERENCE:
+            case TLV::TAG_SAR_MSG_REF_NUM:
+            case TLV::TAG_SMS_SIGNAL:
+            case TLV::TAG_ITS_SESSION_INFO:
+                $value = (int) $this->decodeUint16($buffer, $pos, false);
+                break;
+            case TLV::TAG_QOS_TIME_TO_LIVE:
+                $value = (int) $this->decodeUint32($buffer, $pos, false);
+                break;
+            case TLV::TAG_SOURCE_SUBADDRESS:
+            case TLV::TAG_DEST_SUBADDRESS:
+                $value = $this->decodeString($buffer, $pos, true, 23, 2);
+                break;
+            case TLV::TAG_RECEIPTED_MESSAGE_ID:
+            case TLV::TAG_CALLBACK_NUM_ATAG:
+                $value = $this->decodeString($buffer, $pos, true, 65);
+                break;
+            case TLV::TAG_ADDITIONAL_STATUS_INFO_TEXT:
+                $value = $this->decodeString($buffer, $pos, true, 256);
+                break;
+            case TLV::TAG_CALLBACK_NUM:
+                $value = $this->decodeString($buffer, $pos, true, 19, 4);
+                break;
+            case TLV::TAG_NETWORK_ERROR_CODE:
+                $value = $this->decodeString($buffer, $pos, true, 3, 3);
+                break;
+            case TLV::TAG_MESSAGE_PAYLOAD:
+                $value = $this->decodeString($buffer, $pos, true);
+                break;
+            case TLV::TAG_ALERT_ON_MESSAGE_DELIVERY:
+            default:
+                $value = null;
+        }
+
         $pos += $length;
-        return $value;
+        return new TLV($tag, $value);
     }
 
     private function toPrintable(string $value): string

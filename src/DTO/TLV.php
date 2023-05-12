@@ -53,11 +53,15 @@ final class TLV
     public const TAG_ITS_SESSION_INFO            = 0x1383;
 
     private int $tag;
-    private string $value;
 
-    public function __construct(int $tag, string $value)
+    /**
+     * @var string|int|null
+     */
+    private $value;
+
+    public function __construct(int $tag, $value = null)
     {
-        $this->tag = $tag;
+        $this->tag   = $tag;
         $this->value = $value;
     }
 
@@ -71,7 +75,7 @@ final class TLV
         return strlen($this->value);
     }
 
-    public function getValue(): string
+    public function getValue()
     {
         return $this->value;
     }
