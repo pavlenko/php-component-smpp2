@@ -79,4 +79,21 @@ final class TLV
     {
         return $this->value;
     }
+
+    public static function TAG(): array
+    {
+        $constants = (new \ReflectionClass(__CLASS__))->getConstants();
+        $constants = array_filter($constants, fn($name) => 0 === strpos($name, 'TAG_'), ARRAY_FILTER_USE_KEY);
+        $constants = array_flip($constants);
+        return array_map(fn($name) => substr($name, 4), $constants);
+    }
+
+    public function dump(): string
+    {
+        return sprintf(
+            'TLV(tag: %s, val: %s)',
+            self::TAG()[$this->tag] ?? sprintf('0x%04X', $this->tag),
+            $this->value
+        );
+    }
 }
