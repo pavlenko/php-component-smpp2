@@ -4,7 +4,7 @@ namespace PE\Component\SMPP;
 
 use PE\Component\SMPP\DTO\Deferred;
 use PE\Component\SMPP\DTO\PDU;
-use PE\Component\SMPP\Util\Buffer;
+use PE\Component\SMPP\Exception\ExceptionInterface;
 use PE\Component\SMPP\Util\Decoder;
 use PE\Component\SMPP\Util\Encoder;
 use PE\Component\SMPP\Util\SerializerInterface;
@@ -43,28 +43,10 @@ final class Connection4
         $this->client = $client;
         $this->client->setInputHandler(function (string $data) {
             try {
-                $this->buffer .= $data;
-
-                $decoder = new Decoder();
-                $reader = new Buffer($this->buffer);
-                while ($reader->bytesLeft() >= 16) {
-                    $length = $reader->shiftInt32();
-                    if (strlen($this->buffer) >= $length) {
-                        $reader->shiftBytes($length - 4);
-                        //$pdu = $this->serializer->decode(substr($this->buffer, 4, $length));
-                        $pdu = $decoder->decode(substr($this->buffer, 4, $length));
-
-                        $this->buffer = substr($this->buffer, $length);
-                        $this->logger->log(LogLevel::DEBUG, '< ' . $pdu->toLogger());
-
-                        call_user_func($this->onInput, $pdu);
-                        $this->updLastMessageTime();
-                    }
-                }
-            } catch (\Throwable $exception) {
+                $this->processReceive($data);
+            } catch (ExceptionInterface $exception) {
                 $this->logger->log(LogLevel::ERROR, 'E: ' . $exception);
                 call_user_func($this->onError, $exception);
-                $this->close();
             }
         });
 
@@ -78,6 +60,27 @@ final class Connection4
         $this->onClose = fn() => null;
 
         $this->updLastMessageTime();
+    }
+
+    private function processReceive(string $data): void
+    {
+        $this->buffer .= $data;
+
+        $decoder = new Decoder();
+        while (strlen($this->buffer) >= 16) {
+            $length = unpack('N', $this->buffer)[1];
+            if (strlen($this->buffer) >= $length) {
+                $buffer       = substr($this->buffer, 4, $length);
+                $this->buffer = substr($this->buffer, $length);
+
+                $pdu = $decoder->decode($buffer);
+
+                $this->logger->log(LogLevel::DEBUG, '< ' . $pdu->toLogger());
+
+                call_user_func($this->onInput, $pdu);
+                $this->updLastMessageTime();
+            }// Else wait for more data
+        }
     }
 
     public function setInputHandler(callable $handler): void

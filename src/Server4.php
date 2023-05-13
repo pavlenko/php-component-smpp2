@@ -8,6 +8,7 @@ use PE\Component\Loop\LoopInterface;
 use PE\Component\SMPP\DTO\Deferred;
 use PE\Component\SMPP\DTO\Message;
 use PE\Component\SMPP\DTO\PDU;
+use PE\Component\SMPP\Exception\ExceptionInterface;
 use PE\Component\Socket\ClientInterface as SocketClientInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
@@ -56,9 +57,15 @@ final class Server4
         $server = $this->factory->createSocketServer($address);
         $server->setInputHandler(function (SocketClientInterface $client) {
             $connection = $this->factory->createConnection($client);
-            $connection->setInputHandler(fn(PDU $pdu) => $this->processReceive($connection, $pdu));
-            $connection->setErrorHandler(fn($error) => $this->logger->log(LogLevel::ERROR, '< E: ' . $error));//TODO do not close immediately - try send error response before
-            $connection->setCloseHandler(fn() => $this->detachConnection($connection));
+            $connection->setInputHandler(function (PDU $pdu) use ($connection) {
+                $this->processReceive($connection, $pdu);
+            });
+            $connection->setErrorHandler(function (ExceptionInterface $error) use ($connection) {
+                $this->processErrored($connection, $error);
+            });
+            $connection->setCloseHandler(function (string $message = null) use ($connection) {
+                $this->detachConnection($connection, $message);
+            });
 
             $this->attachConnection($connection);
         });
@@ -90,6 +97,11 @@ final class Server4
         $this->connections->detach($connection);
         $connection->setCloseHandler(fn() => null);
         $connection->close();
+    }
+
+    private function processErrored(Connection4 $connection, ExceptionInterface $exception): void
+    {
+        //TODO handle decode/encode exception
     }
 
     private function processReceive(Connection4 $connection, PDU $pdu): void
