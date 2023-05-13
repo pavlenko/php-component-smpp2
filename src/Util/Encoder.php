@@ -3,6 +3,7 @@
 namespace PE\Component\SMPP\Util;
 
 use PE\Component\SMPP\DTO\Address;
+use PE\Component\SMPP\DTO\DateTime;
 use PE\Component\SMPP\DTO\PDU;
 use PE\Component\SMPP\DTO\TLV;
 use PE\Component\SMPP\Exception\InvalidPDUException;
@@ -264,7 +265,7 @@ final class Encoder
     private function encodeDateTime(bool $required, $value): string
     {
         if (null !== $value) {
-            if (!$value instanceof \DateTimeInterface) {
+            if (!$value instanceof DateTime) {
                 throw new InvalidPDUException(
                     'Invalid DATETIME value, got ' . (is_object($value) ? get_class($value) : gettype($value))
                 );

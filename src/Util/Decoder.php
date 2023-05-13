@@ -3,6 +3,7 @@
 namespace PE\Component\SMPP\Util;
 
 use PE\Component\SMPP\DTO\Address;
+use PE\Component\SMPP\DTO\DateTime;
 use PE\Component\SMPP\DTO\PDU;
 use PE\Component\SMPP\DTO\TLV;
 use PE\Component\SMPP\Exception\InvalidPDUException;
@@ -259,7 +260,7 @@ final class Decoder
             }
 
             $value = substr($value, 0, 12);
-            $value = \DateTimeImmutable::createFromFormat('ymdHis', $value);
+            $value = DateTime::createFromFormat('ymdHis', $value);
 
             if (false === $value) {
                 throw new MalformedPDUException(str_replace('_PARAM_', 'invalid format', $error));
