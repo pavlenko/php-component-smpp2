@@ -96,7 +96,10 @@ final class Server4
 
     private function detachConnection(Connection4 $connection, string $message = null): void
     {
-        $this->logger->log(LogLevel::DEBUG, '< Close connection from ' . $connection->getRemoteAddress() . $message);
+        $this->logger->log(
+            LogLevel::DEBUG,
+            '< Close connection from ' . $connection->getRemoteAddress() . ' ' . $message
+        );
         $this->connections->detach($connection);
         $connection->setCloseHandler(fn() => null);
         $connection->close();
@@ -110,6 +113,7 @@ final class Server4
         if ($exception instanceof InvalidPDUException || $exception instanceof MalformedPDUException) {
             $connection->send(new PDU(PDU::ID_GENERIC_NACK, PDU::STATUS_INVALID_COMMAND_LENGTH, 0));
         }
+        $connection->close();
     }
 
     private function processReceive(Connection4 $connection, PDU $pdu): void
@@ -151,6 +155,7 @@ final class Server4
 
         $deferred->success($pdu);
 
+        //TODO check if allowed command for specific bind status, NEED TO EXTRACT TO HANDLERS
         switch ($pdu->getID()) {
             case PDU::ID_ENQUIRE_LINK:
             case PDU::ID_UNBIND:

@@ -7,7 +7,11 @@ use PE\Component\Event\Event;
 use PE\Component\Loop\LoopInterface;
 use PE\Component\SMPP\DTO\Deferred;
 use PE\Component\SMPP\DTO\PDU;
+use PE\Component\SMPP\Exception\ExceptionInterface;
 use PE\Component\SMPP\Exception\InvalidArgumentException;
+use PE\Component\SMPP\Exception\InvalidPDUException;
+use PE\Component\SMPP\Exception\MalformedPDUException;
+use PE\Component\SMPP\Exception\UnknownPDUException;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 use Psr\Log\NullLogger;
@@ -53,8 +57,9 @@ final class Client4
 
         $this->connection = $this->factory->createConnection($this->factory->createSocketClient($address));
         $this->connection->setInputHandler(fn(PDU $pdu) => $this->processReceive($this->connection, $pdu));
-        $this->connection->setErrorHandler(function (\Throwable $exception) {
+        $this->connection->setErrorHandler(function (ExceptionInterface $exception) {
             //TODO check if exception is unknown pdu or malformed pdu - send generic nack with associated status
+            $this->connection->close();
         });
         $this->connection->setCloseHandler(function () {
             $this->logger->log(LogLevel::DEBUG, "Connection to {$this->connection->getRemoteAddress()} closed");
@@ -101,6 +106,17 @@ final class Client4
 
     //TODO recv: submit_sm_resp, data_sm, data_sm_resp, query_sm_resp, cancel_sm_resp, replace_sm_resp, deliver_sm
 
+    private function processErrored(Connection4 $connection, ExceptionInterface $exception)
+    {
+        if ($exception instanceof UnknownPDUException) {
+            $connection->send(new PDU(PDU::ID_GENERIC_NACK, PDU::STATUS_INVALID_COMMAND_ID, 0));
+        }
+        if ($exception instanceof InvalidPDUException || $exception instanceof MalformedPDUException) {
+            $connection->send(new PDU(PDU::ID_GENERIC_NACK, PDU::STATUS_INVALID_COMMAND_LENGTH, 0));
+        }
+        $connection->close();
+    }
+
     private function processReceive(Connection4 $connection, PDU $pdu): void
     {
         // Remove expects PDU if any (prevents close client connection on timeout)
@@ -122,6 +138,7 @@ final class Client4
 
         $deferred->success($pdu);//TODO are need here???
 
+        //TODO check if allowed command for specific bind status, NEED TO EXTRACT TO HANDLERS
         switch ($pdu->getID()) {
             case PDU::ID_ENQUIRE_LINK:
                 $connection->send(new PDU(PDU::ID_ENQUIRE_LINK_RESP, 0, $pdu->getSeqNum()));
