@@ -128,7 +128,17 @@ final class Server4
         }
 
         if (array_key_exists($pdu->getID(), ConnectionInterface::BOUND_MAP)) {
-            $connection->send(new PDU(PDU::ID_GENERIC_NACK | $pdu->getID(), 0, $pdu->getSeqNum(), [
+            if (in_array($connection->getStatus(), ConnectionInterface::BOUND_MAP)) {
+                $connection->send(new PDU(
+                    PDU::ID_GENERIC_NACK | $pdu->getID(),
+                    PDU::STATUS_ALREADY_BOUND,
+                    $pdu->getSeqNum(),
+                    [PDU::KEY_SYSTEM_ID => $this->session->getSystemID()]
+                ));
+                $deferred->failure($pdu);
+                return;
+            }
+            $connection->send(new PDU(PDU::ID_GENERIC_NACK | $pdu->getID(), PDU::STATUS_NO_ERROR, $pdu->getSeqNum(), [
                 PDU::KEY_SYSTEM_ID => $this->session->getSystemID(),
             ]));
             $connection->setStatus(ConnectionInterface::BOUND_MAP[$pdu->getID()]);
