@@ -240,6 +240,18 @@ final class PDU
         $identifiers = self::getIdentifiers();
         $statuses    = self::getStatuses();
 
+        $params = [];
+        $length = 0;
+        foreach ($this->params as $key => &$val) {
+            if (is_numeric($key)) {
+                $key = TLV::TAG()[$key] ?? sprintf('0x%08X', $key);
+                $val = $val instanceof TLV ? $val->dump() : 'NULL';
+            } else {
+                //TODO pdu key
+            }
+            $length = max($length, strlen($key));
+        }
+
         return sprintf(
             'PDU(%s, %s, %d)',
             $identifiers[$this->getID()] ?? sprintf('0x%08X', $this->getID()),
