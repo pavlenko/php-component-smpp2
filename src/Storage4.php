@@ -19,11 +19,11 @@ final class Storage4 implements StorageInterface
                 continue;
             }
             if (null !== $search->getSourceAddress()
-                && (string) $message->getSourceAddress() !== (string) $search->getSourceAddress()) {
+                && $message->getSourceAddress()->dump() !== $search->getSourceAddress()->dump()) {
                 continue;
             }
             if (null !== $search->getTargetAddress()
-                && (string) $message->getTargetAddress() !== (string) $search->getTargetAddress()) {
+                && $message->getTargetAddress()->dump() !== $search->getTargetAddress()->dump()) {
                 continue;
             }
             if ($search->isCheckSchedule() && $message->getScheduledAt() > $now) {

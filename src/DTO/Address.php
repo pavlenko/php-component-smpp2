@@ -65,8 +65,29 @@ final class Address
         return $this->value;
     }
 
-    public function __toString(): string
+    public static function TON(): array
     {
-        return sprintf('Address(ton: %d, npi: %d, value: %s)', $this->ton, $this->npi, $this->value);
+        $constants = (new \ReflectionClass(__CLASS__))->getConstants();
+        $constants = array_filter($constants, fn($name) => 0 === strpos($name, 'TON_'), ARRAY_FILTER_USE_KEY);
+        $constants = array_flip($constants);
+        return array_map(fn($name) => substr($name, 4), $constants);
+    }
+
+    public static function NPI(): array
+    {
+        $constants = (new \ReflectionClass(__CLASS__))->getConstants();
+        $constants = array_filter($constants, fn($name) => 0 === strpos($name, 'NPI_'), ARRAY_FILTER_USE_KEY);
+        $constants = array_flip($constants);
+        return array_map(fn($name) => substr($name, 4), $constants);
+    }
+
+    public function dump(): string
+    {
+        return sprintf(
+            'Address(ton: %s, npi: %s, val: %s)',
+            self::TON()[$this->ton] ?? sprintf('0b%08b', $this->ton),
+            self::NPI()[$this->npi] ?? sprintf('0b%08b', $this->npi),
+            $this->value
+        );
     }
 }

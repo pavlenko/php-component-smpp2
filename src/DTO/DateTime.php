@@ -24,7 +24,8 @@ final class DateTime extends \DateTime
 
     public function dump(): string
     {
-        //TODO maybe force convert to utc
-        return sprintf('DateTime(%s)', $this->format(DATE_ATOM));
+        $datetime = clone $this;
+        $datetime->setTimezone(new \DateTimeZone('UTC'));
+        return sprintf('DateTime(%s)', $datetime->format(DATE_ATOM));//TODO date, time, tz, maybe separate value & utc
     }
 }
