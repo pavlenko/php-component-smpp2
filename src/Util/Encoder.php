@@ -128,7 +128,7 @@ final class Encoder
         $head .= $this->encodeUint32(true, strlen($body) + 16);
         $head .= $this->encodeUint32(true, $pdu->getID());
         $head .= $this->encodeUint32(false, $pdu->getStatus());
-        $head .= $this->encodeUint32(true, $pdu->getSeqNum());
+        $head .= $this->encodeUint32(false, $pdu->getSeqNum());
 
         return $head . $body;
     }

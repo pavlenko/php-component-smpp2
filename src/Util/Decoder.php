@@ -14,9 +14,9 @@ final class Decoder
     public function decode(string $buffer): PDU
     {
         $pos    = 0;
-        $id     = (int) $this->decodeUint32($buffer, $pos, true);
+        $id     = (int) $this->decodeUint32($buffer, $pos, false);
         $status = (int) $this->decodeUint32($buffer, $pos, false);
-        $seqNum = (int) $this->decodeUint32($buffer, $pos, true);
+        $seqNum = (int) $this->decodeUint32($buffer, $pos, false);
 
         switch ($id) {
             case PDU::ID_GENERIC_NACK:

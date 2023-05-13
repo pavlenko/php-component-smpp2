@@ -45,7 +45,7 @@ final class Connection4
             try {
                 $this->processReceive($data);
             } catch (ExceptionInterface $exception) {
-                $this->logger->log(LogLevel::ERROR, 'E: ' . $exception);
+                $this->logger->log(LogLevel::ERROR, 'E: ' . $exception->getMessage());
                 call_user_func($this->onError, $exception);
             }
         });
@@ -75,7 +75,7 @@ final class Connection4
 
                 $pdu = $decoder->decode($buffer);
 
-                $this->logger->log(LogLevel::DEBUG, '< ' . $pdu->toLogger());
+                $this->logger->log(LogLevel::DEBUG, 'I: ' . $pdu->toLogger());
 
                 call_user_func($this->onInput, $pdu);
                 $this->updLastMessageTime();
@@ -165,13 +165,13 @@ final class Connection4
     public function wait(int $timeout, int $seqNum = 0, int ...$expectPDU): Deferred
     {
         $this->expects[] = $expects = new Deferred($timeout, $seqNum, ...$expectPDU);
-        $this->logger->log(LogLevel::DEBUG, '? ' . $expects->toLogger());
+        $this->logger->log(LogLevel::DEBUG, '?: ' . $expects->toLogger());
         return $expects;
     }
 
     public function send(PDU $pdu): void
     {
-        $this->logger->log(LogLevel::DEBUG, '> ' . $pdu->toLogger());
+        $this->logger->log(LogLevel::DEBUG, 'O: ' . $pdu->toLogger());
         //$this->client->write($this->serializer->encode($pdu));
         $this->client->write((new Encoder())->encode($pdu));
         $this->updLastMessageTime();

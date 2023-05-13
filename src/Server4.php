@@ -9,6 +9,9 @@ use PE\Component\SMPP\DTO\Deferred;
 use PE\Component\SMPP\DTO\Message;
 use PE\Component\SMPP\DTO\PDU;
 use PE\Component\SMPP\Exception\ExceptionInterface;
+use PE\Component\SMPP\Exception\InvalidPDUException;
+use PE\Component\SMPP\Exception\MalformedPDUException;
+use PE\Component\SMPP\Exception\UnknownPDUException;
 use PE\Component\Socket\ClientInterface as SocketClientInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
@@ -101,7 +104,12 @@ final class Server4
 
     private function processErrored(Connection4 $connection, ExceptionInterface $exception): void
     {
-        //TODO handle decode/encode exception
+        if ($exception instanceof UnknownPDUException) {
+            $connection->send(new PDU(PDU::ID_GENERIC_NACK, PDU::STATUS_INVALID_COMMAND_ID, 0));
+        }
+        if ($exception instanceof InvalidPDUException || $exception instanceof MalformedPDUException) {
+            $connection->send(new PDU(PDU::ID_GENERIC_NACK, PDU::STATUS_INVALID_COMMAND_LENGTH, 0));
+        }
     }
 
     private function processReceive(Connection4 $connection, PDU $pdu): void
