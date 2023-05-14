@@ -6,8 +6,7 @@ use PE\Component\SMPP\DTO\Address;
 use PE\Component\SMPP\DTO\DateTime;
 use PE\Component\SMPP\DTO\PDU;
 use PE\Component\SMPP\DTO\TLV;
-use PE\Component\SMPP\Exception\InvalidPDUException;//TODO DecodePDUException
-use PE\Component\SMPP\Exception\MalformedPDUException;//TODO DecodePDUException
+use PE\Component\SMPP\Exception\DecoderException;
 use PE\Component\SMPP\Exception\UnknownPDUException;
 
 final class Decoder implements DecoderInterface
@@ -152,12 +151,12 @@ final class Decoder implements DecoderInterface
         restore_error_handler();
 
         if (false === $value) {
-            throw new MalformedPDUException($error);
+            throw new DecoderException($error);
         }
 
         if ($required && 0 === $value[1]) {
             $error = sprintf('Required UINT08 value at position %d in "%s"', $pos, $this->toPrintable($buffer));
-            throw new InvalidPDUException($error);
+            throw new DecoderException($error);
         }
 
         $pos += 1;
@@ -177,12 +176,12 @@ final class Decoder implements DecoderInterface
         restore_error_handler();
 
         if (false === $value) {
-            throw new MalformedPDUException($error);
+            throw new DecoderException($error);
         }
 
         if ($required && 0 === $value[1]) {
             $error = sprintf('Required UINT16 value at position %d in "%s"', $pos, $this->toPrintable($buffer));
-            throw new InvalidPDUException($error);
+            throw new DecoderException($error);
         }
 
         $pos += 2;
@@ -202,12 +201,12 @@ final class Decoder implements DecoderInterface
         restore_error_handler();
 
         if (false === $value) {
-            throw new MalformedPDUException($error);
+            throw new DecoderException($error);
         }
 
         if ($required && 0 === $value[1]) {
             $error = sprintf('Required UINT32 value at position %d in "%s"', $pos, $this->toPrintable($buffer));
-            throw new InvalidPDUException($error);
+            throw new DecoderException($error);
         }
 
         $pos += 4;
@@ -225,11 +224,11 @@ final class Decoder implements DecoderInterface
         $pos++;//<-- skip null char
 
         if (null !== $min && strlen($value) < $min) {
-            throw new MalformedPDUException(str_replace('Required STRING value', 'Invalid STRING length', $error));
+            throw new DecoderException(str_replace('Required STRING value', 'Invalid STRING length', $error));
         }
 
         if ($required && '' === $value) {
-            throw new InvalidPDUException($error);
+            throw new DecoderException($error);
         }
 
         return $value ?: null;
@@ -243,7 +242,7 @@ final class Decoder implements DecoderInterface
         $value = $this->decodeString($buffer, $pos, false, null, $max);
 
         if ($required && null === $value) {
-            throw new InvalidPDUException($error);
+            throw new DecoderException($error);
         }
 
         return null !== $value ? new Address((int) $ton, (int) $npi, $value) : null;
@@ -256,7 +255,7 @@ final class Decoder implements DecoderInterface
 
         if (null !== $value) {
             if (strlen($value) !== 16) {
-                throw new MalformedPDUException(str_replace('_PARAM_', 'invalid length'.strlen($value), $error));
+                throw new DecoderException(str_replace('_PARAM_', 'invalid length'.strlen($value), $error));
             }
 
             $datetime = substr($value, 0, 13) . '00';
@@ -273,7 +272,7 @@ final class Decoder implements DecoderInterface
             );
 
             if (false === $datetime) {
-                throw new MalformedPDUException(str_replace('_PARAM_', 'invalid format', $error));
+                throw new DecoderException(str_replace('_PARAM_', 'invalid format', $error));
             }
 
             $value = $datetime;
@@ -281,7 +280,7 @@ final class Decoder implements DecoderInterface
 
         if ($required && null === $value) {
             $error = sprintf('Required DATETIME value at position %d in "%s"', $pos, $this->toPrintable($buffer));
-            throw new InvalidPDUException($error);
+            throw new DecoderException($error);
         }
 
         return $value;
@@ -290,14 +289,14 @@ final class Decoder implements DecoderInterface
     private function decodeTLV(string $buffer, int &$pos): TLV
     {
         if ((strlen($buffer) - $pos) < 4) {
-            throw new MalformedPDUException('Malformed TLV header');
+            throw new DecoderException('Malformed TLV header');
         }
 
         $tag    = $this->decodeUint16($buffer, $pos, true);
         $length = $this->decodeUint16($buffer, $pos, true);
 
         if ((strlen($buffer) - $pos) < $length) {
-            throw new MalformedPDUException('Malformed TLV value');
+            throw new DecoderException('Malformed TLV value');
         }
 
         switch ($tag) {

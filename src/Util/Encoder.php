@@ -6,6 +6,7 @@ use PE\Component\SMPP\DTO\Address;
 use PE\Component\SMPP\DTO\DateTime;
 use PE\Component\SMPP\DTO\PDU;
 use PE\Component\SMPP\DTO\TLV;
+use PE\Component\SMPP\Exception\EncoderException;
 use PE\Component\SMPP\Exception\InvalidPDUException;//TODO EncodePDUException
 use PE\Component\SMPP\Exception\UnknownPDUException;
 
@@ -140,24 +141,24 @@ final class Encoder implements EncoderInterface
         if (null !== $value) {
             $filtered = filter_var($value, FILTER_VALIDATE_INT);
             if (false === $filtered) {
-                throw new InvalidPDUException(
+                throw new EncoderException(
                     'Invalid UINT08 value, got ' . (is_object($value) ? get_class($value) : gettype($value))
                 );
             }
 
             if (0 > $filtered) {
-                throw new InvalidPDUException('Invalid UINT32 range, min > ' . $value);
+                throw new EncoderException('Invalid UINT32 range, min > ' . $value);
             }
 
             if (0xFF < $filtered) {
-                throw new InvalidPDUException('Invalid UINT32 range, max < ' . $value);
+                throw new EncoderException('Invalid UINT32 range, max < ' . $value);
             }
 
             $value = $filtered;
         }
 
         if ($required && empty($value)) {
-            throw new InvalidPDUException('Required UINT08 value');
+            throw new EncoderException('Required UINT08 value');
         }
 
         return pack('C', $value ?? 0);
@@ -168,24 +169,24 @@ final class Encoder implements EncoderInterface
         if (null !== $value) {
             $filtered = filter_var($value, FILTER_VALIDATE_INT);
             if (false === $filtered) {
-                throw new InvalidPDUException(
+                throw new EncoderException(
                     'Invalid UINT16 value, got ' . (is_object($value) ? get_class($value) : gettype($value))
                 );
             }
 
             if (0 > $filtered) {
-                throw new InvalidPDUException('Invalid UINT32 range, min > ' . $value);
+                throw new EncoderException('Invalid UINT32 range, min > ' . $value);
             }
 
             if (0xFFFF < $filtered) {
-                throw new InvalidPDUException('Invalid UINT32 range, max < ' . $value);
+                throw new EncoderException('Invalid UINT32 range, max < ' . $value);
             }
 
             $value = $filtered;
         }
 
         if ($required && empty($value)) {
-            throw new InvalidPDUException('Required UINT16 value');
+            throw new EncoderException('Required UINT16 value');
         }
 
         return pack('n', $value ?? 0);
@@ -196,24 +197,24 @@ final class Encoder implements EncoderInterface
         if (null !== $value) {
             $filtered = filter_var($value, FILTER_VALIDATE_INT);
             if (false === $filtered) {
-                throw new InvalidPDUException(
+                throw new EncoderException(
                     'Invalid UINT32 value, got ' . (is_object($value) ? get_class($value) : gettype($value))
                 );
             }
 
             if (0 > $filtered) {
-                throw new InvalidPDUException('Invalid UINT32 range, min > ' . $value);
+                throw new EncoderException('Invalid UINT32 range, min > ' . $value);
             }
 
             if (0xFFFFFFFF < $filtered) {
-                throw new InvalidPDUException('Invalid UINT32 range, max < ' . $value);
+                throw new EncoderException('Invalid UINT32 range, max < ' . $value);
             }
 
             $value = $filtered;
         }
 
         if ($required && empty($value)) {
-            throw new InvalidPDUException('Required UINT32 value');
+            throw new EncoderException('Required UINT32 value');
         }
 
         return pack('N', $value ?? 0);
@@ -223,20 +224,20 @@ final class Encoder implements EncoderInterface
     {
         if (null !== $value) {
             if (!is_string($value)) {
-                throw new InvalidPDUException(
+                throw new EncoderException(
                     'Invalid STRING value, got ' . (is_object($value) ? get_class($value) : gettype($value))
                 );
             }
 
             if ((null !== $min && strlen($value) < $min) || (null !== $max && strlen($value) > $max)) {
-                throw new InvalidPDUException('Invalid STRING length');
+                throw new EncoderException('Invalid STRING length');
             }
 
             $value = trim($value);
         }
 
         if ($required && empty($value)) {
-            throw new InvalidPDUException('Required STRING value');
+            throw new EncoderException('Required STRING value');
         }
 
         return $value . "\0";
@@ -246,7 +247,7 @@ final class Encoder implements EncoderInterface
     {
         if (null !== $value) {
             if (!$value instanceof Address) {
-                throw new InvalidPDUException(
+                throw new EncoderException(
                     'Invalid ADDRESS value, got ' . (is_object($value) ? get_class($value) : gettype($value))
                 );
             }
@@ -257,7 +258,7 @@ final class Encoder implements EncoderInterface
         }
 
         if ($required && empty($value)) {
-            throw new InvalidPDUException('Required ADDRESS value');
+            throw new EncoderException('Required ADDRESS value');
         }
 
         return $value;
@@ -267,7 +268,7 @@ final class Encoder implements EncoderInterface
     {
         if (null !== $value) {
             if (!$value instanceof DateTime) {
-                throw new InvalidPDUException(
+                throw new EncoderException(
                     'Invalid DATETIME value, got ' . (is_object($value) ? get_class($value) : gettype($value))
                 );
             }
@@ -278,7 +279,7 @@ final class Encoder implements EncoderInterface
         }
 
         if ($required && empty($value)) {
-            throw new InvalidPDUException('Required DATETIME value');
+            throw new EncoderException('Required DATETIME value');
         }
 
         return $value . "\0";
@@ -287,7 +288,7 @@ final class Encoder implements EncoderInterface
     private function encodeTLV($value): string
     {
         if (!$value instanceof TLV) {
-            throw new InvalidPDUException(
+            throw new EncoderException(
                 'Invalid TLV value, got ' . (is_object($value) ? get_class($value) : gettype($value))
             );
         }
