@@ -16,7 +16,7 @@ final class ClientAPI
         $this->client = $client;
     }
 
-    public function submitSM(Message $message, array $params = []): Deferred
+    public function submitSM(Message $message): Deferred
     {
         if (empty($message->getTargetAddress()) || empty($message->getBody())) {
             throw new InvalidArgumentException('Message body and target address required for SUBMIT_SM');
@@ -31,12 +31,12 @@ final class ClientAPI
             PDU::KEY_SM_DEFAULT_MSG_ID => null,
             PDU::KEY_SM_LENGTH         => strlen($message->getBody()),
             PDU::KEY_SHORT_MESSAGE     => $message->getBody(),
-        ] + $params;
+        ] + $message->getParams();
 
         return $this->client->send(PDU::ID_SUBMIT_SM, $params);
     }
 
-    public function dataSM(Message $message, array $params): Deferred
+    public function dataSM(Message $message): Deferred
     {
         if (empty($message->getSourceAddress()) || empty($message->getTargetAddress())) {
             throw new InvalidArgumentException('Message body and target address required for SUBMIT_SM');
@@ -47,7 +47,7 @@ final class ClientAPI
             PDU::KEY_SRC_ADDRESS => $message->getSourceAddress(),
             PDU::KEY_DST_ADDRESS => $message->getTargetAddress(),
             PDU::KEY_DATA_CODING => $message->getDataCoding(),
-        ] + $params;
+        ] + $message->getParams();
 
         return $this->client->send(PDU::ID_DATA_SM, $params);
     }
