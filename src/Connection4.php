@@ -162,7 +162,6 @@ final class Connection4 implements ConnectionInterface
         $this->lastMessageTime = time();
     }
 
-    //TODO maybe pass instance instead of create inside
     public function wait(int $timeout, int $seqNum = 0, int ...$expectPDU): Deferred
     {
         $this->expects[] = $expects = new Deferred($timeout, $seqNum, ...$expectPDU);

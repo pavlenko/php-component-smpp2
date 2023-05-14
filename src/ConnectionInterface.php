@@ -104,6 +104,10 @@ interface ConnectionInterface
      */
     public function updLastMessageTime(): void;
 
+    public function getExpects(): array;
+
+    public function delExpects(int $seqNum, int $id): ?Deferred;
+
     /**
      * Wait for incoming PDU based on expected sequence number and/or expected PDU identifiers
      *
