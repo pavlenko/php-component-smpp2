@@ -10,8 +10,6 @@ use PE\Component\SMPP\DTO\Message;
 use PE\Component\SMPP\DTO\PDU;
 use PE\Component\SMPP\Exception\DecoderException;
 use PE\Component\SMPP\Exception\ExceptionInterface;
-use PE\Component\SMPP\Exception\InvalidPDUException;
-use PE\Component\SMPP\Exception\MalformedPDUException;
 use PE\Component\SMPP\Exception\UnknownPDUException;
 use PE\Component\Socket\ClientInterface as SocketClientInterface;
 use Psr\Log\LoggerInterface;
@@ -141,6 +139,16 @@ final class Server implements ServerInterface
                     [PDU::KEY_SYSTEM_ID => $this->session->getSystemID()]
                 ));
                 $deferred->failure($pdu);
+                return;
+            }
+
+            try {
+                $deferred->success($pdu);
+            } catch (\Throwable $exception) {
+                $connection->send(
+                    new PDU(PDU::ID_GENERIC_NACK | $pdu->getID(), PDU::STATUS_BIND_FAILED, $pdu->getSeqNum())
+                );
+                $connection->close();
                 return;
             }
 
