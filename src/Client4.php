@@ -16,7 +16,7 @@ use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 use Psr\Log\NullLogger;
 
-final class Client4
+final class Client4 implements ClientInterface
 {
     private SessionInterface $session;
     private StorageInterface $storage;

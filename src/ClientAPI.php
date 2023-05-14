@@ -9,9 +9,9 @@ use PE\Component\SMPP\Exception\InvalidArgumentException;
 
 final class ClientAPI
 {
-    private Client4 $client;
+    private ClientInterface $client;
 
-    public function __construct(Client4 $client)
+    public function __construct(ClientInterface $client)
     {
         $this->client = $client;
     }
@@ -23,14 +23,14 @@ final class ClientAPI
         }
 
         $params = [
-            PDU::KEY_SRC_ADDRESS        => $message->getSourceAddress(),
-            PDU::KEY_DST_ADDRESS        => $message->getTargetAddress(),
-            PDU::KEY_SCHEDULED_AT       => $message->getScheduledAt(),
-            PDU::KEY_VALIDITY_PERIOD    => $message->getExpiredAt(),
-            PDU::KEY_DATA_CODING        => $message->getDataCoding(),
-            PDU::KEY_SM_DEFAULT_MSG_ID  => null,
-            PDU::KEY_SM_LENGTH          => strlen($message->getBody()),
-            PDU::KEY_SHORT_MESSAGE      => $message->getBody(),
+            PDU::KEY_SRC_ADDRESS       => $message->getSourceAddress(),
+            PDU::KEY_DST_ADDRESS       => $message->getTargetAddress(),
+            PDU::KEY_SCHEDULED_AT      => $message->getScheduledAt(),
+            PDU::KEY_VALIDITY_PERIOD   => $message->getExpiredAt(),
+            PDU::KEY_DATA_CODING       => $message->getDataCoding(),
+            PDU::KEY_SM_DEFAULT_MSG_ID => null,
+            PDU::KEY_SM_LENGTH         => strlen($message->getBody()),
+            PDU::KEY_SHORT_MESSAGE     => $message->getBody(),
         ] + $params;
 
         return $this->client->send(PDU::ID_SUBMIT_SM, $params);

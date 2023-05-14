@@ -2,35 +2,35 @@
 
 namespace PE\Component\SMPP;
 
-// Client daemon
-// - catch inbound PDU
-// - send scheduled PDU
+use PE\Component\SMPP\DTO\Deferred;
+
 interface ClientInterface
 {
-    //init
-    // `- connect
-    // `- bind session
-    //tick
-    // `- select
-    // `- processReceive($session)
-    // `- processTimeout($session, $sentPDUs)
-    // `- processWaiting($session, $waitPDUs)
-    //exit
-    // `- unbind session
-    // `- close connection
-
     /**
-     * Connects to server and send bind request with result check
+     * Connects to server and send bind request
+     *
+     * @param string $address
+     * @param int $mode
+     * @return Deferred
      */
-    public function bind(): void;
+    public function bind(string $address, int $mode): Deferred;
 
     /**
-     * Dispatch connection
+     * Sends raw PDU
+     *
+     * @param int $id
+     * @param array $params
+     * @return Deferred
      */
-    public function tick(): void;
+    public function send(int $id, array $params = []): Deferred;
 
     /**
-     * Disconnects from server and send unbind request with result check
+     * Runs loop for wait incoming data
+     */
+    public function wait(): void;
+
+    /**
+     * Disconnects from server and send unbind request
      */
     public function exit(): void;
 }
