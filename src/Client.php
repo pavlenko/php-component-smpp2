@@ -120,7 +120,7 @@ final class Client implements ClientInterface
     private function processReceive(Connection4 $connection, PDU $pdu): void
     {
         // Remove expects PDU if any (prevents close client connection on timeout)
-        $deferred = $connection->delExpects($pdu->getSeqNum(), $pdu->getID()) ?: new Deferred(0, 0);
+        $deferred = $connection->dequeuePacket($pdu->getSeqNum(), $pdu->getID()) ?: new Deferred(0, 0);
 
         // Check errored response
         if (PDU::STATUS_NO_ERROR !== $pdu->getStatus()) {
@@ -158,7 +158,7 @@ final class Client implements ClientInterface
 
     private function processTimeout(Connection4 $connection): void
     {
-        $deferredList = $connection->getExpects();
+        $deferredList = $connection->getWaitQueue();
         foreach ($deferredList as $deferred) {
             if ($deferred->getExpiredAt() < time()) {
                 $deferred->failure(null);

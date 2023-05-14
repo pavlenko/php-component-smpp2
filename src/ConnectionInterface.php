@@ -104,9 +104,21 @@ interface ConnectionInterface
      */
     public function updLastMessageTime(): void;
 
-    public function getExpects(): array;
+    /**
+     * Get wait queue for check timed-out packets
+     *
+     * @return Deferred[]
+     */
+    public function getWaitQueue(): array;
 
-    public function delExpects(int $seqNum, int $id): ?Deferred;
+    /**
+     * Search and dequeue packet from wait queue
+     *
+     * @param int $seqNum
+     * @param int $id
+     * @return Deferred|null
+     */
+    public function dequeuePacket(int $seqNum, int $id): ?Deferred;
 
     /**
      * Wait for incoming PDU based on expected sequence number and/or expected PDU identifiers

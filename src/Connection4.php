@@ -26,7 +26,7 @@ final class Connection4 implements ConnectionInterface
     /**
      * @var Deferred[]
      */
-    private array $expects = [];
+    private array $waitQueue = [];
     private string $buffer = '';
     private int $status = ConnectionInterface::STATUS_OPENED;
     private ?SessionInterface $session = null;
@@ -135,17 +135,17 @@ final class Connection4 implements ConnectionInterface
         $this->session = $session;
     }
 
-    public function getExpects(): array
+    public function getWaitQueue(): array
     {
-        return $this->expects;
+        return $this->waitQueue;
     }
 
-    public function delExpects(int $seqNum, int $id): ?Deferred
+    public function dequeuePacket(int $seqNum, int $id): ?Deferred
     {
-        foreach ($this->expects as $index => $expect) {
+        foreach ($this->waitQueue as $index => $expect) {
             if ($expect->isExpectPDU($seqNum, $id)) {
-                $deferred = $this->expects[$index];
-                unset($this->expects[$index]);
+                $deferred = $this->waitQueue[$index];
+                unset($this->waitQueue[$index]);
                 return $deferred;
             }
         }
@@ -164,9 +164,9 @@ final class Connection4 implements ConnectionInterface
 
     public function wait(int $timeout, int $seqNum = 0, int ...$expectPDU): Deferred
     {
-        $this->expects[] = $expects = new Deferred($timeout, $seqNum, ...$expectPDU);
-        $this->logger->log(LogLevel::DEBUG, '?: ' . $expects->dump());
-        return $expects;
+        $deferred = new Deferred($timeout, $seqNum, ...$expectPDU);
+        $this->logger->log(LogLevel::DEBUG, '?: ' . $deferred->dump());
+        return $this->waitQueue[] = $deferred;
     }
 
     public function send(PDU $pdu): void
