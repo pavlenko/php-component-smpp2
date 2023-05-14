@@ -31,6 +31,8 @@ require_once __DIR__ . '/../vendor/autoload.php';
 //$sender->wait();
 //$sender->exit();
 
+date_default_timezone_set('Europe/Kiev');
+
 $logger = new ConsoleLogger(new ConsoleOutput(ConsoleOutput::VERBOSITY_DEBUG));
 $client = new Client4(
     new Session('ID', null, $source = new Address(Address::TON_INTERNATIONAL, Address::NPI_ISDN, '10001112233')),

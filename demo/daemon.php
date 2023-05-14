@@ -15,6 +15,8 @@ use Symfony\Component\Console\Output\ConsoleOutput;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
+date_default_timezone_set('Europe/Kiev');
+
 $logger = new ConsoleLogger(new ConsoleOutput(ConsoleOutput::VERBOSITY_DEBUG));
 $server = new Server4(
     new Session('SERVER'),

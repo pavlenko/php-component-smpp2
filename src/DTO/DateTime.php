@@ -17,19 +17,16 @@ final class DateTime extends \DateTime
         if (false === $value) {
             return false;
         }
-        $datetime = new self(null, $value->getTimezone());
-        $datetime->setTimestamp($value->getTimestamp());
-        return $datetime;
+        return new self($value->format(DATE_RFC3339_EXTENDED));
     }
 
     public function dump(): string
     {
-        $datetime = clone $this;
-        $datetime->setTimezone(new \DateTimeZone('UTC'));
         return sprintf(
-            'DateTime(date: %s, time: %s, tz: UTC)',
-            $datetime->format('Y-m-d'),
-            $datetime->format('H:i:s')
+            'DateTime(date: %s, time: %s, tz: %s)',
+            $this->format('Y-m-d'),
+            $this->format('H:i:s.') . $this->format('v')[0],
+            'UTC' . ($this->getOffset() < 0 ? '-' : '+') . gmdate('H:i', abs($this->getOffset()))
         );
     }
 }

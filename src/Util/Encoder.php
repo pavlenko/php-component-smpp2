@@ -270,7 +270,10 @@ final class Encoder
                     'Invalid DATETIME value, got ' . (is_object($value) ? get_class($value) : gettype($value))
                 );
             }
-            $value = $value->format('ymdHis') . '000+';
+            $offset = $value->getOffset();
+            $value  = $value->format('ymdHis') . $value->format('v')[0]
+                . str_pad(abs($offset) / 900, 2, '0')
+                . (0 === $offset ? 'R' : ($offset < 0 ? '-' : '+'));
         }
 
         if ($required && empty($value)) {

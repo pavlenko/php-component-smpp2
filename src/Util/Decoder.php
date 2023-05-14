@@ -259,12 +259,24 @@ final class Decoder
                 throw new MalformedPDUException(str_replace('_PARAM_', 'invalid length'.strlen($value), $error));
             }
 
-            $value = substr($value, 0, 12);
-            $value = DateTime::createFromFormat('ymdHis', $value);
+            $datetime = substr($value, 0, 13) . '00';
+            $offset   = substr($value, 13, 2) * 900;
+            $relative = substr($value, 15, 1);
+            if ($relative === '-') {
+                $offset *= -1;
+            }
 
-            if (false === $value) {
+            $datetime = DateTime::createFromFormat(
+                'ymdHisv',
+                $datetime,
+                new \DateTimeZone(($offset < 0 ? '-' : '+') . gmdate('Hi', abs($offset)))
+            );
+
+            if (false === $datetime) {
                 throw new MalformedPDUException(str_replace('_PARAM_', 'invalid format', $error));
             }
+
+            $value = $datetime;
         }
 
         if ($required && null === $value) {
