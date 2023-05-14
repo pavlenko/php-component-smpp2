@@ -154,9 +154,17 @@ final class Server implements ServerInterface
             return;
         }
 
+        if (array_key_exists($pdu->getID(), ConnectionInterface::ALLOWED_ID_BY_BOUND)
+            && !in_array($connection->getStatus(), ConnectionInterface::ALLOWED_ID_BY_BOUND)) {
+            $connection->send(
+                new PDU(PDU::ID_GENERIC_NACK | $pdu->getID(), PDU::STATUS_INVALID_BIND_STATUS, $pdu->getSeqNum())
+            );
+            $deferred->failure($pdu);
+            return;
+        }
+
         $deferred->success($pdu);
 
-        //TODO check if allowed command for specific bind status, NEED TO EXTRACT TO HANDLERS
         switch ($pdu->getID()) {
             case PDU::ID_ENQUIRE_LINK:
             case PDU::ID_UNBIND:
