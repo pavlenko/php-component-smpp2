@@ -12,7 +12,7 @@ use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 use Psr\Log\NullLogger;
 
-final class Connection4 implements ConnectionInterface
+final class Connection implements ConnectionInterface
 {
     private \Closure $onInput;
     private \Closure $onError;

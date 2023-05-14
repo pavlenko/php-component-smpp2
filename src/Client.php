@@ -25,7 +25,7 @@ final class Client implements ClientInterface
     private LoggerInterface $logger;
     private LoopInterface $loop;
 
-    private ?Connection4 $connection = null;
+    private ?ConnectionInterface $connection = null;
 
     public function __construct(
         SessionInterface $session,
@@ -106,7 +106,7 @@ final class Client implements ClientInterface
             ->else(fn() => $this->connection->close());
     }
 
-    private function processErrored(Connection4 $connection, ExceptionInterface $exception)
+    private function processErrored(ConnectionInterface $connection, ExceptionInterface $exception)
     {
         if ($exception instanceof UnknownPDUException) {
             $connection->send(new PDU(PDU::ID_GENERIC_NACK, PDU::STATUS_INVALID_COMMAND_ID, 0));
@@ -117,7 +117,7 @@ final class Client implements ClientInterface
         $connection->close();
     }
 
-    private function processReceive(Connection4 $connection, PDU $pdu): void
+    private function processReceive(ConnectionInterface $connection, PDU $pdu): void
     {
         // Remove expects PDU if any (prevents close client connection on timeout)
         $deferred = $connection->dequeuePacket($pdu->getSeqNum(), $pdu->getID()) ?: new Deferred(0, 0);
@@ -156,7 +156,7 @@ final class Client implements ClientInterface
         $this->emitter->dispatch(new Event(PDU::getIdentifiers()[$pdu->getID()], $connection, $pdu));
     }
 
-    private function processTimeout(Connection4 $connection): void
+    private function processTimeout(ConnectionInterface $connection): void
     {
         $deferredList = $connection->getWaitQueue();
         foreach ($deferredList as $deferred) {
@@ -167,7 +167,7 @@ final class Client implements ClientInterface
         }
     }
 
-    private function processEnquire(Connection4 $connection): void
+    private function processEnquire(ConnectionInterface $connection): void
     {
         $overdue = time() - $connection->getLastMessageTime() > $this->session->getInactiveTimeout();
         if ($overdue) {
@@ -178,7 +178,7 @@ final class Client implements ClientInterface
         }
     }
 
-    private function processPending(Connection4 $connection): void
+    private function processPending(ConnectionInterface $connection): void
     {
         if (!in_array($connection->getStatus(), ConnectionInterface::BOUND_MAP)) {
             return;

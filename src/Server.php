@@ -81,7 +81,7 @@ final class Server implements ServerInterface
         $this->loop->run();
     }
 
-    private function attachConnection(Connection4 $connection): void
+    private function attachConnection(ConnectionInterface $connection): void
     {
         $this->logger->log(LogLevel::DEBUG, '< New connection from ' . $connection->getRemoteAddress());
         $this->connections->attach($connection);
@@ -94,7 +94,7 @@ final class Server implements ServerInterface
         );
     }
 
-    private function detachConnection(Connection4 $connection, string $message = null): void
+    private function detachConnection(ConnectionInterface $connection, string $message = null): void
     {
         $this->logger->log(
             LogLevel::DEBUG,
@@ -105,7 +105,7 @@ final class Server implements ServerInterface
         $connection->close();
     }
 
-    private function processErrored(Connection4 $connection, ExceptionInterface $exception): void
+    private function processErrored(ConnectionInterface $connection, ExceptionInterface $exception): void
     {
         if ($exception instanceof UnknownPDUException) {
             $connection->send(new PDU(PDU::ID_GENERIC_NACK, PDU::STATUS_INVALID_COMMAND_ID, 0));
@@ -116,7 +116,7 @@ final class Server implements ServerInterface
         $connection->close();
     }
 
-    private function processReceive(Connection4 $connection, PDU $pdu): void
+    private function processReceive(ConnectionInterface $connection, PDU $pdu): void
     {
         // Remove expects PDU if any (prevents close client connection on timeout)
         $deferred = $connection->dequeuePacket($pdu->getSeqNum(), $pdu->getID()) ?: new Deferred(0, 0);
@@ -277,7 +277,7 @@ final class Server implements ServerInterface
         $this->emitter->dispatch(new Event(PDU::getIdentifiers()[$pdu->getID()], $connection, $pdu));
     }
 
-    private function processTimeout(Connection4 $connection): void
+    private function processTimeout(ConnectionInterface $connection): void
     {
         $deferredList = $connection->getWaitQueue();
         foreach ($deferredList as $deferred) {
@@ -288,7 +288,7 @@ final class Server implements ServerInterface
         }
     }
 
-    private function processEnquire(Connection4 $connection): void
+    private function processEnquire(ConnectionInterface $connection): void
     {
         $overdue = time() - $connection->getLastMessageTime() > $this->session->getInactiveTimeout();
         if ($overdue) {
@@ -299,7 +299,7 @@ final class Server implements ServerInterface
         }
     }
 
-    private function processPending(Connection4 $connection): void
+    private function processPending(ConnectionInterface $connection): void
     {
         if (!array_key_exists($connection->getStatus(), ConnectionInterface::BOUND_MAP)) {
             return;

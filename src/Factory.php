@@ -55,9 +55,9 @@ final class Factory implements FactoryInterface
         });
     }
 
-    public function createConnection(SocketClientInterface $client): Connection4
+    public function createConnection(SocketClientInterface $client): ConnectionInterface
     {
-        return new Connection4($client, $this->decoder, $this->encoder, $this->logger);
+        return new Connection($client, $this->decoder, $this->encoder, $this->logger);
     }
 
     public function generateID(): string
