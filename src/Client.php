@@ -49,7 +49,7 @@ final class Client implements ClientInterface
 
     public function bind(string $address, int $mode): Deferred
     {
-        if (!array_key_exists($mode, ConnectionInterface::BOUND_MAP)) {
+        if (!array_key_exists($mode, ConnectionInterface::BIND_MAP)) {
             throw new InvalidArgumentException('Invalid bind mode, allowed only one of PDU::ID_BIND_*');
         }
 
@@ -129,9 +129,9 @@ final class Client implements ClientInterface
             return;
         }
 
-        if (array_key_exists(~PDU::ID_GENERIC_NACK & $pdu->getID(), ConnectionInterface::BOUND_MAP)) {
+        if (array_key_exists($pdu->getID(), ConnectionInterface::BOUND_MAP)) {
             $this->logger->log(LogLevel::DEBUG, "Connecting to {$connection->getRemoteAddress()} OK");
-            $this->connection->setStatus(ConnectionInterface::BOUND_MAP[~PDU::ID_GENERIC_NACK & $pdu->getID()]);
+            $this->connection->setStatus(ConnectionInterface::BOUND_MAP[$pdu->getID()]);
             $deferred->success($pdu);
             return;
         }
@@ -180,7 +180,7 @@ final class Client implements ClientInterface
 
     private function processPending(Connection4 $connection): void
     {
-        if (!array_key_exists($connection->getStatus(), ConnectionInterface::BOUND_MAP)) {
+        if (!in_array($connection->getStatus(), ConnectionInterface::BOUND_MAP)) {
             return;
         }
 

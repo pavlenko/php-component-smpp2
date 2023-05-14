@@ -5,7 +5,7 @@ namespace PE\Component\SMPP\V4;
 use PE\Component\Event\Emitter;
 use PE\Component\SMPP\DTO\PDU;
 use PE\Component\SMPP\Factory;
-use PE\Component\SMPP\Server4;
+use PE\Component\SMPP\Server;
 use PE\Component\SMPP\Session;
 use PE\Component\SMPP\StorageMemory;
 use PE\Component\Socket\Factory as SocketFactory;
@@ -18,7 +18,7 @@ require_once __DIR__ . '/../vendor/autoload.php';
 date_default_timezone_set('Europe/Kiev');
 
 $logger = new ConsoleLogger(new ConsoleOutput(ConsoleOutput::VERBOSITY_DEBUG));
-$server = new Server4(
+$server = new Server(
     new Session('SERVER'),
     new StorageMemory(),
     $emitter = new Emitter(),

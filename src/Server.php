@@ -17,7 +17,7 @@ use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 use Psr\Log\NullLogger;
 
-final class Server4
+final class Server implements ServerInterface
 {
     private SessionInterface $session;
     private StorageInterface $storage;
@@ -131,8 +131,8 @@ final class Server4
             return;
         }
 
-        if (array_key_exists($pdu->getID(), ConnectionInterface::BOUND_MAP)) {
-            if (in_array($connection->getStatus(), ConnectionInterface::BOUND_MAP)) {
+        if (array_key_exists($pdu->getID(), ConnectionInterface::BIND_MAP)) {
+            if (in_array($connection->getStatus(), ConnectionInterface::BIND_MAP)) {
                 $connection->send(new PDU(
                     PDU::ID_GENERIC_NACK | $pdu->getID(),
                     PDU::STATUS_ALREADY_BOUND,
@@ -142,12 +142,13 @@ final class Server4
                 $deferred->failure($pdu);
                 return;
             }
+
             $connection->send(new PDU(PDU::ID_GENERIC_NACK | $pdu->getID(), PDU::STATUS_NO_ERROR, $pdu->getSeqNum(), [
                 PDU::KEY_SYSTEM_ID => $this->session->getSystemID(),
             ]));
-            $connection->setStatus(ConnectionInterface::BOUND_MAP[$pdu->getID()]);
+            $connection->setStatus(ConnectionInterface::BIND_MAP[$pdu->getID()]);
             $connection->setSession(
-                new Session($pdu->get(PDU::KEY_SYSTEM_ID), $pdu->get(PDU::KEY_PASSWORD), $pdu->get('address'))
+                new Session($pdu->get(PDU::KEY_SYSTEM_ID), $pdu->get(PDU::KEY_PASSWORD), $pdu->get(PDU::KEY_ADDRESS))
             );
             $deferred->success($pdu);
             return;
