@@ -58,8 +58,7 @@ final class Client4
         $this->connection = $this->factory->createConnection($this->factory->createSocketClient($address));
         $this->connection->setInputHandler(fn(PDU $pdu) => $this->processReceive($this->connection, $pdu));
         $this->connection->setErrorHandler(function (ExceptionInterface $exception) {
-            //TODO check if exception is unknown pdu or malformed pdu - send generic nack with associated status
-            $this->connection->close();
+            $this->processErrored($this->connection, $exception);
         });
         $this->connection->setCloseHandler(function (string $message = null) {
             $this->logger->log(
@@ -107,8 +106,6 @@ final class Client4
             ->else(fn() => $this->connection->close());
     }
 
-    //TODO recv: submit_sm_resp, data_sm, data_sm_resp, query_sm_resp, cancel_sm_resp, replace_sm_resp, deliver_sm
-
     private function processErrored(Connection4 $connection, ExceptionInterface $exception)
     {
         if ($exception instanceof UnknownPDUException) {
@@ -139,7 +136,7 @@ final class Client4
             return;
         }
 
-        $deferred->success($pdu);//TODO are need here???
+        $deferred->success($pdu);
 
         //TODO check if allowed command for specific bind status, NEED TO EXTRACT TO HANDLERS
         switch ($pdu->getID()) {
