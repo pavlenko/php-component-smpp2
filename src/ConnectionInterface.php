@@ -2,22 +2,18 @@
 
 namespace PE\Component\SMPP;
 
+use PE\Component\SMPP\DTO\Deferred;
 use PE\Component\SMPP\DTO\PDU;
-use PE\Component\SMPP\Exception\ConnectionException;
-use PE\Component\SMPP\Exception\InvalidPDUException;
-use PE\Component\SMPP\Exception\TimeoutException;
-use PE\Component\SMPP\Util\Stream;
 
 interface ConnectionInterface
 {
     public const INTERFACE_VER = 0x34;
 
-    public const STATUS_CREATED   = 0b0000;
-    public const STATUS_OPENED    = 0b0001;
-    public const STATUS_BOUND_TX  = 0b0010;
-    public const STATUS_BOUND_RX  = 0b0100;
-    public const STATUS_BOUND_TRX = 0b0110;
-    public const STATUS_CLOSED    = 0b1000;
+    public const STATUS_OPENED    = 0b000;
+    public const STATUS_BOUND_TX  = 0b001;
+    public const STATUS_BOUND_RX  = 0b010;
+    public const STATUS_BOUND_TRX = 0b011;
+    public const STATUS_CLOSED    = 0b100;
 
     public const BIND_MAP = [
         PDU::ID_BIND_RECEIVER    => self::STATUS_BOUND_TX,
@@ -32,59 +28,103 @@ interface ConnectionInterface
     ];
 
     /**
-     * Get stream
+     * Set input handler
      *
-     * @return Stream
+     * @param callable $handler
      */
-    public function getStream(): Stream;
+    public function setInputHandler(callable $handler): void;
 
     /**
-     * Get status code
+     * Set error handler
+     *
+     * @param callable $handler
+     */
+    public function setErrorHandler(callable $handler): void;
+
+    /**
+     * Set close handler
+     *
+     * @param callable $handler
+     */
+    public function setCloseHandler(callable $handler): void;
+
+    /**
+     * Get cached client address
+     *
+     * @return string|null
+     */
+    public function getClientAddress(): ?string;
+
+    /**
+     * Get cached remote address
+     *
+     * @return string|null
+     */
+    public function getRemoteAddress(): ?string;
+
+    /**
+     * Get status
      *
      * @return int
      */
     public function getStatus(): int;
 
     /**
-     * Set status code
+     * Set status
      *
      * @param int $status
      */
     public function setStatus(int $status): void;
 
     /**
-     * Read PDU
+     * Get bound session
      *
-     * @return PDU|null Returns PDU object on success, null on error (need exception) or no data
-     *
-     * @throws ConnectionException
-     * @throws InvalidPDUException
+     * @return SessionInterface|null
      */
-    public function readPDU(): ?PDU;
+    public function getSession(): ?SessionInterface;
+
+    /**
+     * Set bound session
+     *
+     * @param SessionInterface $session
+     */
+    public function setSession(SessionInterface $session): void;
+
+    /**
+     * Get last incoming/outgoing message timestamp
+     *
+     * @return int
+     */
+    public function getLastMessageTime(): int;
+
+    /**
+     * Set last incoming/outgoing message timestamp to now
+     *
+     * @return void
+     */
+    public function updLastMessageTime(): void;
+
+    /**
+     * Wait for incoming PDU based on expected sequence number and/or expected PDU identifiers
+     *
+     * @param int $timeout
+     * @param int $seqNum
+     * @param int ...$expectPDU
+     * @return Deferred
+     */
+    public function wait(int $timeout, int $seqNum = 0, int ...$expectPDU): Deferred;
 
     /**
      * Send PDU
      *
-     * @param PDU|null $pdu
-     *
-     * @throws ConnectionException
+     * @param PDU $pdu
      */
-    public function sendPDU(PDU $pdu): void;
+    public function send(PDU $pdu): void;
 
     /**
-     * Wait PDU by sequence number (if greater than 0)
+     * Close connection with optional reason message
      *
-     * @param int $seqNum
-     * @param float $timeout
-     *
-     * @return PDU
-     *
-     * @throws TimeoutException
+     * @param string|null $message
      */
-    public function waitPDU(int $seqNum = 0, float $timeout = 0): PDU;
-
-    /**
-     * Send UNBIND command and close stream connection
-     */
-    public function exit(): void;
+    public function close(string $message = null): void;
 }

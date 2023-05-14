@@ -12,7 +12,7 @@ use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 use Psr\Log\NullLogger;
 
-final class Connection4
+final class Connection4 implements ConnectionInterface
 {
     private \Closure $onInput;
     private \Closure $onError;
@@ -28,7 +28,7 @@ final class Connection4
      */
     private array $expects = [];
     private string $buffer = '';
-    private int $status = ConnectionInterface::STATUS_CREATED;
+    private int $status = ConnectionInterface::STATUS_OPENED;
     private ?SessionInterface $session = null;
     private int $lastMessageTime = 0;
 
