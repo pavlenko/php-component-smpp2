@@ -169,11 +169,11 @@ final class Connection implements ConnectionInterface
         return $this->waitQueue[] = $deferred;
     }
 
-    public function send(PDU $pdu): void
+    public function send(PDU $pdu, bool $close = false): void
     {
         try {
             $this->logger->log(LogLevel::DEBUG, 'O: ' . $pdu->toLogger());
-            $this->client->write($this->encoder->encode($pdu));
+            $this->client->write($this->encoder->encode($pdu), $close);
             $this->updLastMessageTime();
         } catch (ExceptionInterface $exception) {
             $this->logger->log(LogLevel::ERROR, 'E: ' . $exception->getMessage());

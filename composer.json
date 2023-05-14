@@ -11,7 +11,7 @@
     "ext-json": "*",
     "pe/component-event": "^1.0",
     "pe/component-loop": "^1.0",
-    "pe/component-socket": "^1.0.1",
+    "pe/component-socket": "^1.0.3",
     "psr/log": "^1.1"
   },
   "autoload": {

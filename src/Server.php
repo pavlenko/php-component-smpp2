@@ -73,7 +73,7 @@ final class Server implements ServerInterface
         });
 
         $server->setErrorHandler(fn($e) => $this->logger->log(LogLevel::ERROR, 'E: ' . $e));
-        $server->setCloseHandler(fn($e = null) => $this->logger->log(LogLevel::DEBUG, 'C: ' . ($e ?: 'Closed')));
+        $server->setCloseHandler(fn($e) => $this->logger->log(LogLevel::DEBUG, 'C: ' . ($e ?: 'Closed')));
 
         $this->logger->log(LogLevel::DEBUG, 'Listen to ' . $server->getAddress());
 
@@ -107,10 +107,10 @@ final class Server implements ServerInterface
     private function processErrored(ConnectionInterface $connection, ExceptionInterface $exception): void
     {
         if ($exception instanceof UnknownPDUException) {
-            $connection->send(new PDU(PDU::ID_GENERIC_NACK, PDU::STATUS_INVALID_COMMAND_ID, 0));
+            $connection->send(new PDU(PDU::ID_GENERIC_NACK, PDU::STATUS_INVALID_COMMAND_ID, 0), true);
         }
         if ($exception instanceof DecoderException) {
-            $connection->send(new PDU(PDU::ID_GENERIC_NACK, PDU::STATUS_INVALID_COMMAND_LENGTH, 0));
+            $connection->send(new PDU(PDU::ID_GENERIC_NACK, PDU::STATUS_INVALID_COMMAND_LENGTH, 0), true);
         }
         $connection->close();
     }
@@ -132,12 +132,10 @@ final class Server implements ServerInterface
 
         if (array_key_exists($pdu->getID(), ConnectionInterface::BIND_MAP)) {
             if (in_array($connection->getStatus(), ConnectionInterface::BIND_MAP)) {
-                $connection->send(new PDU(
-                    PDU::ID_GENERIC_NACK | $pdu->getID(),
-                    PDU::STATUS_ALREADY_BOUND,
-                    $pdu->getSeqNum(),
-                    [PDU::KEY_SYSTEM_ID => $this->session->getSystemID()]
-                ));
+                $connection->send(
+                    new PDU(PDU::ID_GENERIC_NACK | $pdu->getID(), PDU::STATUS_ALREADY_BOUND, $pdu->getSeqNum()),
+                    true
+                );
                 $deferred->failure($pdu);
                 return;
             }
@@ -146,9 +144,10 @@ final class Server implements ServerInterface
                 $deferred->success($pdu);
             } catch (\Throwable $exception) {
                 $connection->send(
-                    new PDU(PDU::ID_GENERIC_NACK | $pdu->getID(), PDU::STATUS_BIND_FAILED, $pdu->getSeqNum())
+                    new PDU(PDU::ID_GENERIC_NACK | $pdu->getID(), PDU::STATUS_BIND_FAILED, $pdu->getSeqNum()),
+                    true
                 );
-                $connection->close();
+                $deferred->failure($pdu);
                 return;
             }
 

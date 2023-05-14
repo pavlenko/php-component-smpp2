@@ -245,8 +245,9 @@ interface ConnectionInterface
      * Send PDU
      *
      * @param PDU $pdu
+     * @param bool $close Close after write
      */
-    public function send(PDU $pdu): void;
+    public function send(PDU $pdu, bool $close = false): void;
 
     /**
      * Close connection with optional reason message
