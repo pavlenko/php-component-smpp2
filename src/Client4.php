@@ -61,8 +61,11 @@ final class Client4
             //TODO check if exception is unknown pdu or malformed pdu - send generic nack with associated status
             $this->connection->close();
         });
-        $this->connection->setCloseHandler(function () {
-            $this->logger->log(LogLevel::DEBUG, "Connection to {$this->connection->getRemoteAddress()} closed");
+        $this->connection->setCloseHandler(function (string $message = null) {
+            $this->logger->log(
+                LogLevel::DEBUG,
+                "Connection to {$this->connection->getRemoteAddress()} closed $message"
+            );
             $this->loop->stop();
             $this->connection->setStatus(ConnectionInterface::STATUS_CLOSED);
         });
@@ -80,7 +83,7 @@ final class Client4
     {
         $sequenceNum = $this->session->newSequenceNum();
         $this->connection->send(new PDU($id, 0, $sequenceNum, $params));
-        return $this->connection->wait(5, $sequenceNum, PDU::ID_GENERIC_NACK | $id);
+        return $this->connection->wait($this->session->getResponseTimeout(), $sequenceNum, PDU::ID_GENERIC_NACK | $id);
     }
 
     public function wait(): void
