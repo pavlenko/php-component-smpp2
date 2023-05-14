@@ -5,9 +5,8 @@ namespace PE\Component\SMPP;
 use PE\Component\SMPP\DTO\Deferred;
 use PE\Component\SMPP\DTO\PDU;
 use PE\Component\SMPP\Exception\ExceptionInterface;
-use PE\Component\SMPP\Util\Decoder;
-use PE\Component\SMPP\Util\Encoder;
-use PE\Component\SMPP\Util\SerializerInterface;
+use PE\Component\SMPP\Util\DecoderInterface;
+use PE\Component\SMPP\Util\EncoderInterface;
 use PE\Component\Socket\ClientInterface as SocketClientInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
@@ -20,7 +19,8 @@ final class Connection4
     private \Closure $onClose;
 
     private SocketClientInterface $client;
-    private SerializerInterface $serializer;
+    private DecoderInterface $decoder;
+    private EncoderInterface $encoder;
     private LoggerInterface $logger;
 
     /**
@@ -37,7 +37,8 @@ final class Connection4
 
     public function __construct(
         SocketClientInterface $client,
-        SerializerInterface $serializer,
+        DecoderInterface $decoder,
+        EncoderInterface $encoder,
         LoggerInterface $logger = null
     ) {
         $this->client = $client;
@@ -52,8 +53,9 @@ final class Connection4
 
         $this->client->setCloseHandler(fn(string $message = null) => $this->close($message));
 
-        $this->serializer = $serializer;
-        $this->logger     = $logger ?: new NullLogger();
+        $this->decoder = $decoder;
+        $this->encoder = $encoder;
+        $this->logger  = $logger ?: new NullLogger();
 
         $this->onInput = fn() => null;
         $this->onError = fn() => null;
@@ -66,14 +68,13 @@ final class Connection4
     {
         $this->buffer .= $data;
 
-        $decoder = new Decoder();
         while (strlen($this->buffer) >= 16) {
             $length = unpack('N', $this->buffer)[1];
             if (strlen($this->buffer) >= $length) {
                 $buffer       = substr($this->buffer, 4, $length);
                 $this->buffer = substr($this->buffer, $length);
 
-                $pdu = $decoder->decode($buffer);
+                $pdu = $this->decoder->decode($buffer);
 
                 $this->logger->log(LogLevel::DEBUG, 'I: ' . $pdu->toLogger());
 
@@ -172,8 +173,7 @@ final class Connection4
     public function send(PDU $pdu): void
     {
         $this->logger->log(LogLevel::DEBUG, 'O: ' . $pdu->toLogger());
-        //$this->client->write($this->serializer->encode($pdu));
-        $this->client->write((new Encoder())->encode($pdu));
+        $this->client->write($this->encoder->encode($pdu));
         $this->updLastMessageTime();
     }
 

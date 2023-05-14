@@ -4,8 +4,10 @@ namespace PE\Component\SMPP;
 
 use PE\Component\Loop\Loop;
 use PE\Component\Loop\LoopInterface;
-use PE\Component\SMPP\Util\Serializer;
-use PE\Component\SMPP\Util\SerializerInterface;
+use PE\Component\SMPP\Util\Decoder;
+use PE\Component\SMPP\Util\DecoderInterface;
+use PE\Component\SMPP\Util\Encoder;
+use PE\Component\SMPP\Util\EncoderInterface;
 use PE\Component\Socket\ClientInterface as SocketClientInterface;
 use PE\Component\Socket\FactoryInterface as SocketFactoryInterface;
 use PE\Component\Socket\SelectInterface as SocketSelectInterface;
@@ -17,18 +19,21 @@ final class Factory4 implements FactoryInterface
 {
     private SocketSelectInterface $socketSelect;
     private SocketFactoryInterface $socketFactory;
-    private SerializerInterface $serializer;
+    private DecoderInterface $decoder;
+    private EncoderInterface $encoder;
     private LoggerInterface $logger;
 
     public function __construct(
         SocketSelectInterface  $socketSelect,
         SocketFactoryInterface $socketFactory,
-        SerializerInterface    $serializer = null,
+        DecoderInterface       $decoder = null,
+        EncoderInterface       $encoder = null,
         LoggerInterface        $logger = null
     ) {
         $this->socketSelect = $socketSelect;
         $this->socketFactory = $socketFactory;
-        $this->serializer = $serializer ?: new Serializer();
+        $this->decoder = $decoder ?: new Decoder();
+        $this->encoder = $encoder ?: new Encoder();
         $this->logger = $logger ?: new NullLogger();
     }
 
@@ -52,8 +57,7 @@ final class Factory4 implements FactoryInterface
 
     public function createConnection(SocketClientInterface $client): Connection4
     {
-        //TODO maybe split serializer to encoder/decoder
-        return new Connection4($client, $this->serializer, $this->logger);
+        return new Connection4($client, $this->decoder, $this->encoder, $this->logger);
     }
 
     public function generateID(): string
