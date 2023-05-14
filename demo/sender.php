@@ -46,11 +46,12 @@ $client->bind('127.0.0.1:2775', PDU::ID_BIND_TRANSMITTER)
         $api = new ClientAPI($client);
         $api
             ->submitSM([
-                PDU::KEY_SHORT_MESSAGE => 'HELLO',
-                PDU::KEY_SRC_ADDRESS   => $source,
-                PDU::KEY_DST_ADDRESS   => new Address(Address::TON_INTERNATIONAL, Address::NPI_ISDN, '10001112244'),
-                PDU::KEY_SCHEDULED_AT  => (new DateTime())->modify('+5 seconds'),
-                TLV::TAG_SOURCE_PORT   => new TLV(TLV::TAG_SOURCE_PORT, 8080),
+                PDU::KEY_SHORT_MESSAGE   => 'HELLO',
+                PDU::KEY_SRC_ADDRESS     => $source,
+                PDU::KEY_DST_ADDRESS     => new Address(Address::TON_INTERNATIONAL, Address::NPI_ISDN, '10001112244'),
+                PDU::KEY_SCHEDULED_AT    => (new DateTime())->modify('+5 seconds'),
+                PDU::KEY_VALIDITY_PERIOD => (new DateTime())->modify('+5 days'),
+                TLV::TAG_SOURCE_PORT     => new TLV(TLV::TAG_SOURCE_PORT, 8080),
             ])
             ->then(fn() => $client->exit()/*TODO success*/)
             ->else(fn() => $client->exit()/*TODO failure*/);

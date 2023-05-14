@@ -132,7 +132,7 @@ final class Decoder
 
         while (strlen($buffer) > $pos) {
             $tlv = $this->decodeTLV($buffer, $pos);
-            $params[$tlv->getTag()] = $tlv->getValue();
+            $params[$tlv->getTag()] = $tlv;
         }
 
         return new PDU($id, $status, $seqNum, $params ?? []);
