@@ -7,6 +7,7 @@ use PE\Component\Event\Event;
 use PE\Component\Loop\LoopInterface;
 use PE\Component\SMPP\DTO\Deferred;
 use PE\Component\SMPP\DTO\PDU;
+use PE\Component\SMPP\Exception\DecoderException;
 use PE\Component\SMPP\Exception\ExceptionInterface;
 use PE\Component\SMPP\Exception\InvalidArgumentException;
 use PE\Component\SMPP\Exception\InvalidPDUException;
@@ -111,7 +112,7 @@ final class Client implements ClientInterface
         if ($exception instanceof UnknownPDUException) {
             $connection->send(new PDU(PDU::ID_GENERIC_NACK, PDU::STATUS_INVALID_COMMAND_ID, 0));
         }
-        if ($exception instanceof InvalidPDUException || $exception instanceof MalformedPDUException) {
+        if ($exception instanceof DecoderException) {
             $connection->send(new PDU(PDU::ID_GENERIC_NACK, PDU::STATUS_INVALID_COMMAND_LENGTH, 0));
         }
         $connection->close();
