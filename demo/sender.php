@@ -7,6 +7,8 @@ use PE\Component\SMPP\Client4;
 use PE\Component\SMPP\ClientAPI;
 use PE\Component\SMPP\DTO\Address;
 use PE\Component\SMPP\DTO\DateTime;
+use PE\Component\SMPP\DTO\Message;
+use PE\Component\SMPP\DTO\Message2;
 use PE\Component\SMPP\DTO\PDU;
 use PE\Component\SMPP\DTO\TLV;
 use PE\Component\SMPP\Factory;
@@ -32,6 +34,15 @@ $client = new Client4(
 $client->bind('127.0.0.1:2775', PDU::ID_BIND_TRANSMITTER)
     ->then(function () use ($client, $source) {
         $api = new ClientAPI($client);
+
+        //TODO message required on submit_sm, replace_sm
+        //TODO dst_address required on submit_sm, replace_sm, data_sm
+        //TODO src_address required on cancel_sm, replace_sm
+        //TODO message_id required on query_sm, replace_sm, cancel_sm
+        $message = new Message2();
+        $message->setScheduledAt((new DateTime())->modify('+5 seconds'));
+        $message->setExpiredAt((new DateTime())->modify('+5 days'));
+
         $api
             ->submitSM([
                 PDU::KEY_SHORT_MESSAGE   => 'HELLO',
