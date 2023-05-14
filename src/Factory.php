@@ -15,7 +15,7 @@ use PE\Component\Socket\ServerInterface as SocketServerInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
-final class Factory4 implements FactoryInterface
+final class Factory implements FactoryInterface
 {
     private SocketSelectInterface $socketSelect;
     private SocketFactoryInterface $socketFactory;

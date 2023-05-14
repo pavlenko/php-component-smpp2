@@ -6,10 +6,10 @@ use PE\Component\Event\Emitter;
 use PE\Component\SMPP\Client4;
 use PE\Component\SMPP\DTO\Address;
 use PE\Component\SMPP\DTO\PDU;
-use PE\Component\SMPP\Factory4;
+use PE\Component\SMPP\Factory;
 use PE\Component\SMPP\Session;
 use PE\Component\SMPP\Storage4;
-use PE\Component\Socket\Factory;
+use PE\Component\Socket\Factory as SocketFactory;
 use PE\Component\Socket\Select;
 use Symfony\Component\Console\Logger\ConsoleLogger;
 use Symfony\Component\Console\Output\ConsoleOutput;
@@ -23,7 +23,7 @@ $client = new Client4(
     new Session('ID', null, new Address(Address::TON_INTERNATIONAL, Address::NPI_ISDN, '10001112244')),
     new Storage4(),
     new Emitter(),
-    new Factory4($select = new Select(), new Factory($select), null, $logger),
+    new Factory($select = new Select(), new SocketFactory($select), null, null, $logger),
     $logger
 );
 $client->bind('127.0.0.1:2775', PDU::ID_BIND_RECEIVER);
