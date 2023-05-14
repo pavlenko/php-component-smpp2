@@ -19,7 +19,7 @@ final class PDU
     public const KEY_ESM_CLASS              = 'esm_class';
     public const KEY_PROTOCOL_ID            = 'protocol_id';
     public const KEY_PRIORITY_FLAG          = 'priority_flag';
-    public const KEY_SCHEDULE_DELIVERY_TIME = 'schedule_delivery_time';
+    public const KEY_SCHEDULED_AT           = 'scheduled_at';
     public const KEY_VALIDITY_PERIOD        = 'validity_period';
     public const KEY_REG_DELIVERY           = 'reg_delivery';
     public const KEY_REPLACE_IF_PRESENT     = 'replace_if_present_flag';

@@ -190,7 +190,7 @@ final class Client4
                 PDU::KEY_SHORT_MESSAGE          => $message->getMessage(),
                 PDU::KEY_DST_ADDRESS            => $message->getTargetAddress(),
                 PDU::KEY_SRC_ADDRESS            => $message->getSourceAddress(),
-                PDU::KEY_SCHEDULE_DELIVERY_TIME => $message->getScheduledAt(),
+                PDU::KEY_SCHEDULED_AT => $message->getScheduledAt(),
             ] + $message->getParams());
             $this->storage->delete($message);
         }

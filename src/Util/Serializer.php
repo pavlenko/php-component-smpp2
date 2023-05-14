@@ -93,7 +93,7 @@ final class Serializer implements SerializerInterface
                 $params = [
                     PDU::KEY_MESSAGE_ID             => $buffer->shiftString(65),
                     PDU::KEY_SRC_ADDRESS            => $buffer->shiftAddress(21),
-                    PDU::KEY_SCHEDULE_DELIVERY_TIME => $buffer->shiftDateTime(),
+                    PDU::KEY_SCHEDULED_AT => $buffer->shiftDateTime(),
                     PDU::KEY_VALIDITY_PERIOD        => $buffer->shiftDateTime(),
                     PDU::KEY_REG_DELIVERY           => $buffer->shiftInt8(),
                     PDU::KEY_SM_DEFAULT_MSG_ID      => $buffer->shiftInt8(),
@@ -195,7 +195,7 @@ final class Serializer implements SerializerInterface
                 $body->writeInt8($pdu->get(PDU::KEY_ESM_CLASS));
                 $body->writeInt8($pdu->get(PDU::KEY_PROTOCOL_ID));
                 $body->writeInt8($pdu->get(PDU::KEY_PRIORITY_FLAG));
-                $body->writeDateTime($pdu->get(PDU::KEY_SCHEDULE_DELIVERY_TIME));
+                $body->writeDateTime($pdu->get(PDU::KEY_SCHEDULED_AT));
                 $body->writeDateTime($pdu->get(PDU::KEY_VALIDITY_PERIOD));
                 $body->writeInt8($pdu->get(PDU::KEY_REG_DELIVERY));
                 $body->writeInt8($pdu->get(PDU::KEY_REPLACE_IF_PRESENT));
@@ -214,7 +214,7 @@ final class Serializer implements SerializerInterface
             case PDU::ID_REPLACE_SM:
                 $body->writeString($pdu->get(PDU::KEY_MESSAGE_ID));
                 $body->writeAddress($pdu->get(PDU::KEY_SRC_ADDRESS));
-                $body->writeDateTime($pdu->get(PDU::KEY_SCHEDULE_DELIVERY_TIME));
+                $body->writeDateTime($pdu->get(PDU::KEY_SCHEDULED_AT));
                 $body->writeDateTime($pdu->get(PDU::KEY_VALIDITY_PERIOD));
                 $body->writeInt8($pdu->get(PDU::KEY_REG_DELIVERY));
                 $body->writeInt8($pdu->get(PDU::KEY_SM_DEFAULT_MSG_ID));

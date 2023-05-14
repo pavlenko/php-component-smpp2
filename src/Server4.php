@@ -171,7 +171,7 @@ final class Server4
                         $pdu->get(PDU::KEY_SHORT_MESSAGE)
                     );
                     $message->setMessageID($this->factory->generateID());
-                    $message->setScheduledAt($pdu->get(PDU::KEY_SCHEDULE_DELIVERY_TIME));
+                    $message->setScheduledAt($pdu->get(PDU::KEY_SCHEDULED_AT));
                     $message->setParams([
                         PDU::KEY_SERVICE_TYPE      => $pdu->get(PDU::KEY_SERVICE_TYPE),
                         PDU::KEY_DATA_CODING       => $pdu->get(PDU::KEY_DATA_CODING),
@@ -249,7 +249,7 @@ final class Server4
                 $message = $this->storage->search($search);
                 if ($message) {
                     $message->setMessage($pdu->get(PDU::KEY_SHORT_MESSAGE));
-                    $message->setScheduledAt($pdu->get(PDU::KEY_SCHEDULE_DELIVERY_TIME));
+                    $message->setScheduledAt($pdu->get(PDU::KEY_SCHEDULED_AT));
                     $message->setParams([
                         PDU::KEY_VALIDITY_PERIOD   => $pdu->get(PDU::KEY_VALIDITY_PERIOD),
                         PDU::KEY_REG_DELIVERY      => $pdu->get(PDU::KEY_REG_DELIVERY),
@@ -313,7 +313,7 @@ final class Server4
                 PDU::KEY_SHORT_MESSAGE          => $message->getMessage(),
                 PDU::KEY_DST_ADDRESS            => $message->getTargetAddress(),
                 PDU::KEY_SRC_ADDRESS            => $message->getSourceAddress(),
-                PDU::KEY_SCHEDULE_DELIVERY_TIME => $message->getScheduledAt(),
+                PDU::KEY_SCHEDULED_AT => $message->getScheduledAt(),
             ] + $message->getParams()));
             $connection
                 ->wait($this->session->getResponseTimeout(), $sequenceNum, PDU::ID_DELIVER_SM_RESP)

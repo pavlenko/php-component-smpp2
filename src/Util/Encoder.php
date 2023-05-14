@@ -47,7 +47,7 @@ final class Encoder
                 $body .= $this->encodeUint08(false, $pdu->get(PDU::KEY_ESM_CLASS));
                 $body .= $this->encodeUint08(false, $pdu->get(PDU::KEY_PROTOCOL_ID));
                 $body .= $this->encodeUint08(false, $pdu->get(PDU::KEY_PRIORITY_FLAG));
-                $body .= $this->encodeDateTime(false, $pdu->get(PDU::KEY_SCHEDULE_DELIVERY_TIME));
+                $body .= $this->encodeDateTime(false, $pdu->get(PDU::KEY_SCHEDULED_AT));
                 $body .= $this->encodeDateTime(false, $pdu->get(PDU::KEY_VALIDITY_PERIOD));
                 $body .= $this->encodeUint08(false, $pdu->get(PDU::KEY_REG_DELIVERY));
                 $body .= $this->encodeUint08(false, $pdu->get(PDU::KEY_REPLACE_IF_PRESENT));
@@ -105,7 +105,7 @@ final class Encoder
             case PDU::ID_REPLACE_SM:
                 $body .= $this->encodeString(true, null, 65, $pdu->get(PDU::KEY_MESSAGE_ID));
                 $body .= $this->encodeAddress(true, 21, $pdu->get(PDU::KEY_SRC_ADDRESS));
-                $body .= $this->encodeDateTime(false, $pdu->get(PDU::KEY_SCHEDULE_DELIVERY_TIME));
+                $body .= $this->encodeDateTime(false, $pdu->get(PDU::KEY_SCHEDULED_AT));
                 $body .= $this->encodeDateTime(false, $pdu->get(PDU::KEY_VALIDITY_PERIOD));
                 $body .= $this->encodeUint08(false, $pdu->get(PDU::KEY_REG_DELIVERY));
                 $body .= $this->encodeUint08(false, $pdu->get(PDU::KEY_SM_DEFAULT_MSG_ID));
@@ -270,7 +270,6 @@ final class Encoder
                     'Invalid DATETIME value, got ' . (is_object($value) ? get_class($value) : gettype($value))
                 );
             }
-
             $value = $value->format('ymdHis') . '000+';
         }
 

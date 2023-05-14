@@ -6,6 +6,7 @@ use PE\Component\Event\Emitter;
 use PE\Component\SMPP\Client4;
 use PE\Component\SMPP\ClientAPI;
 use PE\Component\SMPP\DTO\Address;
+use PE\Component\SMPP\DTO\DateTime;
 use PE\Component\SMPP\DTO\PDU;
 use PE\Component\SMPP\DTO\SMS;
 use PE\Component\SMPP\DTO\TLV;
@@ -46,6 +47,7 @@ $client->bind('127.0.0.1:2775', PDU::ID_BIND_TRANSMITTER)
                 PDU::KEY_SHORT_MESSAGE => 'HELLO',
                 PDU::KEY_SRC_ADDRESS   => $source,
                 PDU::KEY_DST_ADDRESS   => new Address(Address::TON_INTERNATIONAL, Address::NPI_ISDN, '10001112244'),
+                PDU::KEY_SCHEDULED_AT  => (new DateTime())->modify('+5 seconds'),
                 TLV::TAG_SOURCE_PORT   => new TLV(TLV::TAG_SOURCE_PORT, 8080),
             ])
             ->then(fn() => $client->exit()/*TODO success*/)

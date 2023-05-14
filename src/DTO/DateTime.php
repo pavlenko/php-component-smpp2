@@ -26,6 +26,10 @@ final class DateTime extends \DateTime
     {
         $datetime = clone $this;
         $datetime->setTimezone(new \DateTimeZone('UTC'));
-        return sprintf('DateTime(%s)', $datetime->format(DATE_ATOM));//TODO date, time, tz, maybe separate value & utc
+        return sprintf(
+            'DateTime(date: %s, time: %s, tz: UTC)',
+            $datetime->format('Y-m-d'),
+            $datetime->format('H:i:s')
+        );
     }
 }
