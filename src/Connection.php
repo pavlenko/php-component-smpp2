@@ -171,9 +171,14 @@ final class Connection implements ConnectionInterface
 
     public function send(PDU $pdu): void
     {
-        $this->logger->log(LogLevel::DEBUG, 'O: ' . $pdu->toLogger());
-        $this->client->write($this->encoder->encode($pdu));
-        $this->updLastMessageTime();
+        try {
+            $this->logger->log(LogLevel::DEBUG, 'O: ' . $pdu->toLogger());
+            $this->client->write($this->encoder->encode($pdu));
+            $this->updLastMessageTime();
+        } catch (ExceptionInterface $exception) {
+            $this->logger->log(LogLevel::ERROR, 'E: ' . $exception->getMessage());
+            call_user_func($this->onError, $exception);
+        }
     }
 
     public function close(string $message = null): void
