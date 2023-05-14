@@ -4,18 +4,18 @@ namespace PE\Component\SMPP;
 
 use PE\Component\SMPP\DTO\Message;
 
-final class Storage4 implements StorageInterface
+final class StorageMemory implements StorageInterface
 {
     /**
      * @var Message[]
      */
     private array $messages = [];
 
-    public function search(Search $search): ?Message
+    public function search(Criteria $search): ?Message
     {
         $now = new \DateTime();
         foreach ($this->messages as $message) {
-            if (null !== $search->getMessageID() && $message->getMessageID() !== $search->getMessageID()) {
+            if (null !== $search->getMessageID() && $message->getID() !== $search->getMessageID()) {
                 continue;
             }
             if (null !== $search->getSourceAddress()
@@ -38,6 +38,7 @@ final class Storage4 implements StorageInterface
         return null;
     }
 
+    /* @deprecated */
     public function select(): ?Message
     {
         return array_shift($this->messages);

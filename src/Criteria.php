@@ -4,7 +4,7 @@ namespace PE\Component\SMPP;
 
 use PE\Component\SMPP\DTO\Address;
 
-final class Search
+final class Criteria
 {
     private ?string $messageID = null;
     private ?int $status = null;

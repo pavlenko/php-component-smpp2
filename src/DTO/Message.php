@@ -2,10 +2,9 @@
 
 namespace PE\Component\SMPP\DTO;
 
-/* @deprecated */
 final class Message
 {
-    public const STATUS_CREATED       = 0;
+    public const STATUS_PENDING       = 0;
     public const STATUS_ENROUTE       = 1;
     public const STATUS_DELIVERED     = 2;
     public const STATUS_EXPIRED       = 3;
@@ -15,62 +14,63 @@ final class Message
     public const STATUS_UNKNOWN       = 7;
     public const STATUS_REJECTED      = 8;
 
-    private Address $sourceAddress;
-    private Address $targetAddress;
-    private string $message;
-    private array $params;
-    private ?string $messageID = null;
-    private int $status = self::STATUS_CREATED;
+    private ?Address $sourceAddress = null;
+    private ?Address $targetAddress = null;
+    private ?string $id = null;
+    private ?string $body = null;
+    private int $status = self::STATUS_PENDING;
     private int $errorCode = 0;
-    private ?\DateTimeInterface $scheduledAt = null;
-    private ?\DateTimeInterface $deliveredAt = null;
+    private int $dataCoding = PDU::DATA_CODING_DEFAULT;
+    private ?DateTime $scheduledAt = null;
+    private ?DateTime $deliveredAt = null;
+    private ?DateTime $expiredAt = null;
+    private array $params = [];
 
-    public function __construct(Address $source, Address $target, string $message, array $params = [])
+    public function __construct(string $body = null, Address $targetAddress = null, Address $sourceAddress = null)
     {
-        $this->sourceAddress = $source;
-        $this->targetAddress = $target;
-        $this->message = $message;
-        $this->params = $params;
+        $this->setBody($body);
+        $this->setTargetAddress($targetAddress);
+        $this->setSourceAddress($sourceAddress);
     }
 
-    public function getSourceAddress(): Address
+    public function getSourceAddress(): ?Address
     {
         return $this->sourceAddress;
     }
 
-    public function getTargetAddress(): Address
+    public function setSourceAddress(?Address $sourceAddress): void
+    {
+        $this->sourceAddress = $sourceAddress;
+    }
+
+    public function getTargetAddress(): ?Address
     {
         return $this->targetAddress;
     }
 
-    public function getMessage(): string
+    public function setTargetAddress(?Address $targetAddress): void
     {
-        return $this->message;
+        $this->targetAddress = $targetAddress;
     }
 
-    public function setMessage(string $message): void
+    public function getID(): ?string
     {
-        $this->message = $message;
+        return $this->id;
     }
 
-    public function getParams(): array
+    public function setID(?string $id): void
     {
-        return $this->params;
+        $this->id = $id;
     }
 
-    public function setParams(array $params): void
+    public function getBody(): ?string
     {
-        $this->params = $params;
+        return $this->body;
     }
 
-    public function getMessageID(): ?string
+    public function setBody(?string $body): void
     {
-        return $this->messageID;
-    }
-
-    public function setMessageID(string $messageID): void
-    {
-        $this->messageID = $messageID;
+        $this->body = $body;
     }
 
     public function getStatus(): int
@@ -93,23 +93,54 @@ final class Message
         $this->errorCode = $errorCode;
     }
 
-    public function getScheduledAt(): ?\DateTimeInterface
+    public function getDataCoding(): int
+    {
+        return $this->dataCoding;
+    }
+
+    public function setDataCoding(int $dataCoding): void
+    {
+        $this->dataCoding = $dataCoding;
+    }
+
+    public function getScheduledAt(): ?DateTime
     {
         return $this->scheduledAt;
     }
 
-    public function setScheduledAt(?\DateTimeInterface $scheduledAt): void
+    public function setScheduledAt(?DateTime $scheduledAt): void
     {
         $this->scheduledAt = $scheduledAt;
     }
 
-    public function getDeliveredAt(): ?\DateTimeInterface
+    public function getDeliveredAt(): ?DateTime
     {
         return $this->deliveredAt;
     }
 
-    public function setDeliveredAt(?\DateTimeInterface $deliveredAt): void
+    public function setDeliveredAt(?DateTime $deliveredAt): void
     {
         $this->deliveredAt = $deliveredAt;
+    }
+
+    public function getExpiredAt(): ?DateTime
+    {
+        return $this->expiredAt;
+    }
+
+    public function setExpiredAt(?DateTime $expiredAt): void
+    {
+        $this->expiredAt = $expiredAt;
+    }
+
+    public function getParams(): array
+    {
+        return $this->params;
+    }
+
+    public function setParams(array $params): void
+    {
+        //TODO check if allowed param
+        $this->params = $params;
     }
 }

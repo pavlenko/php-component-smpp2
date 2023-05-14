@@ -166,23 +166,25 @@ final class Server4
             case PDU::ID_SUBMIT_SM:
                 try {
                     $message = new Message(
-                        $pdu->get(PDU::KEY_SRC_ADDRESS),
+                        $pdu->get(PDU::KEY_SHORT_MESSAGE),
                         $pdu->get(PDU::KEY_DST_ADDRESS),
-                        $pdu->get(PDU::KEY_SHORT_MESSAGE)
+                        $pdu->get(PDU::KEY_SRC_ADDRESS),
                     );
-                    $message->setMessageID($this->factory->generateID());
+                    $message->setID($this->factory->generateID());
+                    $message->setDataCoding($pdu->get(PDU::KEY_DATA_CODING));
                     $message->setScheduledAt($pdu->get(PDU::KEY_SCHEDULED_AT));
+                    $message->setExpiredAt($pdu->get(PDU::KEY_VALIDITY_PERIOD));
                     $message->setParams([
                         PDU::KEY_SERVICE_TYPE      => $pdu->get(PDU::KEY_SERVICE_TYPE),
-                        PDU::KEY_DATA_CODING       => $pdu->get(PDU::KEY_DATA_CODING),
-                        PDU::KEY_VALIDITY_PERIOD   => $pdu->get(PDU::KEY_VALIDITY_PERIOD),
                         PDU::KEY_REG_DELIVERY      => $pdu->get(PDU::KEY_REG_DELIVERY),
                         PDU::KEY_SM_DEFAULT_MSG_ID => $pdu->get(PDU::KEY_SM_DEFAULT_MSG_ID),
                         PDU::KEY_SM_LENGTH         => $pdu->get(PDU::KEY_SM_LENGTH),
                     ]);
+
                     $this->storage->insert($message);
+
                     $connection->send(new PDU(PDU::ID_SUBMIT_SM_RESP, 0, $pdu->getSeqNum(), [
-                        PDU::KEY_MESSAGE_ID => $message->getMessageID()
+                        PDU::KEY_MESSAGE_ID => $message->getID()
                     ]));
                 } catch (\Throwable $exception) {
                     $connection->send(new PDU(PDU::ID_SUBMIT_SM_RESP, PDU::STATUS_SUBMIT_SM_FAILED, $pdu->getSeqNum()));
@@ -191,35 +193,34 @@ final class Server4
             case PDU::ID_DATA_SM:
                 try {
                     $message = new Message(
-                        $pdu->get(PDU::KEY_SRC_ADDRESS),
+                        $pdu->get(PDU::KEY_SHORT_MESSAGE),
                         $pdu->get(PDU::KEY_DST_ADDRESS),
-                        $pdu->get(PDU::KEY_SHORT_MESSAGE)
+                        $pdu->get(PDU::KEY_SRC_ADDRESS),
                     );
-                    $message->setMessageID($this->factory->generateID());
+                    $message->setID($this->factory->generateID());
+                    $message->setDataCoding($pdu->get(PDU::KEY_DATA_CODING));
                     $message->setParams([
-                        PDU::KEY_SERVICE_TYPE      => $pdu->get(PDU::KEY_SERVICE_TYPE),
-                        PDU::KEY_DATA_CODING       => $pdu->get(PDU::KEY_DATA_CODING),
-                        PDU::KEY_VALIDITY_PERIOD   => $pdu->get(PDU::KEY_VALIDITY_PERIOD),
-                        PDU::KEY_REG_DELIVERY      => $pdu->get(PDU::KEY_REG_DELIVERY),
-                        PDU::KEY_SM_DEFAULT_MSG_ID => $pdu->get(PDU::KEY_SM_DEFAULT_MSG_ID),
-                        PDU::KEY_SM_LENGTH         => $pdu->get(PDU::KEY_SM_LENGTH),
+                        PDU::KEY_SERVICE_TYPE => $pdu->get(PDU::KEY_SERVICE_TYPE),
+                        PDU::KEY_REG_DELIVERY => $pdu->get(PDU::KEY_REG_DELIVERY),
                     ]);
+
                     $this->storage->insert($message);
+
                     $connection->send(new PDU(PDU::ID_DATA_SM_RESP, 0, $pdu->getSeqNum(), [
-                        PDU::KEY_MESSAGE_ID => $message->getMessageID()
+                        PDU::KEY_MESSAGE_ID => $message->getID()
                     ]));
                 } catch (\Throwable $exception) {
                     $connection->send(new PDU(PDU::ID_DATA_SM_RESP, PDU::STATUS_DELIVERY_FAILURE, $pdu->getSeqNum()));
                 }
                 break;
             case PDU::ID_QUERY_SM:
-                $search = (new Search())
+                $search = (new Criteria())
                     ->setMessageID($pdu->get(PDU::KEY_MESSAGE_ID))
                     ->setSourceAddress($pdu->get(PDU::KEY_SRC_ADDRESS));
-                $message = $this->storage->search($search);
-                if ($message) {
+
+                if ($message = $this->storage->search($search)) {
                     $connection->send(new PDU(PDU::ID_GENERIC_NACK | $pdu->getID(), 0, $pdu->getSeqNum(), [
-                        PDU::KEY_MESSAGE_ID    => $message->getMessageID(),
+                        PDU::KEY_MESSAGE_ID    => $message->getID(),
                         PDU::KEY_MESSAGE_STATE => $message->getStatus(),
                         PDU::KEY_FINAL_DATE    => $message->getDeliveredAt(),
                         PDU::KEY_ERROR_CODE    => $message->getErrorCode(),
@@ -229,12 +230,12 @@ final class Server4
                 }
                 break;
             case PDU::ID_CANCEL_SM:
-                $search = (new Search())
+                $search = (new Criteria())
                     ->setMessageID($pdu->get(PDU::KEY_MESSAGE_ID))
-                    ->setStatus(Message::STATUS_CREATED)
+                    ->setStatus(Message::STATUS_PENDING)
                     ->setSourceAddress($pdu->get(PDU::KEY_SRC_ADDRESS));
-                $message = $this->storage->search($search);
-                if ($message) {
+
+                if ($message = $this->storage->search($search)) {
                     $message->setStatus(Message::STATUS_DELETED);
                     $connection->send(new PDU(PDU::ID_CANCEL_SM_RESP, PDU::STATUS_NO_ERROR, $pdu->getSeqNum()));
                 } else {
@@ -242,21 +243,23 @@ final class Server4
                 }
                 break;
             case PDU::ID_REPLACE_SM:
-                $search = (new Search())
+                $search = (new Criteria())
                     ->setMessageID($pdu->get(PDU::KEY_MESSAGE_ID))
-                    ->setStatus(Message::STATUS_CREATED)
+                    ->setStatus(Message::STATUS_PENDING)
                     ->setSourceAddress($pdu->get(PDU::KEY_SRC_ADDRESS));
-                $message = $this->storage->search($search);
-                if ($message) {
-                    $message->setMessage($pdu->get(PDU::KEY_SHORT_MESSAGE));
+
+                if ($message = $this->storage->search($search)) {
+                    $message->setBody($pdu->get(PDU::KEY_SHORT_MESSAGE));
                     $message->setScheduledAt($pdu->get(PDU::KEY_SCHEDULED_AT));
+                    $message->setExpiredAt($pdu->get(PDU::KEY_VALIDITY_PERIOD));
                     $message->setParams([
-                        PDU::KEY_VALIDITY_PERIOD   => $pdu->get(PDU::KEY_VALIDITY_PERIOD),
                         PDU::KEY_REG_DELIVERY      => $pdu->get(PDU::KEY_REG_DELIVERY),
                         PDU::KEY_SM_DEFAULT_MSG_ID => $pdu->get(PDU::KEY_SM_DEFAULT_MSG_ID),
                         PDU::KEY_SM_LENGTH         => $pdu->get(PDU::KEY_SM_LENGTH),
                     ]);
+
                     $this->storage->update($message);
+
                     $connection->send(new PDU(PDU::ID_REPLACE_SM_RESP, PDU::STATUS_NO_ERROR, $pdu->getSeqNum()));
                 } else {
                     $connection->send(new PDU(
@@ -301,24 +304,26 @@ final class Server4
             return;
         }
 
-        $search = (new Search())
-            ->setStatus(Message::STATUS_CREATED)
+        $search = (new Criteria())
+            ->setStatus(Message::STATUS_PENDING)
             ->setTargetAddress($connection->getSession()->getAddress())
             ->setCheckSchedule();
 
-        $message = $this->storage->search($search);
-        if ($message) {
+        if ($message = $this->storage->search($search)) {
             $sequenceNum = $this->session->newSequenceNum();
+
             $connection->send(new PDU(PDU::ID_DELIVER_SM, 0, $sequenceNum, [
-                PDU::KEY_SHORT_MESSAGE          => $message->getMessage(),
-                PDU::KEY_DST_ADDRESS            => $message->getTargetAddress(),
-                PDU::KEY_SRC_ADDRESS            => $message->getSourceAddress(),
-                PDU::KEY_SCHEDULED_AT => $message->getScheduledAt(),
+                PDU::KEY_SHORT_MESSAGE => $message->getBody(),
+                PDU::KEY_DST_ADDRESS   => $message->getTargetAddress(),
+                PDU::KEY_SRC_ADDRESS   => $message->getSourceAddress(),
+                PDU::KEY_SCHEDULED_AT  => $message->getScheduledAt(),
             ] + $message->getParams()));
+
             $connection
                 ->wait($this->session->getResponseTimeout(), $sequenceNum, PDU::ID_DELIVER_SM_RESP)
                 ->then(fn() => $message->setStatus(Message::STATUS_DELIVERED))
                 ->else(fn() => $message->setStatus(Message::STATUS_REJECTED));
+
             $message->setStatus(Message::STATUS_ENROUTE);
         }
     }

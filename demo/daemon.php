@@ -7,7 +7,7 @@ use PE\Component\SMPP\DTO\PDU;
 use PE\Component\SMPP\Factory;
 use PE\Component\SMPP\Server4;
 use PE\Component\SMPP\Session;
-use PE\Component\SMPP\Storage4;
+use PE\Component\SMPP\StorageMemory;
 use PE\Component\Socket\Factory as SocketFactory;
 use PE\Component\Socket\Select;
 use Symfony\Component\Console\Logger\ConsoleLogger;
@@ -20,7 +20,7 @@ date_default_timezone_set('Europe/Kiev');
 $logger = new ConsoleLogger(new ConsoleOutput(ConsoleOutput::VERBOSITY_DEBUG));
 $server = new Server4(
     new Session('SERVER'),
-    new Storage4(),
+    new StorageMemory(),
     $emitter = new Emitter(),
     new Factory($select = new Select(), new SocketFactory($select), null, null, $logger),
     $logger

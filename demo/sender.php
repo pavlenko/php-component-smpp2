@@ -8,12 +8,11 @@ use PE\Component\SMPP\ClientAPI;
 use PE\Component\SMPP\DTO\Address;
 use PE\Component\SMPP\DTO\DateTime;
 use PE\Component\SMPP\DTO\Message;
-use PE\Component\SMPP\DTO\Message2;
 use PE\Component\SMPP\DTO\PDU;
 use PE\Component\SMPP\DTO\TLV;
 use PE\Component\SMPP\Factory;
 use PE\Component\SMPP\Session;
-use PE\Component\SMPP\Storage4;
+use PE\Component\SMPP\StorageMemory;
 use PE\Component\Socket\Factory as SocketFactory;
 use PE\Component\Socket\Select;
 use Symfony\Component\Console\Logger\ConsoleLogger;
@@ -26,7 +25,7 @@ date_default_timezone_set('Europe/Kiev');
 $logger = new ConsoleLogger(new ConsoleOutput(ConsoleOutput::VERBOSITY_DEBUG));
 $client = new Client4(
     new Session('ID', null, $source = new Address(Address::TON_INTERNATIONAL, Address::NPI_ISDN, '10001112233')),
-    new Storage4(),
+    new StorageMemory(),
     new Emitter(),
     new Factory($select = new Select(), new SocketFactory($select), null, null, $logger),
     $logger
@@ -39,7 +38,7 @@ $client->bind('127.0.0.1:2775', PDU::ID_BIND_TRANSMITTER)
         //TODO dst_address required on submit_sm, replace_sm, data_sm
         //TODO src_address required on cancel_sm, replace_sm
         //TODO message_id required on query_sm, replace_sm, cancel_sm
-        $message = new Message2();
+        $message = new Message();
         $message->setScheduledAt((new DateTime())->modify('+5 seconds'));
         $message->setExpiredAt((new DateTime())->modify('+5 days'));
 

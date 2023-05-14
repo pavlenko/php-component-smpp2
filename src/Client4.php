@@ -184,14 +184,15 @@ final class Client4
             return;
         }
 
-        $message = $this->storage->select();
-        if ($message) {
+        if ($message = $this->storage->select()) {
+            //TODO callbacks or remove storage usage entirely
             $this->send(PDU::ID_SUBMIT_SM, [
-                PDU::KEY_SHORT_MESSAGE          => $message->getMessage(),
-                PDU::KEY_DST_ADDRESS            => $message->getTargetAddress(),
-                PDU::KEY_SRC_ADDRESS            => $message->getSourceAddress(),
-                PDU::KEY_SCHEDULED_AT => $message->getScheduledAt(),
+                PDU::KEY_SHORT_MESSAGE => $message->getBody(),
+                PDU::KEY_DST_ADDRESS   => $message->getTargetAddress(),
+                PDU::KEY_SRC_ADDRESS   => $message->getSourceAddress(),
+                PDU::KEY_SCHEDULED_AT  => $message->getScheduledAt(),
             ] + $message->getParams());
+
             $this->storage->delete($message);
         }
     }
