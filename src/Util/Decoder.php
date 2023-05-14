@@ -10,7 +10,7 @@ use PE\Component\SMPP\Exception\InvalidPDUException;
 use PE\Component\SMPP\Exception\MalformedPDUException;
 use PE\Component\SMPP\Exception\UnknownPDUException;
 
-final class Decoder
+final class Decoder implements DecoderInterface
 {
     public function decode(string $buffer): PDU
     {
