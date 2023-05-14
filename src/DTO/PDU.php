@@ -242,21 +242,36 @@ final class PDU
 
         $params = [];
         $length = 0;
-        foreach ($this->params as $key => &$val) {
+        foreach ($this->params as $key => $val) {
             if (is_numeric($key)) {
                 $key = TLV::TAG()[$key] ?? sprintf('0x%08X', $key);
                 $val = $val instanceof TLV ? $val->dump() : 'NULL';
-            } else {
-                //TODO pdu key
+            } elseif ($val instanceof Address || $val instanceof DateTime) {
+                $val = $val->dump();
+            } elseif (null === $val) {
+                $val = 'NULL';
+            } elseif (is_string($val)) {
+                $val = "\"$val\"";
             }
             $length = max($length, strlen($key));
+            $params[$key] = $val;
+        }
+
+        $body = '';
+        foreach ($params as $key => $val) {
+            $body .= '    ' . str_pad($key, $length) . ' :' . $val . "\n";
+        }
+
+        if ('' !== $body) {
+            $body = "\n" . $body;
         }
 
         return sprintf(
-            'PDU(%s, %s, %d)',
+            'PDU(id: %s, status: %s, seq: %d, params: [%s])',
             $identifiers[$this->getID()] ?? sprintf('0x%08X', $this->getID()),
             $statuses[$this->getStatus()] ?? sprintf('0x%08X', $this->getStatus()),
-            $this->getSeqNum()
+            $this->getSeqNum(),
+            $body
         );
     }
 }
