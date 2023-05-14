@@ -24,8 +24,8 @@ final class Factory implements FactoryInterface
     private LoggerInterface $logger;
 
     public function __construct(
-        SocketSelectInterface  $socketSelect,
-        SocketFactoryInterface $socketFactory,
+        SocketSelectInterface  $socketSelect,//TODO nullable
+        SocketFactoryInterface $socketFactory,//TODO create factory without select, maybe default & getter
         DecoderInterface       $decoder = null,
         EncoderInterface       $encoder = null,
         LoggerInterface        $logger = null
