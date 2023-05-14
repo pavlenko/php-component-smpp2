@@ -206,7 +206,6 @@ final class Decoder implements DecoderInterface
         }
 
         if ($required && 0 === $value[1]) {
-            dump($buffer);
             $error = sprintf('Required UINT32 value at position %d in "%s"', $pos, $this->toPrintable($buffer));
             throw new InvalidPDUException($error);
         }
