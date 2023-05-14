@@ -90,10 +90,14 @@ final class TLV
 
     public function dump(): string
     {
-        return sprintf(
-            'TLV(tag: %s, val: %s)',
-            self::TAG()[$this->tag] ?? sprintf('0x%04X', $this->tag),
-            $this->value
-        );
+        if (is_string($this->value)) {
+            $val = "\"$this->value\"";
+        } elseif (null === $this->value) {
+            $val = 'NULL';
+        } else {
+            $val = $this->value;
+        }
+
+        return sprintf('TLV(tag: %s, val: %s)', self::TAG()[$this->tag] ?? sprintf('0x%04X', $this->tag), $val);
     }
 }

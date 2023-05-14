@@ -84,7 +84,7 @@ final class Address
     public function dump(): string
     {
         return sprintf(
-            'Address(ton: %s, npi: %s, val: %s)',
+            'Address(ton: %s, npi: %s, val: "%s")',
             self::TON()[$this->ton] ?? sprintf('0b%08b', $this->ton),
             self::NPI()[$this->npi] ?? sprintf('0b%08b', $this->npi),
             $this->value

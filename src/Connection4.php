@@ -165,7 +165,7 @@ final class Connection4
     public function wait(int $timeout, int $seqNum = 0, int ...$expectPDU): Deferred
     {
         $this->expects[] = $expects = new Deferred($timeout, $seqNum, ...$expectPDU);
-        $this->logger->log(LogLevel::DEBUG, '?: ' . $expects->toLogger());
+        $this->logger->log(LogLevel::DEBUG, '?: ' . $expects->dump());
         return $expects;
     }
 

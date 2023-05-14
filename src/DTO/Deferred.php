@@ -31,13 +31,16 @@ final class Deferred
         return $this->seqNum === $sequenceNum || in_array($id, $this->expectPDU);
     }
 
-    public function toLogger(): string
+    public function dump(): string
     {
-        return sprintf(
-            'ExpectsPDU(%s, %d)',
-            implode('|', array_map(fn($id) => PDU::getIdentifiers()[$id] ?? sprintf('0x%08X', $id), $this->expectPDU)),
-            $this->seqNum
-        );
+        $body = [];
+        if (!empty($this->expectPDU)) {
+            $body[] = 'id: ' . implode('|', array_map(fn($id) => PDU::getIdentifiers()[$id], $this->expectPDU));
+        }
+        if (!empty($this->seqNum)) {
+            $body[] = 'seq: ' . $this->seqNum;
+        }
+        return sprintf('Deferred(%s)', implode(', ', $body));
     }
 
     public function then(callable $handler): self

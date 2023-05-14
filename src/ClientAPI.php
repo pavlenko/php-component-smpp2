@@ -16,7 +16,7 @@ final class ClientAPI
 
     public function submitSM(array $params): Deferred
     {
-        return $this->client->send(0/*PDU::ID_SUBMIT_SM*/, $params);
+        return $this->client->send(PDU::ID_SUBMIT_SM, $params);
     }
 
     public function dataSM(array $params): Deferred
