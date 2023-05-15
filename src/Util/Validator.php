@@ -7,7 +7,7 @@ use PE\Component\SMPP\DTO\TLV;
 
 final class Validator implements ValidatorInterface
 {
-    private ?string $password = null;
+    private ?string $password;
     private array $systemTypes = [];
 
     public function __construct(?string $password)
@@ -41,7 +41,62 @@ final class Validator implements ValidatorInterface
                     throw new ValidatorException('SYSTEM_ID required', PDU::STATUS_INVALID_SYSTEM_ID);
                 }
                 break;
-                //TODO others
+            case PDU::ID_SUBMIT_SM:
+            case PDU::ID_DELIVER_SM:
+                if (empty($pdu->get(PDU::KEY_DST_ADDRESS))) {
+                    throw new ValidatorException('DST_ADDRESS required', PDU::STATUS_INVALID_DST_ADDRESS);
+                }
+                if (empty($pdu->get(PDU::KEY_SHORT_MESSAGE))) {
+                    throw new ValidatorException('SHORT_MESSAGE required', PDU::STATUS_INVALID_ESM_CLASS);
+                }
+                break;
+            case PDU::ID_SUBMIT_SM_RESP:
+            case PDU::ID_DELIVER_SM_RESP:
+            case PDU::ID_DATA_SM_RESP:
+            case PDU::ID_QUERY_SM:
+                if (empty($pdu->get(PDU::KEY_MESSAGE_ID))) {
+                    throw new ValidatorException('MESSAGE_ID required', PDU::STATUS_INVALID_MESSAGE_ID);
+                }
+                break;
+            case PDU::ID_DATA_SM:
+                if (empty($pdu->get(PDU::KEY_DST_ADDRESS))) {
+                    throw new ValidatorException('DST_ADDRESS required', PDU::STATUS_INVALID_DST_ADDRESS);
+                }
+                break;
+            case PDU::ID_QUERY_SM_RESP:
+                if (empty($pdu->get(PDU::KEY_MESSAGE_ID))) {
+                    throw new ValidatorException('MESSAGE_ID required', PDU::STATUS_INVALID_MESSAGE_ID);
+                }
+                if (empty($pdu->get(PDU::KEY_MESSAGE_STATE))) {
+                    throw new ValidatorException('MESSAGE_STATE required', PDU::STATUS_UNKNOWN_ERROR);
+                }
+                break;
+            case PDU::ID_CANCEL_SM:
+                if (empty($pdu->get(PDU::KEY_MESSAGE_ID))) {
+                    throw new ValidatorException('MESSAGE_ID required', PDU::STATUS_INVALID_MESSAGE_ID);
+                }
+                if (empty($pdu->get(PDU::KEY_SRC_ADDRESS))) {
+                    throw new ValidatorException('SRC_ADDRESS required', PDU::STATUS_INVALID_SRC_ADDRESS);
+                }
+                break;
+            case PDU::ID_REPLACE_SM:
+                if (empty($pdu->get(PDU::KEY_MESSAGE_ID))) {
+                    throw new ValidatorException('MESSAGE_ID required', PDU::STATUS_INVALID_MESSAGE_ID);
+                }
+                if (empty($pdu->get(PDU::KEY_DST_ADDRESS))) {
+                    throw new ValidatorException('DST_ADDRESS required', PDU::STATUS_INVALID_DST_ADDRESS);
+                }
+                if (empty($pdu->get(PDU::KEY_SHORT_MESSAGE))) {
+                    throw new ValidatorException('SHORT_MESSAGE required', PDU::STATUS_INVALID_ESM_CLASS);
+                }
+                break;
+            case PDU::ID_ALERT_NOTIFICATION:
+                if (empty($pdu->get(PDU::KEY_SRC_ADDRESS))) {
+                    throw new ValidatorException('SRC_ADDRESS required', PDU::STATUS_INVALID_SRC_ADDRESS);
+                }
+                if (empty($pdu->get(PDU::KEY_ESME_ADDRESS))) {
+                    throw new ValidatorException('ESME_ADDRESS required', PDU::STATUS_UNKNOWN_ERROR);
+                }
         }
 
         foreach ($pdu->getParams() as $key => $val) {
