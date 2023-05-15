@@ -217,7 +217,7 @@ final class PDU
     public const STATUS_RX_REJECTED_APP_ERR_CODE     = 0x00000066;
     public const STATUS_QUERY_SM_FAILED              = 0x00000067;
     public const STATUS_INVALID_OPTIONAL_PART        = 0x000000C0;//TODO if cannot decode TLV
-    public const STATUS_OPTIONAL_PART_NOT_ALLOWED    = 0x000000C1;//TODO if TLV not allowed for specific PDU ID
+    public const STATUS_OPTIONAL_PARAM_NOT_ALLOWED   = 0x000000C1;//TODO if TLV not allowed for specific PDU ID
     public const STATUS_INVALID_PARAM_LENGTH         = 0x000000C2;
     public const STATUS_MISSING_OPTIONAL_PARAM       = 0x000000C3;
     public const STATUS_INVALID_OPTIONAL_PARAM_VALUE = 0x000000C4;
