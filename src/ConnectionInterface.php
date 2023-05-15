@@ -16,14 +16,14 @@ interface ConnectionInterface
     public const STATUS_CLOSED    = 0b100;
 
     public const BIND_MAP = [
-        PDU::ID_BIND_RECEIVER    => self::STATUS_BOUND_TX,
-        PDU::ID_BIND_TRANSMITTER => self::STATUS_BOUND_RX,
+        PDU::ID_BIND_RECEIVER    => self::STATUS_BOUND_RX,
+        PDU::ID_BIND_TRANSMITTER => self::STATUS_BOUND_TX,
         PDU::ID_BIND_TRANSCEIVER => self::STATUS_BOUND_TRX,
     ];
 
     public const BOUND_MAP = [
-        PDU::ID_BIND_RECEIVER_RESP    => self::STATUS_BOUND_TX,
-        PDU::ID_BIND_TRANSMITTER_RESP => self::STATUS_BOUND_RX,
+        PDU::ID_BIND_RECEIVER_RESP    => self::STATUS_BOUND_RX,
+        PDU::ID_BIND_TRANSMITTER_RESP => self::STATUS_BOUND_TX,
         PDU::ID_BIND_TRANSCEIVER_RESP => self::STATUS_BOUND_TRX,
     ];
 

@@ -62,7 +62,7 @@ final class Client implements ClientInterface
         $this->connection->setCloseHandler(function (string $message = null) {
             $this->logger->log(
                 LogLevel::DEBUG,
-                "Connection to {$this->connection->getRemoteAddress()} closed" . (!$message ?: ': ' . $message)
+                "Connection to {$this->connection->getRemoteAddress()} closed" . ($message ? ': ' . $message : '')
             );
             $this->loop->stop();
             $this->connection->setStatus(ConnectionInterface::STATUS_CLOSED);
@@ -137,7 +137,7 @@ final class Client implements ClientInterface
         }
 
         if (array_key_exists($pdu->getID(), ConnectionInterface::ALLOWED_ID_BY_BOUND)
-            && !in_array($connection->getStatus(), ConnectionInterface::ALLOWED_ID_BY_BOUND)) {
+            && !in_array($connection->getStatus(), ConnectionInterface::ALLOWED_ID_BY_BOUND[$pdu->getID()])) {
             $connection->send(
                 new PDU(PDU::ID_GENERIC_NACK | $pdu->getID(), PDU::STATUS_INVALID_BIND_STATUS, $pdu->getSeqNum())
             );

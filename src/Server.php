@@ -97,7 +97,7 @@ final class Server implements ServerInterface
     {
         $this->logger->log(
             LogLevel::DEBUG,
-            '< Close connection from ' . $connection->getRemoteAddress() . (!$message ?: ': ' . $message)
+            '< Close connection from ' . $connection->getRemoteAddress() . ($message ? ': ' . $message : '')
         );
         $this->connections->detach($connection);
         $connection->setCloseHandler(fn() => null);
@@ -166,7 +166,7 @@ final class Server implements ServerInterface
         }
 
         if (array_key_exists($pdu->getID(), ConnectionInterface::ALLOWED_ID_BY_BOUND)
-            && !in_array($connection->getStatus(), ConnectionInterface::ALLOWED_ID_BY_BOUND)) {
+            && !in_array($connection->getStatus(), ConnectionInterface::ALLOWED_ID_BY_BOUND[$pdu->getID()])) {
             $connection->error('Error [' . PDU::getStatuses()[PDU::STATUS_INVALID_BIND_STATUS] . ']');
             $connection->send(
                 new PDU(PDU::ID_GENERIC_NACK | $pdu->getID(), PDU::STATUS_INVALID_BIND_STATUS, $pdu->getSeqNum()),
