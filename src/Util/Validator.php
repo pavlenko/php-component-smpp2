@@ -107,10 +107,10 @@ final class Validator implements ValidatorInterface
             if (!$address instanceof Address || empty($address->getValue())) {
                 throw new ValidatorException('Invalid value', PDU::STATUS_INVALID_SRC_ADDRESS);
             }
-            if (!in_array($address->getTON(), Address::TON())) {
+            if (!array_key_exists($address->getTON(), Address::TON())) {
                 throw new ValidatorException('Invalid TON', PDU::STATUS_INVALID_SRC_TON);
             }
-            if (!in_array($address->getNPI(), Address::NPI())) {
+            if (!array_key_exists($address->getNPI(), Address::NPI())) {
                 throw new ValidatorException('Invalid NPI', PDU::STATUS_INVALID_SRC_NPI);
             }
         } elseif ($required) {
@@ -124,10 +124,10 @@ final class Validator implements ValidatorInterface
             if (!$address instanceof Address || empty($address->getValue())) {
                 throw new ValidatorException('Invalid value', PDU::STATUS_INVALID_DST_ADDRESS);
             }
-            if (!in_array($address->getTON(), Address::TON())) {
+            if (!array_key_exists($address->getTON(), Address::TON())) {
                 throw new ValidatorException('Invalid TON', PDU::STATUS_INVALID_DST_TON);
             }
-            if (!in_array($address->getNPI(), Address::NPI())) {
+            if (!array_key_exists($address->getNPI(), Address::NPI())) {
                 throw new ValidatorException('Invalid NPI', PDU::STATUS_INVALID_DST_NPI);
             }
         } elseif ($required) {
