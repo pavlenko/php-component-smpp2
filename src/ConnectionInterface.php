@@ -250,6 +250,13 @@ interface ConnectionInterface
     public function send(PDU $pdu, bool $close = false): void;
 
     /**
+     * Set error message
+     *
+     * @param string|null $message
+     */
+    public function error(string $message = null): void;
+
+    /**
      * Close connection with optional reason message
      *
      * @param string|null $message

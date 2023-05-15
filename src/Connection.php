@@ -34,6 +34,7 @@ final class Connection implements ConnectionInterface
 
     private ?string $clientAddress = null;
     private ?string $remoteAddress = null;
+    private ?string $error = null;
 
     public function __construct(
         SocketClientInterface $client,
@@ -181,9 +182,14 @@ final class Connection implements ConnectionInterface
         }
     }
 
+    public function error(string $message = null): void
+    {
+        $this->error = $message;
+    }
+
     public function close(string $message = null): void
     {
-        call_user_func($this->onClose, $message);
+        call_user_func($this->onClose, $message ?: $this->error);
 
         $this->client->setCloseHandler(fn() => null);
         $this->client->close($message);

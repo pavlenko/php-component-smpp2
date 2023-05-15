@@ -10,8 +10,6 @@ use PE\Component\SMPP\DTO\PDU;
 use PE\Component\SMPP\Exception\DecoderException;
 use PE\Component\SMPP\Exception\ExceptionInterface;
 use PE\Component\SMPP\Exception\InvalidArgumentException;
-use PE\Component\SMPP\Exception\InvalidPDUException;
-use PE\Component\SMPP\Exception\MalformedPDUException;
 use PE\Component\SMPP\Exception\UnknownPDUException;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
@@ -109,12 +107,13 @@ final class Client implements ClientInterface
     private function processErrored(ConnectionInterface $connection, ExceptionInterface $exception)
     {
         if ($exception instanceof UnknownPDUException) {
+            $connection->error('Error [' . PDU::getStatuses()[PDU::STATUS_INVALID_COMMAND_ID] . ']');
             $connection->send(new PDU(PDU::ID_GENERIC_NACK, PDU::STATUS_INVALID_COMMAND_ID, 0), true);
         }
         if ($exception instanceof DecoderException) {
+            $connection->error('Error [' . PDU::getStatuses()[PDU::STATUS_INVALID_COMMAND_LENGTH] . ']');
             $connection->send(new PDU(PDU::ID_GENERIC_NACK, PDU::STATUS_INVALID_COMMAND_LENGTH, 0), true);
         }
-        //$connection->close();
     }
 
     private function processReceive(ConnectionInterface $connection, PDU $pdu): void
@@ -124,6 +123,7 @@ final class Client implements ClientInterface
 
         // Check errored response
         if (PDU::STATUS_NO_ERROR !== $pdu->getStatus()) {
+            //TODO try recover error instead of close
             $connection->close('Error [' . (PDU::getStatuses()[$pdu->getStatus()] ?? $pdu->getStatus()) . ']');
             $deferred->failure($pdu);
             return;

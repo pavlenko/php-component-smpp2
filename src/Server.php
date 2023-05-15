@@ -107,12 +107,13 @@ final class Server implements ServerInterface
     private function processErrored(ConnectionInterface $connection, ExceptionInterface $exception): void
     {
         if ($exception instanceof UnknownPDUException) {
+            $connection->error('Error [' . PDU::getStatuses()[PDU::STATUS_INVALID_COMMAND_ID] . ']');
             $connection->send(new PDU(PDU::ID_GENERIC_NACK, PDU::STATUS_INVALID_COMMAND_ID, 0), true);
         }
         if ($exception instanceof DecoderException) {
+            $connection->error('Error [' . PDU::getStatuses()[PDU::STATUS_INVALID_COMMAND_LENGTH] . ']');
             $connection->send(new PDU(PDU::ID_GENERIC_NACK, PDU::STATUS_INVALID_COMMAND_LENGTH, 0), true);
         }
-        //$connection->close();
     }
 
     private function processReceive(ConnectionInterface $connection, PDU $pdu): void
@@ -132,6 +133,7 @@ final class Server implements ServerInterface
 
         if (array_key_exists($pdu->getID(), ConnectionInterface::BIND_MAP)) {
             if (in_array($connection->getStatus(), ConnectionInterface::BIND_MAP)) {
+                $connection->error('Error [' . PDU::getStatuses()[PDU::STATUS_ALREADY_BOUND] . ']');
                 $connection->send(
                     new PDU(PDU::ID_GENERIC_NACK | $pdu->getID(), PDU::STATUS_ALREADY_BOUND, $pdu->getSeqNum()),
                     true
@@ -143,6 +145,7 @@ final class Server implements ServerInterface
             try {
                 $deferred->success($pdu);
             } catch (\Throwable $exception) {
+                $connection->error('Error [' . PDU::getStatuses()[PDU::STATUS_BIND_FAILED] . ']');
                 $connection->send(
                     new PDU(PDU::ID_GENERIC_NACK | $pdu->getID(), PDU::STATUS_BIND_FAILED, $pdu->getSeqNum()),
                     true
@@ -164,6 +167,7 @@ final class Server implements ServerInterface
 
         if (array_key_exists($pdu->getID(), ConnectionInterface::ALLOWED_ID_BY_BOUND)
             && !in_array($connection->getStatus(), ConnectionInterface::ALLOWED_ID_BY_BOUND)) {
+            $connection->error('Error [' . PDU::getStatuses()[PDU::STATUS_INVALID_BIND_STATUS] . ']');
             $connection->send(
                 new PDU(PDU::ID_GENERIC_NACK | $pdu->getID(), PDU::STATUS_INVALID_BIND_STATUS, $pdu->getSeqNum()),
                 true
