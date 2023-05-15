@@ -9,6 +9,7 @@ use PE\Component\SMPP\DTO\TLV;
 use PE\Component\SMPP\Exception\DecoderException;
 use PE\Component\SMPP\Exception\UnknownPDUException;
 
+//TODO remove check required, move this check to validator
 final class Decoder implements DecoderInterface
 {
     public function decode(string $buffer): PDU

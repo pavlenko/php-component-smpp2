@@ -7,9 +7,9 @@ use PE\Component\SMPP\DTO\DateTime;
 use PE\Component\SMPP\DTO\PDU;
 use PE\Component\SMPP\DTO\TLV;
 use PE\Component\SMPP\Exception\EncoderException;
-use PE\Component\SMPP\Exception\InvalidPDUException;//TODO EncodePDUException
 use PE\Component\SMPP\Exception\UnknownPDUException;
 
+//TODO remove check required, move this check to validator
 final class Encoder implements EncoderInterface
 {
     public function encode(PDU $pdu): string
