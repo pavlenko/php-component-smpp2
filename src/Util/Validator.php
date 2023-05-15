@@ -45,8 +45,9 @@ final class Validator implements ValidatorInterface
             case PDU::ID_SUBMIT_SM:
             case PDU::ID_DELIVER_SM:
                 $this->validateTargetAddress($pdu->get(PDU::KEY_DST_ADDRESS), true);
+                $this->validateESMEClass($pdu->get(PDU::KEY_ESM_CLASS));
                 if (empty($pdu->get(PDU::KEY_SHORT_MESSAGE))) {
-                    throw new ValidatorException('SHORT_MESSAGE required', PDU::STATUS_INVALID_ESM_CLASS);
+                    throw new ValidatorException('SHORT_MESSAGE required', PDU::STATUS_INVALID_DEFINED_MESSAGE);
                 }
                 break;
             case PDU::ID_SUBMIT_SM_RESP:
@@ -58,6 +59,7 @@ final class Validator implements ValidatorInterface
                 break;
             case PDU::ID_DATA_SM:
                 $this->validateTargetAddress($pdu->get(PDU::KEY_DST_ADDRESS), true);
+                $this->validateESMEClass($pdu->get(PDU::KEY_ESM_CLASS));
                 break;
             case PDU::ID_QUERY_SM_RESP:
                 $this->validateMessageID($pdu->get(PDU::KEY_MESSAGE_ID), true);
@@ -73,8 +75,8 @@ final class Validator implements ValidatorInterface
             case PDU::ID_REPLACE_SM:
                 $this->validateMessageID($pdu->get(PDU::KEY_MESSAGE_ID), true);
                 $this->validateSourceAddress($pdu->get(PDU::KEY_SRC_ADDRESS), true);
-                if (empty($pdu->get(PDU::KEY_SHORT_MESSAGE))) {
-                    throw new ValidatorException('SHORT_MESSAGE required', PDU::STATUS_INVALID_ESM_CLASS);
+                if (empty($pdu->get(PDU::KEY_SHORT_MESSAGE))) {//TODO validate message
+                    throw new ValidatorException('SHORT_MESSAGE required', PDU::STATUS_INVALID_DEFINED_MESSAGE);
                 }
                 break;
             case PDU::ID_ALERT_NOTIFICATION:
@@ -88,6 +90,25 @@ final class Validator implements ValidatorInterface
             if (is_numeric($key)) {
                 $this->checkTLV($pdu->getID(), $key, $val);
             }
+        }
+    }
+
+    private function validateESMEClass($class): void
+    {
+        if (!is_int($class)) {
+            throw new ValidatorException('Invalid ESM_CLASS type', PDU::STATUS_INVALID_ESM_CLASS);
+        }
+
+        $allowed = [
+            PDU::ESM_MSG_TYPE_DEFAULT,
+            PDU::ESM_MSG_TYPE_HAS_DELIVERY_RECEIPT,
+            PDU::ESM_MSG_TYPE_HAS_ACK_AUTO,
+            PDU::ESM_MSG_TYPE_HAS_ACK_MANUAL,
+            PDU::ESM_MSG_TYPE_HAS_DELIVERY_NOTIFY,
+        ];
+
+        if (!in_array($class & 0b00_11_11_00, $allowed)) {
+            throw new ValidatorException('Invalid ESM_CLASS value', PDU::STATUS_INVALID_ESM_CLASS);
         }
     }
 
