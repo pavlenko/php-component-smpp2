@@ -207,20 +207,20 @@ final class PDU
     public const STATUS_INVALID_DST_NPI              = 0x00000051;//TODO if passed but not in constants
     public const STATUS_INVALID_SYSTEM_TYPE          = 0x00000053;//TODO if passed but not in constants
     public const STATUS_INVALID_REPLACE_FLAG         = 0x00000054;//TODO if passed but not in constants
-    public const STATUS_INVALID_NUM_MESSAGES         = 0x00000055;
+    public const STATUS_INVALID_NUM_MESSAGES         = 0x00000055;//TODO if passed but = 0, maybe
     public const STATUS_THROTTLED                    = 0x00000058;
     public const STATUS_INVALID_SCHEDULE_TIME        = 0x00000061;//TODO if passed but malformed
     public const STATUS_INVALID_EXPIRY_TIME          = 0x00000062;//TODO if passed but malformed
-    public const STATUS_INVALID_DEFINED_MESSAGE      = 0x00000063;
+    public const STATUS_INVALID_DEFINED_MESSAGE      = 0x00000063;//TODO Predefined Message Invalid or Not Found
     public const STATUS_RX_TEMPORARY_APP_ERR_CODE    = 0x00000064;
     public const STATUS_RX_PERMANENT_APP_ERR_CODE    = 0x00000065;
     public const STATUS_RX_REJECTED_APP_ERR_CODE     = 0x00000066;
     public const STATUS_QUERY_SM_FAILED              = 0x00000067;
-    public const STATUS_INVALID_OPTIONAL_PART        = 0x000000C0;//TODO if cannot decode TLV
+    public const STATUS_INVALID_OPTIONAL_PART_STREAM = 0x000000C0;//TODO if cannot decode TLVs part of PDU body
     public const STATUS_OPTIONAL_PARAM_NOT_ALLOWED   = 0x000000C1;//TODO if TLV not allowed for specific PDU ID
-    public const STATUS_INVALID_PARAM_LENGTH         = 0x000000C2;
-    public const STATUS_MISSING_OPTIONAL_PARAM       = 0x000000C3;
-    public const STATUS_INVALID_OPTIONAL_PARAM_VALUE = 0x000000C4;
+    public const STATUS_INVALID_PARAM_LENGTH         = 0x000000C2;//TODO invalid TLV body length (not match header val)
+    public const STATUS_MISSING_OPTIONAL_PARAM       = 0x000000C3;//TODO required TLV
+    public const STATUS_INVALID_OPTIONAL_PARAM_VALUE = 0x000000C4;//TODO TLV value not match expected type
     public const STATUS_DELIVERY_FAILURE             = 0x000000FE;
     public const STATUS_UNKNOWN_ERROR                = 0x000000FF;
 
