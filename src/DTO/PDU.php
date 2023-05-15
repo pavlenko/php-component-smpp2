@@ -184,9 +184,9 @@ final class PDU
     public const STATUS_INVALID_PRIORITY_FLAG        = 0x00000006;//TODO if passed but not in constants
     public const STATUS_INVALID_DELIVERY_FLAG        = 0x00000007;//TODO if passed but not in constants
     public const STATUS_SYSTEM_ERROR                 = 0x00000008;
-    public const STATUS_INVALID_SRC_ADDRESS          = 0x0000000A;//TODO if passed but not valid
-    public const STATUS_INVALID_DST_ADDRESS          = 0x0000000B;//TODO if passed but not valid
-    public const STATUS_INVALID_MESSAGE_ID           = 0x0000000C;//TODO if passed but malformed
+    public const STATUS_INVALID_SRC_ADDRESS          = 0x0000000A;
+    public const STATUS_INVALID_DST_ADDRESS          = 0x0000000B;
+    public const STATUS_INVALID_MESSAGE_ID           = 0x0000000C;
     public const STATUS_BIND_FAILED                  = 0x0000000D;
     public const STATUS_INVALID_PASSWORD             = 0x0000000E;
     public const STATUS_INVALID_SYSTEM_ID            = 0x0000000F;
@@ -201,10 +201,10 @@ final class PDU
     public const STATUS_INVALID_ESM_CLASS            = 0x00000043;
     public const STATUS_CANNOT_SUBMIT_TO_DIST_LIST   = 0x00000044;
     public const STATUS_SUBMIT_SM_FAILED             = 0x00000045;
-    public const STATUS_INVALID_SRC_TON              = 0x00000048;//TODO if passed but not in constants
-    public const STATUS_INVALID_SRC_NPI              = 0x00000049;//TODO if passed but not in constants
-    public const STATUS_INVALID_DST_TON              = 0x00000050;//TODO if passed but not in constants
-    public const STATUS_INVALID_DST_NPI              = 0x00000051;//TODO if passed but not in constants
+    public const STATUS_INVALID_SRC_TON              = 0x00000048;
+    public const STATUS_INVALID_SRC_NPI              = 0x00000049;
+    public const STATUS_INVALID_DST_TON              = 0x00000050;
+    public const STATUS_INVALID_DST_NPI              = 0x00000051;
     public const STATUS_INVALID_SYSTEM_TYPE          = 0x00000053;//TODO if passed but not in constants
     public const STATUS_INVALID_REPLACE_FLAG         = 0x00000054;//TODO if passed but not in constants
     public const STATUS_INVALID_NUM_MESSAGES         = 0x00000055;//TODO if passed but = 0, maybe

@@ -44,9 +44,7 @@ final class Validator implements ValidatorInterface
                 break;
             case PDU::ID_SUBMIT_SM:
             case PDU::ID_DELIVER_SM:
-                if (empty($pdu->get(PDU::KEY_DST_ADDRESS))) {
-                    throw new ValidatorException('DST_ADDRESS required', PDU::STATUS_INVALID_DST_ADDRESS);
-                }
+                $this->validateTargetAddress($pdu->get(PDU::KEY_DST_ADDRESS), true);
                 if (empty($pdu->get(PDU::KEY_SHORT_MESSAGE))) {
                     throw new ValidatorException('SHORT_MESSAGE required', PDU::STATUS_INVALID_ESM_CLASS);
                 }
@@ -59,9 +57,7 @@ final class Validator implements ValidatorInterface
                 $this->validateSourceAddress($pdu->get(PDU::KEY_SRC_ADDRESS), false);
                 break;
             case PDU::ID_DATA_SM:
-                if (empty($pdu->get(PDU::KEY_DST_ADDRESS))) {
-                    throw new ValidatorException('DST_ADDRESS required', PDU::STATUS_INVALID_DST_ADDRESS);
-                }
+                $this->validateTargetAddress($pdu->get(PDU::KEY_DST_ADDRESS), true);
                 break;
             case PDU::ID_QUERY_SM_RESP:
                 $this->validateMessageID($pdu->get(PDU::KEY_MESSAGE_ID), true);
