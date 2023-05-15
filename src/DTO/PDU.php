@@ -182,7 +182,7 @@ final class PDU
     public const STATUS_INVALID_BIND_STATUS          = 0x00000004;
     public const STATUS_ALREADY_BOUND                = 0x00000005;
     public const STATUS_INVALID_PRIORITY_FLAG        = 0x00000006;//TODO if passed but not in constants
-    public const STATUS_INVALID_DELIVERY_FLAG        = 0x00000007;//TODO if passed but not in constants
+    public const STATUS_INVALID_REG_DELIVERY_FLAG    = 0x00000007;//TODO if passed but not in constants
     public const STATUS_SYSTEM_ERROR                 = 0x00000008;
     public const STATUS_INVALID_SRC_ADDRESS          = 0x0000000A;
     public const STATUS_INVALID_DST_ADDRESS          = 0x0000000B;
