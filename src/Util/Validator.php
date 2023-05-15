@@ -12,6 +12,20 @@ final class Validator
     //TODO check optional missing
     public function validate(PDU $pdu): void
     {
+        switch ($pdu->getID()) {
+            case PDU::ID_BIND_RECEIVER:
+            case PDU::ID_BIND_TRANSMITTER:
+            case PDU::ID_BIND_TRANSCEIVER:
+                if (empty($pdu->get(PDU::KEY_SYSTEM_ID))) {
+                    throw new ValidatorException(
+                        PDU::getStatuses()[PDU::STATUS_INVALID_SYSTEM_ID],
+                        PDU::STATUS_INVALID_SYSTEM_ID
+                    );
+                }
+                break;
+                //TODO other identifiers check
+        }
+
         foreach ($pdu->getParams() as $key => $val) {
             if (is_numeric($key)) {
                 $this->checkTLV($pdu->getID(), $key, $val);
