@@ -187,9 +187,9 @@ final class PDU
     public const STATUS_INVALID_SRC_ADDRESS          = 0x0000000A;//TODO if passed but not valid
     public const STATUS_INVALID_DST_ADDRESS          = 0x0000000B;//TODO if passed but not valid
     public const STATUS_INVALID_MESSAGE_ID           = 0x0000000C;//TODO if passed but malformed
-    public const STATUS_BIND_FAILED                  = 0x0000000D;//TODO if for some reasons failed (by user code?)
-    public const STATUS_INVALID_PASSWORD             = 0x0000000E;//TODO if passed but malformed ot not match
-    public const STATUS_INVALID_SYSTEM_ID            = 0x0000000F;//TODO if passed but malformed
+    public const STATUS_BIND_FAILED                  = 0x0000000D;
+    public const STATUS_INVALID_PASSWORD             = 0x0000000E;
+    public const STATUS_INVALID_SYSTEM_ID            = 0x0000000F;
     public const STATUS_CANCEL_SM_FAILED             = 0x00000011;
     public const STATUS_REPLACE_SM_FAILED            = 0x00000013;
     public const STATUS_MESSAGE_QUEUE_FULL           = 0x00000014;
