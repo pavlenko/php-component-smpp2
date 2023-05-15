@@ -5,7 +5,7 @@ namespace PE\Component\SMPP\Util;
 use PE\Component\SMPP\DTO\PDU;
 use PE\Component\SMPP\DTO\TLV;
 
-final class Validator
+final class Validator implements ValidatorInterface
 {
     //TODO check required
     //TODO check optional allowed
