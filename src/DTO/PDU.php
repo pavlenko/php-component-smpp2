@@ -36,6 +36,117 @@ final class PDU
     public const KEY_ERROR_CODE             = 'error_code';
     public const KEY_FINAL_DATE             = 'final_date';
 
+    public const ALLOWED_TLV_BY_ID = [
+        self::ID_BIND_RECEIVER_RESP => [
+            TLV::TAG_SC_INTERFACE_VERSION,
+        ],
+        self::ID_BIND_TRANSMITTER_RESP => [
+            TLV::TAG_SC_INTERFACE_VERSION,
+        ],
+        self::ID_BIND_TRANSCEIVER_RESP => [
+            TLV::TAG_SC_INTERFACE_VERSION,
+        ],
+        self::ID_SUBMIT_SM => [
+            TLV::TAG_USER_MESSAGE_REFERENCE,
+            TLV::TAG_SOURCE_PORT,
+            TLV::TAG_SOURCE_ADDR_SUBUNIT,
+            TLV::TAG_DESTINATION_PORT,
+            TLV::TAG_DEST_ADDR_SUBUNIT,
+            TLV::TAG_SAR_MSG_REF_NUM,
+            TLV::TAG_SAR_TOTAL_SEGMENTS,
+            TLV::TAG_SAR_SEGMENT_SEQNUM,
+            TLV::TAG_MORE_MESSAGES_TO_SEND,
+            TLV::TAG_PAYLOAD_TYPE,
+            TLV::TAG_MESSAGE_PAYLOAD,
+            TLV::TAG_PRIVACY_INDICATOR,
+            TLV::TAG_CALLBACK_NUM,
+            TLV::TAG_CALLBACK_NUM_PRES_IND,
+            TLV::TAG_CALLBACK_NUM_ATAG,
+            TLV::TAG_SOURCE_SUBADDRESS,
+            TLV::TAG_DEST_SUBADDRESS,
+            TLV::TAG_USER_RESPONSE_CODE,
+            TLV::TAG_DISPLAY_TIME,
+            TLV::TAG_SMS_SIGNAL,
+            TLV::TAG_MS_VALIDITY,
+            TLV::TAG_MS_MSG_WAIT_FACILITIES,
+            TLV::TAG_NUMBER_OF_MESSAGES,
+            TLV::TAG_ALERT_ON_MESSAGE_DELIVERY,
+            TLV::TAG_LANGUAGE_INDICATOR,
+            TLV::TAG_ITS_REPLY_TYPE,
+            TLV::TAG_ITS_SESSION_INFO,
+            TLV::TAG_USSD_SERVICE_OP,
+        ],
+        self::ID_DELIVER_SM => [
+            TLV::TAG_USER_MESSAGE_REFERENCE,
+            TLV::TAG_SOURCE_PORT,
+            TLV::TAG_DESTINATION_PORT,
+            TLV::TAG_SAR_MSG_REF_NUM,
+            TLV::TAG_SAR_TOTAL_SEGMENTS,
+            TLV::TAG_SAR_SEGMENT_SEQNUM,
+            TLV::TAG_USER_RESPONSE_CODE,
+            TLV::TAG_PRIVACY_INDICATOR,
+            TLV::TAG_PAYLOAD_TYPE,
+            TLV::TAG_MESSAGE_PAYLOAD,
+            TLV::TAG_CALLBACK_NUM,
+            TLV::TAG_SOURCE_SUBADDRESS,
+            TLV::TAG_DEST_SUBADDRESS,
+            TLV::TAG_LANGUAGE_INDICATOR,
+            TLV::TAG_ITS_SESSION_INFO,
+            TLV::TAG_NETWORK_ERROR_CODE,
+            TLV::TAG_MESSAGE_STATE,
+            TLV::TAG_RECEIPTED_MESSAGE_ID,
+        ],
+        self::ID_DATA_SM => [
+            TLV::TAG_SOURCE_PORT,
+            TLV::TAG_SOURCE_ADDR_SUBUNIT,
+            TLV::TAG_SOURCE_NETWORK_TYPE,
+            TLV::TAG_SOURCE_BEARER_TYPE,
+            TLV::TAG_SOURCE_TELEMATICS_ID,
+            TLV::TAG_DESTINATION_PORT,
+            TLV::TAG_DEST_ADDR_SUBUNIT,
+            TLV::TAG_DEST_NETWORK_TYPE,
+            TLV::TAG_DEST_BEARER_TYPE,
+            TLV::TAG_DEST_TELEMATICS_ID,
+            TLV::TAG_SAR_MSG_REF_NUM,
+            TLV::TAG_SAR_TOTAL_SEGMENTS,
+            TLV::TAG_SAR_SEGMENT_SEQNUM,
+            TLV::TAG_MORE_MESSAGES_TO_SEND,
+            TLV::TAG_QOS_TIME_TO_LIVE,
+            TLV::TAG_PAYLOAD_TYPE,
+            TLV::TAG_MESSAGE_PAYLOAD,
+            TLV::TAG_SET_DPF,
+            TLV::TAG_RECEIPTED_MESSAGE_ID,
+            TLV::TAG_MESSAGE_STATE,
+            TLV::TAG_NETWORK_ERROR_CODE,
+            TLV::TAG_USER_MESSAGE_REFERENCE,
+            TLV::TAG_PRIVACY_INDICATOR,
+            TLV::TAG_CALLBACK_NUM,
+            TLV::TAG_CALLBACK_NUM_PRES_IND,
+            TLV::TAG_CALLBACK_NUM_ATAG,
+            TLV::TAG_SOURCE_SUBADDRESS,
+            TLV::TAG_DEST_SUBADDRESS,
+            TLV::TAG_USER_RESPONSE_CODE,
+            TLV::TAG_DISPLAY_TIME,
+            TLV::TAG_SMS_SIGNAL,
+            TLV::TAG_MS_VALIDITY,
+            TLV::TAG_MS_MSG_WAIT_FACILITIES,
+            TLV::TAG_NUMBER_OF_MESSAGES,
+            TLV::TAG_ALERT_ON_MESSAGE_DELIVERY,
+            TLV::TAG_LANGUAGE_INDICATOR,
+            TLV::TAG_ITS_REPLY_TYPE,
+            TLV::TAG_ITS_SESSION_INFO,
+        ],
+        PDU::ID_DATA_SM_RESP => [
+            TLV::TAG_DELIVERY_FAILURE_REASON,
+            TLV::TAG_NETWORK_ERROR_CODE,
+            TLV::TAG_ADDITIONAL_STATUS_INFO_TEXT,
+            TLV::TAG_DPF_RESULT,
+        ],
+        PDU::ID_ALERT_NOTIFICATION => [
+            TLV::TAG_MS_AVAILABILITY_STATUS,
+        ],
+    ];
+
     public const ID_GENERIC_NACK          = 0x80_00_00_00;//<-- this is response
     public const ID_BIND_RECEIVER         = 0x00_00_00_01;
     public const ID_BIND_RECEIVER_RESP    = 0x80_00_00_01;
@@ -84,10 +195,10 @@ final class PDU
     public const STATUS_MESSAGE_QUEUE_FULL           = 0x00000014;
     public const STATUS_INVALID_SERVICE_TYPE         = 0x00000015;//TODO if passed but not in constants
     public const STATUS_INVALID_NUM_DESTINATIONS     = 0x00000033;
-    public const STATUS_INVALID_DIST_LIST_NAME       = 0x00000034;
+    public const STATUS_INVALID_DL_NAME              = 0x00000034;
     public const STATUS_INVALID_DST_FLAG             = 0x00000040;
     public const STATUS_INVALID_SUBMIT_W_REPLACE     = 0x00000042;
-    public const STATUS_INVALID_ESM_SUBMIT           = 0x00000043;
+    public const STATUS_INVALID_ESM_CLASS            = 0x00000043;
     public const STATUS_CANNOT_SUBMIT_TO_DIST_LIST   = 0x00000044;
     public const STATUS_SUBMIT_SM_FAILED             = 0x00000045;
     public const STATUS_INVALID_SRC_TON              = 0x00000048;//TODO if passed but not in constants
