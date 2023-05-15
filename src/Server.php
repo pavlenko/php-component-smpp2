@@ -165,7 +165,8 @@ final class Server implements ServerInterface
         if (array_key_exists($pdu->getID(), ConnectionInterface::ALLOWED_ID_BY_BOUND)
             && !in_array($connection->getStatus(), ConnectionInterface::ALLOWED_ID_BY_BOUND)) {
             $connection->send(
-                new PDU(PDU::ID_GENERIC_NACK | $pdu->getID(), PDU::STATUS_INVALID_BIND_STATUS, $pdu->getSeqNum())
+                new PDU(PDU::ID_GENERIC_NACK | $pdu->getID(), PDU::STATUS_INVALID_BIND_STATUS, $pdu->getSeqNum()),
+                true
             );
             $deferred->failure($pdu);
             return;
