@@ -97,7 +97,7 @@ final class Server implements ServerInterface
     {
         $this->logger->log(
             LogLevel::DEBUG,
-            '< Close connection from ' . $connection->getRemoteAddress() . ' ' . $message
+            '< Close connection from ' . $connection->getRemoteAddress() . (!$message ?: ': ' . $message)
         );
         $this->connections->detach($connection);
         $connection->setCloseHandler(fn() => null);
@@ -112,7 +112,7 @@ final class Server implements ServerInterface
         if ($exception instanceof DecoderException) {
             $connection->send(new PDU(PDU::ID_GENERIC_NACK, PDU::STATUS_INVALID_COMMAND_LENGTH, 0), true);
         }
-        $connection->close();
+        //$connection->close();
     }
 
     private function processReceive(ConnectionInterface $connection, PDU $pdu): void

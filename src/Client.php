@@ -64,7 +64,7 @@ final class Client implements ClientInterface
         $this->connection->setCloseHandler(function (string $message = null) {
             $this->logger->log(
                 LogLevel::DEBUG,
-                "Connection to {$this->connection->getRemoteAddress()} closed $message"
+                "Connection to {$this->connection->getRemoteAddress()} closed" . (!$message ?: ': ' . $message)
             );
             $this->loop->stop();
             $this->connection->setStatus(ConnectionInterface::STATUS_CLOSED);
@@ -98,7 +98,6 @@ final class Client implements ClientInterface
         }
 
         if (ConnectionInterface::STATUS_CLOSED === $this->connection->getStatus()) {
-            $this->logger->log(LogLevel::WARNING, 'Cannot exit on closed connection');
             return;
         }
 
@@ -110,12 +109,12 @@ final class Client implements ClientInterface
     private function processErrored(ConnectionInterface $connection, ExceptionInterface $exception)
     {
         if ($exception instanceof UnknownPDUException) {
-            $connection->send(new PDU(PDU::ID_GENERIC_NACK, PDU::STATUS_INVALID_COMMAND_ID, 0));
+            $connection->send(new PDU(PDU::ID_GENERIC_NACK, PDU::STATUS_INVALID_COMMAND_ID, 0), true);
         }
         if ($exception instanceof DecoderException) {
-            $connection->send(new PDU(PDU::ID_GENERIC_NACK, PDU::STATUS_INVALID_COMMAND_LENGTH, 0));
+            $connection->send(new PDU(PDU::ID_GENERIC_NACK, PDU::STATUS_INVALID_COMMAND_LENGTH, 0), true);
         }
-        $connection->close();
+        //$connection->close();
     }
 
     private function processReceive(ConnectionInterface $connection, PDU $pdu): void
