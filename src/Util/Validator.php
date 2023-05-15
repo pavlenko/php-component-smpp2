@@ -2,6 +2,7 @@
 
 namespace PE\Component\SMPP\Util;
 
+use PE\Component\SMPP\DTO\Address;
 use PE\Component\SMPP\DTO\PDU;
 use PE\Component\SMPP\DTO\TLV;
 
@@ -54,9 +55,8 @@ final class Validator implements ValidatorInterface
             case PDU::ID_DELIVER_SM_RESP:
             case PDU::ID_DATA_SM_RESP:
             case PDU::ID_QUERY_SM:
-                if (empty($pdu->get(PDU::KEY_MESSAGE_ID))) {
-                    throw new ValidatorException('MESSAGE_ID required', PDU::STATUS_INVALID_MESSAGE_ID);
-                }
+                $this->validateMessageID($pdu->get(PDU::KEY_MESSAGE_ID), true);
+                $this->validateSourceAddress($pdu->get(PDU::KEY_SRC_ADDRESS), false);
                 break;
             case PDU::ID_DATA_SM:
                 if (empty($pdu->get(PDU::KEY_DST_ADDRESS))) {
@@ -64,36 +64,25 @@ final class Validator implements ValidatorInterface
                 }
                 break;
             case PDU::ID_QUERY_SM_RESP:
-                if (empty($pdu->get(PDU::KEY_MESSAGE_ID))) {
-                    throw new ValidatorException('MESSAGE_ID required', PDU::STATUS_INVALID_MESSAGE_ID);
-                }
+                $this->validateMessageID($pdu->get(PDU::KEY_MESSAGE_ID), true);
                 if (empty($pdu->get(PDU::KEY_MESSAGE_STATE))) {
                     throw new ValidatorException('MESSAGE_STATE required', PDU::STATUS_UNKNOWN_ERROR);
                 }
                 break;
             case PDU::ID_CANCEL_SM:
-                if (empty($pdu->get(PDU::KEY_MESSAGE_ID))) {
-                    throw new ValidatorException('MESSAGE_ID required', PDU::STATUS_INVALID_MESSAGE_ID);
-                }
-                if (empty($pdu->get(PDU::KEY_SRC_ADDRESS))) {
-                    throw new ValidatorException('SRC_ADDRESS required', PDU::STATUS_INVALID_SRC_ADDRESS);
-                }
+                $this->validateMessageID($pdu->get(PDU::KEY_MESSAGE_ID), false);
+                $this->validateSourceAddress($pdu->get(PDU::KEY_SRC_ADDRESS), true);
+                $this->validateTargetAddress($pdu->get(PDU::KEY_DST_ADDRESS), empty($pdu->get(PDU::KEY_MESSAGE_ID)));
                 break;
             case PDU::ID_REPLACE_SM:
-                if (empty($pdu->get(PDU::KEY_MESSAGE_ID))) {
-                    throw new ValidatorException('MESSAGE_ID required', PDU::STATUS_INVALID_MESSAGE_ID);
-                }
-                if (empty($pdu->get(PDU::KEY_DST_ADDRESS))) {
-                    throw new ValidatorException('DST_ADDRESS required', PDU::STATUS_INVALID_DST_ADDRESS);
-                }
+                $this->validateMessageID($pdu->get(PDU::KEY_MESSAGE_ID), true);
+                $this->validateSourceAddress($pdu->get(PDU::KEY_SRC_ADDRESS), true);
                 if (empty($pdu->get(PDU::KEY_SHORT_MESSAGE))) {
                     throw new ValidatorException('SHORT_MESSAGE required', PDU::STATUS_INVALID_ESM_CLASS);
                 }
                 break;
             case PDU::ID_ALERT_NOTIFICATION:
-                if (empty($pdu->get(PDU::KEY_SRC_ADDRESS))) {
-                    throw new ValidatorException('SRC_ADDRESS required', PDU::STATUS_INVALID_SRC_ADDRESS);
-                }
+                $this->validateSourceAddress($pdu->get(PDU::KEY_SRC_ADDRESS), true);
                 if (empty($pdu->get(PDU::KEY_ESME_ADDRESS))) {
                     throw new ValidatorException('ESME_ADDRESS required', PDU::STATUS_UNKNOWN_ERROR);
                 }
@@ -103,6 +92,50 @@ final class Validator implements ValidatorInterface
             if (is_numeric($key)) {
                 $this->checkTLV($pdu->getID(), $key, $val);
             }
+        }
+    }
+
+    private function validateMessageID($messageID, bool $required)
+    {
+        if (empty($messageID) && $required) {
+            throw new ValidatorException('Required', PDU::STATUS_INVALID_MESSAGE_ID);
+        }
+        if (!empty($messageID) && strlen($messageID) > 64) {
+            throw new ValidatorException('Invalid', PDU::STATUS_INVALID_MESSAGE_ID);
+        }
+    }
+
+    private function validateSourceAddress($address, bool $required)
+    {
+        if (null !== $address) {
+            if (!$address instanceof Address || empty($address->getValue())) {
+                throw new ValidatorException('Invalid value', PDU::STATUS_INVALID_SRC_ADDRESS);
+            }
+            if (!in_array($address->getTON(), Address::TON())) {
+                throw new ValidatorException('Invalid TON', PDU::STATUS_INVALID_SRC_TON);
+            }
+            if (!in_array($address->getNPI(), Address::NPI())) {
+                throw new ValidatorException('Invalid NPI', PDU::STATUS_INVALID_SRC_NPI);
+            }
+        } elseif ($required) {
+            throw new ValidatorException('Required', PDU::STATUS_INVALID_SRC_ADDRESS);
+        }
+    }
+
+    private function validateTargetAddress($address, bool $required)
+    {
+        if (null !== $address) {
+            if (!$address instanceof Address || empty($address->getValue())) {
+                throw new ValidatorException('Invalid value', PDU::STATUS_INVALID_DST_ADDRESS);
+            }
+            if (!in_array($address->getTON(), Address::TON())) {
+                throw new ValidatorException('Invalid TON', PDU::STATUS_INVALID_DST_TON);
+            }
+            if (!in_array($address->getNPI(), Address::NPI())) {
+                throw new ValidatorException('Invalid NPI', PDU::STATUS_INVALID_DST_NPI);
+            }
+        } elseif ($required) {
+            throw new ValidatorException('Required', PDU::STATUS_INVALID_DST_ADDRESS);
         }
     }
 
