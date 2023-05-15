@@ -46,7 +46,8 @@ final class Validator implements ValidatorInterface
             case PDU::ID_DELIVER_SM:
                 $this->validateTargetAddress($pdu->get(PDU::KEY_DST_ADDRESS), true);
                 $this->validateESMEClass($pdu->get(PDU::KEY_ESM_CLASS));
-                if (empty($pdu->get(PDU::KEY_SHORT_MESSAGE))) {
+                $this->validatePriorityFlag($pdu->get(PDU::KEY_PRIORITY_FLAG));
+                if (empty($pdu->get(PDU::KEY_SHORT_MESSAGE))) {//TODO validate message
                     throw new ValidatorException('SHORT_MESSAGE required', PDU::STATUS_INVALID_DEFINED_MESSAGE);
                 }
                 break;
@@ -93,9 +94,9 @@ final class Validator implements ValidatorInterface
         }
     }
 
-    private function validateESMEClass($class): void
+    private function validateESMEClass($value): void
     {
-        if (!is_int($class)) {
+        if (!is_int($value)) {
             throw new ValidatorException('Invalid ESM_CLASS type', PDU::STATUS_INVALID_ESM_CLASS);
         }
 
@@ -107,8 +108,21 @@ final class Validator implements ValidatorInterface
             PDU::ESM_MSG_TYPE_HAS_DELIVERY_NOTIFY,
         ];
 
-        if (!in_array($class & 0b00_11_11_00, $allowed)) {
+        if (!in_array($value & 0b00_11_11_00, $allowed)) {
             throw new ValidatorException('Invalid ESM_CLASS value', PDU::STATUS_INVALID_ESM_CLASS);
+        }
+    }
+
+    private function validatePriorityFlag($value)
+    {
+        if (!is_int($value)) {
+            throw new ValidatorException('Invalid PRIORITY_FLAG type', PDU::STATUS_INVALID_PRIORITY_FLAG);
+        }
+
+        $allowed = [PDU::PRIORITY_DEFAULT, PDU::PRIORITY_HIGH, PDU::PRIORITY_URGENT, PDU::PRIORITY_EMERGENCY];
+
+        if (!in_array($value, $allowed)) {
+            throw new ValidatorException('Invalid PRIORITY_FLAG value', PDU::STATUS_INVALID_PRIORITY_FLAG);
         }
     }
 
