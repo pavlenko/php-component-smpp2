@@ -7,6 +7,7 @@ use PE\Component\SMPP\DTO\DateTime;
 use PE\Component\SMPP\DTO\PDU;
 use PE\Component\SMPP\DTO\TLV;
 use PE\Component\SMPP\Exception\DecoderException;
+use PE\Component\SMPP\Exception\ExceptionInterface;
 use PE\Component\SMPP\Exception\UnknownPDUException;
 
 final class Decoder implements DecoderInterface
@@ -41,7 +42,7 @@ final class Decoder implements DecoderInterface
 
         if (PDU::STATUS_NO_ERROR === $status) {
             try {
-                $this->validator->validate($pdu);
+                //$this->validator->validate($pdu);//TODO move to connection for allow debug body
             } catch (ValidatorException $ex) {
                 $ex = new DecoderException($ex->getMessage(), $ex);
                 $ex->setCommandID($id);
@@ -234,16 +235,15 @@ final class Decoder implements DecoderInterface
         $value = '';
         while (strlen($buffer) > $pos) {
             $value .= $buffer[$pos++];
-            if ("\n" === $buffer[$pos - 1]) {
+            if ("\0" === $buffer[$pos - 1]) {
                 break;
             }
             if ($limit > 0 && strlen($value) === $limit) {
                 break;
             }
         }
-        $pos++;
 
-        return rtrim($value, "\0") ?: '';
+        return rtrim($value, "\0");
     }
 
     private function decodeStringOld(string $buffer, int &$pos, bool $required, ?int $min, ?int $max): ?string
@@ -278,7 +278,7 @@ final class Decoder implements DecoderInterface
 
     private function decodeDateTime(string $buffer, int &$pos): ?\DateTimeInterface
     {
-        $value = $this->decodeString($buffer, $pos, 16);
+        $value = $this->decodeString($buffer, $pos, 17);//16 chars + "\0"
 
         if (!empty($value)) {
             $datetime = substr($value, 0, 13) . '00';
@@ -301,11 +301,12 @@ final class Decoder implements DecoderInterface
             $value = $datetime;
         }
 
-        return $value;
+        return !empty($value) ? $value : null;
     }
 
     private function decodeTLV(string $buffer, int &$pos): TLV
     {
+        //dump(substr($buffer, $pos));
         //TODO here all string values may be not null terminated, so use limit
         if ((strlen($buffer) - $pos) < 4) {
             throw new DecoderException('Malformed TLV header');
