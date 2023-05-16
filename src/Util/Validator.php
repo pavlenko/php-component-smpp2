@@ -12,7 +12,7 @@ final class Validator implements ValidatorInterface
     private ?string $password;
     private array $systemTypes = [];
 
-    public function __construct(?string $password)
+    public function __construct(string $password = null)
     {
         $this->password = $password;
     }
