@@ -230,18 +230,9 @@ final class Decoder implements DecoderInterface
         return $value[1];
     }
 
-    /**
-     * Decode NULL terminated string
-     *
-     * All string sizes in docs is strlen() + 1 (NULL terminator)
-     *
-     * @param string $buffer
-     * @param int $pos
-     * @param int|null $limit
-     * @return string
-     */
-    private function decodeString(string $buffer, int &$pos, ?int $limit): string
+    private function decodeString(string $buffer, int &$pos, ?int $limit, bool $nullTerminated = true): string
     {
+        //TODO handle $nullTerminated
         $value = '';
 
         while (strlen($buffer) > $pos && $buffer[$pos] !== "\0" && strlen($value) < $limit) {
