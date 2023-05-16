@@ -3,6 +3,7 @@
 namespace PE\Component\SMPP\Util;
 
 use PE\Component\SMPP\DTO\Address;
+use PE\Component\SMPP\DTO\DateTime;
 use PE\Component\SMPP\DTO\PDU;
 use PE\Component\SMPP\DTO\TLV;
 
@@ -49,7 +50,10 @@ final class Validator implements ValidatorInterface
                 $this->validateESMEClass($pdu->get(PDU::KEY_ESM_CLASS));
                 $this->validatePriorityFlag($pdu->get(PDU::KEY_PRIORITY_FLAG));
                 $this->validateRegDeliveryFlag($pdu->get(PDU::KEY_REG_DELIVERY));
-                //todo schedule + expired
+                if (PDU::ID_SUBMIT_SM === $pdu->getID()) {
+                    $this->validateScheduledAt($pdu->get(PDU::KEY_SCHEDULED_AT));
+                    $this->validateExpiredAt($pdu->get(PDU::KEY_VALIDITY_PERIOD), $pdu->get(PDU::KEY_SCHEDULED_AT));
+                }
                 $this->validateMessage(
                     $pdu->get(PDU::KEY_SM_LENGTH),
                     $pdu->get(PDU::KEY_SHORT_MESSAGE),
@@ -86,7 +90,8 @@ final class Validator implements ValidatorInterface
                 $this->validateMessageID($pdu->get(PDU::KEY_MESSAGE_ID), true);
                 $this->validateSourceAddress($pdu->get(PDU::KEY_SRC_ADDRESS), true);
                 $this->validateRegDeliveryFlag($pdu->get(PDU::KEY_REG_DELIVERY));
-                //todo schedule + expired
+                $this->validateScheduledAt($pdu->get(PDU::KEY_SCHEDULED_AT));
+                $this->validateExpiredAt($pdu->get(PDU::KEY_VALIDITY_PERIOD), $pdu->get(PDU::KEY_SCHEDULED_AT));
                 $this->validateMessage(
                     $pdu->get(PDU::KEY_SM_LENGTH),
                     $pdu->get(PDU::KEY_SHORT_MESSAGE),
@@ -218,6 +223,31 @@ final class Validator implements ValidatorInterface
             }
         } elseif ($required) {
             throw new ValidatorException('Required', PDU::STATUS_INVALID_DST_ADDRESS);
+        }
+    }
+
+    private function validateScheduledAt($value)
+    {
+        if (!empty($value)) {
+            if (!$value instanceof DateTime) {
+                throw new ValidatorException('Invalid SCHEDULE_TIME type', PDU::STATUS_INVALID_SCHEDULED_AT);
+            }
+            if ($value < new DateTime()) {
+                throw new ValidatorException('Invalid SCHEDULE_TIME value', PDU::STATUS_INVALID_SCHEDULED_AT);
+            }
+        }
+    }
+
+    private function validateExpiredAt($value, $scheduledAt)
+    {
+        if (!empty($value)) {
+            if (!$value instanceof DateTime) {
+                throw new ValidatorException('Invalid EXPIRY_TIME type', PDU::STATUS_INVALID_EXPIRED_AT);
+            }
+            if ($value < new DateTime()
+                || (!empty($scheduledAt) && $scheduledAt instanceof DateTime && $value < $scheduledAt)) {
+                throw new ValidatorException('Invalid EXPIRY_TIME value', PDU::STATUS_INVALID_EXPIRED_AT);
+            }
         }
     }
 
