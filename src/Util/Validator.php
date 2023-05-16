@@ -47,6 +47,7 @@ final class Validator implements ValidatorInterface
                 $this->validateTargetAddress($pdu->get(PDU::KEY_DST_ADDRESS), true);
                 $this->validateESMEClass($pdu->get(PDU::KEY_ESM_CLASS));
                 $this->validatePriorityFlag($pdu->get(PDU::KEY_PRIORITY_FLAG));
+                $this->validateRegDeliveryFlag($pdu->get(PDU::KEY_REG_DELIVERY));
                 if (empty($pdu->get(PDU::KEY_SHORT_MESSAGE))) {//TODO validate message
                     throw new ValidatorException('SHORT_MESSAGE required', PDU::STATUS_INVALID_DEFINED_MESSAGE);
                 }
@@ -61,6 +62,7 @@ final class Validator implements ValidatorInterface
             case PDU::ID_DATA_SM:
                 $this->validateTargetAddress($pdu->get(PDU::KEY_DST_ADDRESS), true);
                 $this->validateESMEClass($pdu->get(PDU::KEY_ESM_CLASS));
+                $this->validateRegDeliveryFlag($pdu->get(PDU::KEY_REG_DELIVERY));
                 break;
             case PDU::ID_QUERY_SM_RESP:
                 $this->validateMessageID($pdu->get(PDU::KEY_MESSAGE_ID), true);
@@ -76,6 +78,7 @@ final class Validator implements ValidatorInterface
             case PDU::ID_REPLACE_SM:
                 $this->validateMessageID($pdu->get(PDU::KEY_MESSAGE_ID), true);
                 $this->validateSourceAddress($pdu->get(PDU::KEY_SRC_ADDRESS), true);
+                $this->validateRegDeliveryFlag($pdu->get(PDU::KEY_REG_DELIVERY));
                 if (empty($pdu->get(PDU::KEY_SHORT_MESSAGE))) {//TODO validate message
                     throw new ValidatorException('SHORT_MESSAGE required', PDU::STATUS_INVALID_DEFINED_MESSAGE);
                 }
@@ -123,6 +126,23 @@ final class Validator implements ValidatorInterface
 
         if (!in_array($value, $allowed)) {
             throw new ValidatorException('Invalid PRIORITY_FLAG value', PDU::STATUS_INVALID_PRIORITY_FLAG);
+        }
+    }
+
+    private function validateRegDeliveryFlag($value): void
+    {
+        if (!is_int($value)) {
+            throw new ValidatorException('Invalid REG_DELIVERY type', PDU::STATUS_INVALID_REG_DELIVERY_FLAG);
+        }
+
+        $allowed = [
+            PDU::REG_DELIVERY_SMSC_NO_DR,
+            PDU::REG_DELIVERY_SMSC_DR_REQUESTED,
+            PDU::REG_DELIVERY_SMSC_DR_FAIL_ONLY,
+        ];
+
+        if (!in_array($value & 0b11_10_00_11, $allowed)) {
+            throw new ValidatorException('Invalid REG_DELIVERY value', PDU::STATUS_INVALID_REG_DELIVERY_FLAG);
         }
     }
 

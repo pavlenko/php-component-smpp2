@@ -253,14 +253,17 @@ final class PDU
     public const PRIORITY_URGENT    = 2;
     public const PRIORITY_EMERGENCY = 3;
 
-    public const REG_DELIVERY_SMSC_NO          = 0b00_00_00_00;
-    public const REG_DELIVERY_SMSC_YES         = 0b00_00_00_01;
-    public const REG_DELIVERY_ESME_NO          = 0b00_00_00_00;
-    public const REG_DELIVERY_ESME_AUTO        = 0b00_00_01_00;
-    public const REG_DELIVERY_ESME_MANUAL      = 0b00_00_10_00;
-    public const REG_DELIVERY_ESME_BOTH        = 0b00_00_11_00;
-    public const REG_DELIVERY_INTERMEDIATE_NO  = 0b00_00_00_00;
-    public const REG_DELIVERY_INTERMEDIATE_YES = 0b00_01_00_00;
+    public const REG_DELIVERY_SMSC_NO_DR        = 0b00_00_00_00;
+    public const REG_DELIVERY_SMSC_DR_REQUESTED = 0b00_00_00_01;
+    public const REG_DELIVERY_SMSC_DR_FAIL_ONLY = 0b00_00_00_10;
+
+    public const REG_DELIVERY_ESME_NO_ACK     = 0b00_00_00_00;
+    public const REG_DELIVERY_ESME_ACK_AUTO   = 0b00_00_01_00;
+    public const REG_DELIVERY_ESME_ACK_MANUAL = 0b00_00_10_00;
+    public const REG_DELIVERY_ESME_ACK_BOTH   = 0b00_00_11_00;
+
+    public const REG_DELIVERY_NO_IM_NOTIFY = 0b00_00_00_00;
+    public const REG_DELIVERY_IM_NOTIFY    = 0b00_01_00_00;
 
     public const DATA_CODING_DEFAULT      = 0;
     public const DATA_CODING_IA5          = 1; // IA5 (CCITT T.50)/ASCII (ANSI X3.4)
