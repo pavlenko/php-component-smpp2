@@ -49,9 +49,12 @@ final class Validator implements ValidatorInterface
                 $this->validateESMEClass($pdu->get(PDU::KEY_ESM_CLASS));
                 $this->validatePriorityFlag($pdu->get(PDU::KEY_PRIORITY_FLAG));
                 $this->validateRegDeliveryFlag($pdu->get(PDU::KEY_REG_DELIVERY));
-                if (empty($pdu->get(PDU::KEY_SHORT_MESSAGE))) {//TODO validate message
-                    throw new ValidatorException('SHORT_MESSAGE required', PDU::STATUS_INVALID_DEFINED_MESSAGE);
-                }
+                //todo schedule + expired
+                $this->validateMessage(
+                    $pdu->get(PDU::KEY_SM_LENGTH),
+                    $pdu->get(PDU::KEY_SHORT_MESSAGE),
+                    $pdu->get(TLV::TAG_MESSAGE_PAYLOAD)
+                );
                 break;
             case PDU::ID_SUBMIT_SM_RESP:
             case PDU::ID_DELIVER_SM_RESP:
@@ -65,6 +68,7 @@ final class Validator implements ValidatorInterface
                 $this->validateTargetAddress($pdu->get(PDU::KEY_DST_ADDRESS), true);
                 $this->validateESMEClass($pdu->get(PDU::KEY_ESM_CLASS));
                 $this->validateRegDeliveryFlag($pdu->get(PDU::KEY_REG_DELIVERY));
+                $this->validateMessage(0, null, $pdu->get(TLV::TAG_MESSAGE_PAYLOAD));
                 break;
             case PDU::ID_QUERY_SM_RESP:
                 $this->validateMessageID($pdu->get(PDU::KEY_MESSAGE_ID), true);
@@ -82,9 +86,12 @@ final class Validator implements ValidatorInterface
                 $this->validateMessageID($pdu->get(PDU::KEY_MESSAGE_ID), true);
                 $this->validateSourceAddress($pdu->get(PDU::KEY_SRC_ADDRESS), true);
                 $this->validateRegDeliveryFlag($pdu->get(PDU::KEY_REG_DELIVERY));
-                if (empty($pdu->get(PDU::KEY_SHORT_MESSAGE))) {//TODO validate message
-                    throw new ValidatorException('SHORT_MESSAGE required', PDU::STATUS_INVALID_DEFINED_MESSAGE);
-                }
+                //todo schedule + expired
+                $this->validateMessage(
+                    $pdu->get(PDU::KEY_SM_LENGTH),
+                    $pdu->get(PDU::KEY_SHORT_MESSAGE),
+                    $pdu->get(TLV::TAG_MESSAGE_PAYLOAD)
+                );
                 break;
             case PDU::ID_ALERT_NOTIFICATION:
                 $this->validateSourceAddress($pdu->get(PDU::KEY_SRC_ADDRESS), true);
@@ -211,6 +218,22 @@ final class Validator implements ValidatorInterface
             }
         } elseif ($required) {
             throw new ValidatorException('Required', PDU::STATUS_INVALID_DST_ADDRESS);
+        }
+    }
+
+    private function validateMessage($length, $message, $payload)
+    {
+        if (!empty($message)) {
+            if (0 === $length || strlen($message) !== $length) {
+                throw new ValidatorException('Invalid SM_LENGTH value', PDU::STATUS_INVALID_MESSAGE_LENGTH);
+            }
+        } elseif (0 !== $length) {
+            throw new ValidatorException('Invalid SM_LENGTH value', PDU::STATUS_INVALID_MESSAGE_LENGTH);
+        } elseif (empty($payload)) {
+            throw new ValidatorException(
+                'Required SHORT_MESSAGE param or MESSAGE_PAYLOAD TLV',
+                PDU::STATUS_INVALID_DEFINED_MESSAGE
+            );
         }
     }
 
