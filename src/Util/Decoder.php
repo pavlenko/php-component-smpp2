@@ -142,7 +142,11 @@ final class Decoder implements DecoderInterface
             $params[$tlv->getTag()] = $tlv;
         }
 
-        $this->validator->validate($pdu = new PDU($id, $status, $seqNum, $params ?? []));
+        $pdu = new PDU($id, $status, $seqNum, $params ?? []);
+        if (PDU::STATUS_NO_ERROR === $status) {
+            $this->validator->validate($pdu);
+        }
+
         return $pdu;
     }
 
