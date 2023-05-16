@@ -17,6 +17,7 @@ final class Validator implements ValidatorInterface
         $this->password = $password;
     }
 
+    //TODO maybe split to required/optional params validation
     public function validate(PDU $pdu): void
     {
         switch ($pdu->getID()) {
