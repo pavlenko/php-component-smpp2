@@ -11,6 +11,7 @@ use PE\Component\SMPP\DTO\PDU;
 use PE\Component\SMPP\Exception\DecoderException;
 use PE\Component\SMPP\Exception\ExceptionInterface;
 use PE\Component\SMPP\Exception\UnknownPDUException;
+use PE\Component\SMPP\Util\ValidatorException;
 use PE\Component\Socket\ClientInterface as SocketClientInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
@@ -111,8 +112,12 @@ final class Server implements ServerInterface
             $connection->send(new PDU(PDU::ID_GENERIC_NACK, PDU::STATUS_INVALID_COMMAND_ID, 0), true);
         }
         if ($exception instanceof DecoderException) {
-            $connection->error('Error [' . PDU::getStatuses()[PDU::STATUS_INVALID_COMMAND_LENGTH] . ']');
-            $connection->send(new PDU(PDU::ID_GENERIC_NACK, PDU::STATUS_INVALID_COMMAND_LENGTH, 0), true);
+            $status = PDU::STATUS_INVALID_COMMAND_LENGTH;
+            if ($exception->getPrevious() instanceof ValidatorException) {
+                $status = $exception->getPrevious()->getCode();
+            }
+            $connection->error('Error [' . PDU::getStatuses()[$status] . ']');
+            $connection->send(new PDU(PDU::ID_GENERIC_NACK | $exception->getCommandID(), $status, 0), true);
         }
     }
 

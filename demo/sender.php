@@ -39,6 +39,7 @@ $client->bind('127.0.0.1:2775', PDU::ID_BIND_TRANSMITTER)
         $message->setScheduledAt((new DateTime())->modify('+5 seconds'));
         $message->setExpiredAt((new DateTime())->modify('+5 days'));
         $message->setParams([
+            PDU::KEY_PRIORITY_FLAG => 0xFF,
             TLV::TAG_SOURCE_PORT => new TLV(TLV::TAG_SOURCE_PORT, 8080),
         ]);
 

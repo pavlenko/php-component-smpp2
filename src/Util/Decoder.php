@@ -25,6 +25,35 @@ final class Decoder implements DecoderInterface
         $status = $this->decodeUint32($buffer, $pos);
         $seqNum = $this->decodeUint32($buffer, $pos);
 
+        try {
+            $params = $this->decodeParams($id, $status, $buffer, $pos);
+        } catch (DecoderException $ex) {
+            $ex->setCommandID($id);
+            throw $ex;
+        }
+
+        while (strlen($buffer) > $pos) {
+            $tlv = $this->decodeTLV($buffer, $pos);
+            $params[$tlv->getTag()] = $tlv;
+        }
+
+        $pdu = new PDU($id, $status, $seqNum, $params ?? []);
+
+        if (PDU::STATUS_NO_ERROR === $status) {
+            try {
+                $this->validator->validate($pdu);
+            } catch (ValidatorException $ex) {
+                $ex = new DecoderException($ex->getMessage(), $ex);
+                $ex->setCommandID($id);
+                throw $ex;
+            }
+        }
+
+        return $pdu;
+    }
+
+    private function decodeParams(int $id, int $status, string $buffer, int &$pos): array
+    {
         $required = $status === PDU::STATUS_NO_ERROR;
         switch ($id) {
             case PDU::ID_GENERIC_NACK:
@@ -137,17 +166,7 @@ final class Decoder implements DecoderInterface
                 throw new UnknownPDUException(sprintf('Unknown pdu id: 0x%08X', $id));
         }
 
-        while (strlen($buffer) > $pos) {
-            $tlv = $this->decodeTLV($buffer, $pos);
-            $params[$tlv->getTag()] = $tlv;
-        }
-
-        $pdu = new PDU($id, $status, $seqNum, $params ?? []);
-        if (PDU::STATUS_NO_ERROR === $status) {
-            $this->validator->validate($pdu);
-        }
-
-        return $pdu;
+        return $params ?? [];
     }
 
     private function decodeUint08(string $buffer, int &$pos): int
