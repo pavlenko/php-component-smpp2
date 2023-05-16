@@ -44,6 +44,7 @@ final class Validator implements ValidatorInterface
                 break;
             case PDU::ID_SUBMIT_SM:
             case PDU::ID_DELIVER_SM:
+                $this->validateServiceType($pdu->get(PDU::KEY_SERVICE_TYPE));
                 $this->validateTargetAddress($pdu->get(PDU::KEY_DST_ADDRESS), true);
                 $this->validateESMEClass($pdu->get(PDU::KEY_ESM_CLASS));
                 $this->validatePriorityFlag($pdu->get(PDU::KEY_PRIORITY_FLAG));
@@ -60,6 +61,7 @@ final class Validator implements ValidatorInterface
                 $this->validateSourceAddress($pdu->get(PDU::KEY_SRC_ADDRESS), false);
                 break;
             case PDU::ID_DATA_SM:
+                $this->validateServiceType($pdu->get(PDU::KEY_SERVICE_TYPE));
                 $this->validateTargetAddress($pdu->get(PDU::KEY_DST_ADDRESS), true);
                 $this->validateESMEClass($pdu->get(PDU::KEY_ESM_CLASS));
                 $this->validateRegDeliveryFlag($pdu->get(PDU::KEY_REG_DELIVERY));
@@ -71,6 +73,7 @@ final class Validator implements ValidatorInterface
                 }
                 break;
             case PDU::ID_CANCEL_SM:
+                $this->validateServiceType($pdu->get(PDU::KEY_SERVICE_TYPE));
                 $this->validateMessageID($pdu->get(PDU::KEY_MESSAGE_ID), false);
                 $this->validateSourceAddress($pdu->get(PDU::KEY_SRC_ADDRESS), true);
                 $this->validateTargetAddress($pdu->get(PDU::KEY_DST_ADDRESS), empty($pdu->get(PDU::KEY_MESSAGE_ID)));
@@ -94,6 +97,27 @@ final class Validator implements ValidatorInterface
             if (is_numeric($key)) {
                 $this->checkTLV($pdu->getID(), $key, $val);
             }
+        }
+    }
+
+    private function validateServiceType($value): void
+    {
+        if (null !== $value && !is_string($value)) {
+            throw new ValidatorException('Invalid SERVICE_TYPE type', PDU::STATUS_INVALID_SERVICE_TYPE);
+        }
+
+        $allowed = [
+            PDU::SERVICE_TYPE_NONE,
+            PDU::SERVICE_TYPE_CMT,
+            PDU::SERVICE_TYPE_CPT,
+            PDU::SERVICE_TYPE_VMN,
+            PDU::SERVICE_TYPE_VMA,
+            PDU::SERVICE_TYPE_WAP,
+            PDU::SERVICE_TYPE_USSD,
+        ];
+
+        if (!in_array($value, $allowed)) {
+            throw new ValidatorException('Invalid SERVICE_TYPE value', PDU::STATUS_INVALID_SERVICE_TYPE);
         }
     }
 
