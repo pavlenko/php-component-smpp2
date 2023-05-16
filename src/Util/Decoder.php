@@ -44,7 +44,7 @@ final class Decoder implements DecoderInterface
                     PDU::KEY_PASSWORD          => $this->decodeString($buffer, $pos, false, null, 9),
                     PDU::KEY_SYSTEM_TYPE       => $this->decodeString($buffer, $pos, false, null, 13),
                     PDU::KEY_INTERFACE_VERSION => $this->decodeUint08($buffer, $pos),
-                    PDU::KEY_ADDRESS           => $this->decodeAddress($buffer, $pos, false, 41),
+                    PDU::KEY_ADDRESS           => $this->decodeAddress($buffer, $pos, 41),
                 ];
                 break;
             case PDU::ID_BIND_RECEIVER_RESP:
@@ -56,8 +56,8 @@ final class Decoder implements DecoderInterface
             case PDU::ID_DELIVER_SM:
                 $params = [
                     PDU::KEY_SERVICE_TYPE       => $this->decodeString($buffer, $pos, false, null, 6),
-                    PDU::KEY_SRC_ADDRESS        => $this->decodeAddress($buffer, $pos, false, 21),
-                    PDU::KEY_DST_ADDRESS        => $this->decodeAddress($buffer, $pos, $required, 21),
+                    PDU::KEY_SRC_ADDRESS        => $this->decodeAddress($buffer, $pos, 21),
+                    PDU::KEY_DST_ADDRESS        => $this->decodeAddress($buffer, $pos, 21),
                     PDU::KEY_ESM_CLASS          => $this->decodeUint08($buffer, $pos),
                     PDU::KEY_PROTOCOL_ID        => $this->decodeUint08($buffer, $pos),
                     PDU::KEY_PRIORITY_FLAG      => $this->decodeUint08($buffer, $pos),
@@ -87,8 +87,8 @@ final class Decoder implements DecoderInterface
             case PDU::ID_DATA_SM:
                 $params = [
                     PDU::KEY_SERVICE_TYPE => $this->decodeString($buffer, $pos, false, null, 6),
-                    PDU::KEY_SRC_ADDRESS  => $this->decodeAddress($buffer, $pos, false, 21),
-                    PDU::KEY_DST_ADDRESS  => $this->decodeAddress($buffer, $pos, $required, 21),
+                    PDU::KEY_SRC_ADDRESS  => $this->decodeAddress($buffer, $pos, 21),
+                    PDU::KEY_DST_ADDRESS  => $this->decodeAddress($buffer, $pos, 21),
                     PDU::KEY_ESM_CLASS    => $this->decodeUint08($buffer, $pos),
                     PDU::KEY_REG_DELIVERY => $this->decodeUint08($buffer, $pos),
                     PDU::KEY_DATA_CODING  => $this->decodeUint08($buffer, $pos),
@@ -97,7 +97,7 @@ final class Decoder implements DecoderInterface
             case PDU::ID_QUERY_SM:
                 $params = [
                     PDU::KEY_MESSAGE_ID  => $this->decodeString($buffer, $pos, $required, null, 65),
-                    PDU::KEY_SRC_ADDRESS => $this->decodeAddress($buffer, $pos, false, 21),
+                    PDU::KEY_SRC_ADDRESS => $this->decodeAddress($buffer, $pos, 21),
                 ];
                 break;
             case PDU::ID_QUERY_SM_RESP:
@@ -111,14 +111,14 @@ final class Decoder implements DecoderInterface
             case PDU::ID_CANCEL_SM:
                 $params = [
                     PDU::KEY_MESSAGE_ID  => $this->decodeString($buffer, $pos, $required, null, 65),
-                    PDU::KEY_SRC_ADDRESS => $this->decodeAddress($buffer, $pos, $required, 21),
-                    PDU::KEY_DST_ADDRESS => $this->decodeAddress($buffer, $pos, false, 21),
+                    PDU::KEY_SRC_ADDRESS => $this->decodeAddress($buffer, $pos, 21),
+                    PDU::KEY_DST_ADDRESS => $this->decodeAddress($buffer, $pos, 21),
                 ];
                 break;
             case PDU::ID_REPLACE_SM:
                 $params = [
                     PDU::KEY_MESSAGE_ID        => $this->decodeString($buffer, $pos, $required, null, 65),
-                    PDU::KEY_SRC_ADDRESS       => $this->decodeAddress($buffer, $pos, $required, 21),
+                    PDU::KEY_SRC_ADDRESS       => $this->decodeAddress($buffer, $pos, 21),
                     PDU::KEY_SCHEDULED_AT      => $this->decodeDateTime($buffer, $pos, false),
                     PDU::KEY_VALIDITY_PERIOD   => $this->decodeDateTime($buffer, $pos, false),
                     PDU::KEY_REG_DELIVERY      => $this->decodeUint08($buffer, $pos),
@@ -129,8 +129,8 @@ final class Decoder implements DecoderInterface
                 break;
             case PDU::ID_ALERT_NOTIFICATION:
                 $params = [
-                    PDU::KEY_SRC_ADDRESS  => $this->decodeAddress($buffer, $pos, $required, 65),
-                    PDU::KEY_ESME_ADDRESS => $this->decodeAddress($buffer, $pos, $required, 65),
+                    PDU::KEY_SRC_ADDRESS  => $this->decodeAddress($buffer, $pos, 65),
+                    PDU::KEY_ESME_ADDRESS => $this->decodeAddress($buffer, $pos, 65),
                 ];
                 break;
             default:
@@ -227,16 +227,11 @@ final class Decoder implements DecoderInterface
         return $value ?: null;
     }
 
-    private function decodeAddress(string $buffer, int &$pos, bool $required, int $max): ?Address
+    private function decodeAddress(string $buffer, int &$pos, int $max): ?Address
     {
-        $error = sprintf('Required ADDRESS value at position %d in "%s"', $pos, $this->toPrintable($buffer));
         $ton   = $this->decodeUint08($buffer, $pos);
         $npi   = $this->decodeUint08($buffer, $pos);
         $value = $this->decodeString($buffer, $pos, false, null, $max);
-
-        if ($required && null === $value) {
-            throw new DecoderException($error);
-        }
 
         return null !== $value ? new Address($ton, $npi, $value) : null;
     }
