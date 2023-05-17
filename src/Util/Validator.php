@@ -17,35 +17,22 @@ final class Validator implements ValidatorInterface
      */
     private ?PDU $pdu = null;
 
-    private ?string $password;
     private array $systemTypes = [];
 
-    public function __construct(string $password = null)
+    private function invalid(int $status, string $message): void
     {
-        $this->password = $password;
+        throw new ValidatorException($this->pdu->getID(), $message, $status);
     }
 
-    //TODO helper method to throw validation exception
-    public function invalid(int $status, string $message): void
-    {
-    }
-
-    //TODO maybe split to required/optional params validation
     public function validate(PDU $pdu): void
     {
         switch ($pdu->getID()) {
             case PDU::ID_BIND_RECEIVER:
             case PDU::ID_BIND_TRANSMITTER:
             case PDU::ID_BIND_TRANSCEIVER:
-                if (empty($pdu->get(PDU::KEY_SYSTEM_ID))) {
-                    throw new ValidatorException('SYSTEM_ID required', PDU::STATUS_INVALID_SYSTEM_ID);
-                }
-                if ($this->password && $pdu->get(PDU::KEY_PASSWORD) !== $this->password) {
-                    throw new ValidatorException('PASSWORD mismatch', PDU::STATUS_INVALID_PASSWORD);
-                }
-                if ($this->systemTypes && !in_array($pdu->get(PDU::KEY_SYSTEM_TYPE), $this->systemTypes)) {
-                    throw new ValidatorException('SYSTEM_TYPE not allowed', PDU::STATUS_INVALID_PASSWORD);
-                }
+                $this->validateSystemID();
+                $this->validatePassword();
+                $this->validateSystemType();
                 if (empty($pdu->get(PDU::KEY_INTERFACE_VERSION))) {
                     throw new ValidatorException('INTERFACE_VERSION required', PDU::STATUS_UNKNOWN_ERROR);
                 }
@@ -53,9 +40,7 @@ final class Validator implements ValidatorInterface
             case PDU::ID_BIND_RECEIVER_RESP:
             case PDU::ID_BIND_TRANSMITTER_RESP:
             case PDU::ID_BIND_TRANSCEIVER_RESP:
-                if (empty($pdu->get(PDU::KEY_SYSTEM_ID))) {
-                    throw new ValidatorException('SYSTEM_ID required', PDU::STATUS_INVALID_SYSTEM_ID);
-                }
+                $this->validateSystemID();
                 break;
             case PDU::ID_SUBMIT_SM:
             case PDU::ID_DELIVER_SM:
@@ -123,6 +108,33 @@ final class Validator implements ValidatorInterface
             if (is_numeric($key)) {
                 $this->checkTLV($pdu->getID(), $key, $val);
             }
+        }
+    }
+
+    private function validateSystemID(): void
+    {
+        $value = $this->pdu->get(PDU::KEY_SYSTEM_ID);
+        if (empty($value)) {
+            $this->invalid(PDU::STATUS_INVALID_SYSTEM_ID, PDU::KEY_SYSTEM_ID . ' required');
+        }
+        if (strlen($value) >= 16) {
+            $this->invalid(PDU::STATUS_INVALID_SYSTEM_ID, PDU::KEY_SYSTEM_ID . ' too long');
+        }
+    }
+
+    private function validatePassword(): void
+    {
+        $value = $this->pdu->get(PDU::KEY_PASSWORD);
+        if (!empty($value) && strlen($value) >= 9) {
+            $this->invalid(PDU::STATUS_INVALID_PASSWORD, PDU::KEY_PASSWORD . ' too long');
+        }
+    }
+
+    private function validateSystemType(): void
+    {
+        $value = $this->pdu->get(PDU::KEY_SYSTEM_TYPE);
+        if (!empty($value) && strlen($value) >= 13) {
+            $this->invalid(PDU::STATUS_INVALID_SYSTEM_TYPE, PDU::KEY_SYSTEM_TYPE . ' too long');
         }
     }
 
