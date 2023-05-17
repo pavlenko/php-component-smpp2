@@ -65,7 +65,7 @@ final class Validator implements ValidatorInterface
             case PDU::ID_DELIVER_SM_RESP:
             case PDU::ID_DATA_SM_RESP:
             case PDU::ID_QUERY_SM:
-                $this->validateMessageID($pdu->get(PDU::KEY_MESSAGE_ID), true);
+                $this->validateMessageID(true);
                 $this->validateSourceAddress($pdu->get(PDU::KEY_SRC_ADDRESS), false);
                 break;
             case PDU::ID_DATA_SM:
@@ -76,19 +76,19 @@ final class Validator implements ValidatorInterface
                 $this->validateMessage(0, null, $pdu->get(TLV::TAG_MESSAGE_PAYLOAD));
                 break;
             case PDU::ID_QUERY_SM_RESP:
-                $this->validateMessageID($pdu->get(PDU::KEY_MESSAGE_ID), true);
+                $this->validateMessageID(true);
                 if (empty($pdu->get(PDU::KEY_MESSAGE_STATE))) {
                     throw new ValidatorException('MESSAGE_STATE required', PDU::STATUS_UNKNOWN_ERROR);
                 }
                 break;
             case PDU::ID_CANCEL_SM:
                 $this->validateServiceType();
-                $this->validateMessageID($pdu->get(PDU::KEY_MESSAGE_ID), false);
+                $this->validateMessageID(false);
                 $this->validateSourceAddress($pdu->get(PDU::KEY_SRC_ADDRESS), true);
                 $this->validateTargetAddress($pdu->get(PDU::KEY_DST_ADDRESS), empty($pdu->get(PDU::KEY_MESSAGE_ID)));
                 break;
             case PDU::ID_REPLACE_SM:
-                $this->validateMessageID($pdu->get(PDU::KEY_MESSAGE_ID), true);
+                $this->validateMessageID(true);
                 $this->validateSourceAddress($pdu->get(PDU::KEY_SRC_ADDRESS), true);
                 $this->validateRegDeliveryFlag($pdu->get(PDU::KEY_REG_DELIVERY));
                 $this->validateScheduledAt($pdu->get(PDU::KEY_SCHEDULED_AT));
@@ -219,13 +219,14 @@ final class Validator implements ValidatorInterface
         }
     }
 
-    private function validateMessageID($messageID, bool $required)
+    private function validateMessageID(bool $required)
     {
-        if (empty($messageID) && $required) {
-            throw new ValidatorException('Required', PDU::STATUS_INVALID_MESSAGE_ID);
+        $value = $this->pdu->get(PDU::KEY_MESSAGE_ID);
+        if (empty($value) && $required) {
+            $this->invalid(PDU::STATUS_INVALID_MESSAGE_ID, PDU::KEY_MESSAGE_ID . ' required');
         }
-        if (!empty($messageID) && strlen($messageID) > 64) {
-            throw new ValidatorException('Invalid', PDU::STATUS_INVALID_MESSAGE_ID);
+        if (!empty($value) && strlen($value) >= 65) {
+            $this->invalid(PDU::STATUS_INVALID_MESSAGE_ID, PDU::KEY_MESSAGE_ID . ' invalid');
         }
     }
 
