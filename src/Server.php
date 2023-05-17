@@ -73,8 +73,8 @@ final class Server implements ServerInterface
             $this->attachConnection($connection);
         });
 
-        $server->setErrorHandler(fn($e) => $this->logger->log(LogLevel::ERROR, 'E: ' . $e));
-        $server->setCloseHandler(fn($e) => $this->logger->log(LogLevel::DEBUG, 'C: ' . ($e ?: 'Closed')));
+        $server->setErrorHandler(fn($e) => $this->logger->log(LogLevel::ERROR, (string) $e));
+        $server->setCloseHandler(fn($m) => $this->logger->log(LogLevel::DEBUG, (string) $m ?: 'Closed'));
 
         $this->logger->log(LogLevel::DEBUG, 'Listen to ' . $server->getAddress());
 
