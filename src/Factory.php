@@ -8,6 +8,8 @@ use PE\Component\SMPP\Util\Decoder;
 use PE\Component\SMPP\Util\DecoderInterface;
 use PE\Component\SMPP\Util\Encoder;
 use PE\Component\SMPP\Util\EncoderInterface;
+use PE\Component\SMPP\Util\Validator;
+use PE\Component\SMPP\Util\ValidatorInterface;
 use PE\Component\Socket\ClientInterface as SocketClientInterface;
 use PE\Component\Socket\FactoryInterface as SocketFactoryInterface;
 use PE\Component\Socket\SelectInterface as SocketSelectInterface;
@@ -21,6 +23,7 @@ final class Factory implements FactoryInterface
     private SocketFactoryInterface $socketFactory;
     private DecoderInterface $decoder;
     private EncoderInterface $encoder;
+    private ValidatorInterface $validator;
     private LoggerInterface $logger;
 
     public function __construct(
@@ -28,12 +31,14 @@ final class Factory implements FactoryInterface
         SocketFactoryInterface $socketFactory,//TODO create factory without select, maybe default & getter
         DecoderInterface       $decoder = null,
         EncoderInterface       $encoder = null,
+        ValidatorInterface     $validator = null,
         LoggerInterface        $logger = null
     ) {
         $this->socketSelect = $socketSelect;
         $this->socketFactory = $socketFactory;
         $this->decoder = $decoder ?: new Decoder();
         $this->encoder = $encoder ?: new Encoder();
+        $this->validator = $validator ?: new Validator();
         $this->logger = $logger ?: new NullLogger();
     }
 
@@ -57,7 +62,7 @@ final class Factory implements FactoryInterface
 
     public function createConnection(SocketClientInterface $client): ConnectionInterface
     {
-        return new Connection($client, $this->decoder, $this->encoder, $this->logger);
+        return new Connection($client, $this->decoder, $this->encoder, $this->validator, $this->logger);
     }
 
     public function generateID(): string

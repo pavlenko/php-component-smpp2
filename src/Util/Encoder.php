@@ -9,7 +9,6 @@ use PE\Component\SMPP\DTO\TLV;
 use PE\Component\SMPP\Exception\EncoderException;
 use PE\Component\SMPP\Exception\UnknownPDUException;
 
-//TODO remove check required, move this check to validator
 final class Encoder implements EncoderInterface
 {
     public function encode(PDU $pdu): string

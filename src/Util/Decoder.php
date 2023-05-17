@@ -7,18 +7,10 @@ use PE\Component\SMPP\DTO\DateTime;
 use PE\Component\SMPP\DTO\PDU;
 use PE\Component\SMPP\DTO\TLV;
 use PE\Component\SMPP\Exception\DecoderException;
-use PE\Component\SMPP\Exception\ExceptionInterface;
 use PE\Component\SMPP\Exception\UnknownPDUException;
 
 final class Decoder implements DecoderInterface
 {
-    private ValidatorInterface $validator;
-
-    public function __construct(ValidatorInterface $validator = null)
-    {
-        $this->validator = $validator ?: new Validator();
-    }
-
     public function decode(string $buffer): PDU
     {
         $pos    = 0;
@@ -38,19 +30,7 @@ final class Decoder implements DecoderInterface
             $params[$tlv->getTag()] = $tlv;
         }
 
-        $pdu = new PDU($id, $status, $seqNum, $params ?? []);
-
-        if (PDU::STATUS_NO_ERROR === $status) {
-            try {
-                //$this->validator->validate($pdu);//TODO move to connection for allow debug body
-            } catch (ValidatorException $ex) {
-                $ex = new DecoderException($ex->getMessage(), $ex);
-                $ex->setCommandID($id);
-                throw $ex;
-            }
-        }
-
-        return $pdu;
+        return new PDU($id, $status, $seqNum, $params ?? []);
     }
 
     private function decodeRequiredParams(int $id, string $buffer, int &$pos): array
@@ -244,27 +224,6 @@ final class Decoder implements DecoderInterface
         }
 
         return rtrim($value, "\0");
-    }
-
-    private function decodeStringOld(string $buffer, int &$pos, bool $required, ?int $min, ?int $max): ?string
-    {
-        $error = sprintf('Required STRING value at position %d in "%s"', $pos, $this->toPrintable($buffer));
-        $value = '';
-
-        while (strlen($buffer) > $pos && $buffer[$pos] !== "\0" && strlen($value) < $max) {
-            $value .= $buffer[$pos++];
-        }
-        $pos++;//<-- skip null char
-
-        if (null !== $min && strlen($value) < $min) {
-            throw new DecoderException(str_replace('Required STRING value', 'Invalid STRING length', $error));
-        }
-
-        if ($required && '' === $value) {
-            throw new DecoderException($error);
-        }
-
-        return $value ?: null;
     }
 
     private function decodeAddress(string $buffer, int &$pos, ?int $limit): ?Address

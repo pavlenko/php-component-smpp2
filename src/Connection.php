@@ -7,6 +7,7 @@ use PE\Component\SMPP\DTO\PDU;
 use PE\Component\SMPP\Exception\ExceptionInterface;
 use PE\Component\SMPP\Util\DecoderInterface;
 use PE\Component\SMPP\Util\EncoderInterface;
+use PE\Component\SMPP\Util\ValidatorInterface;
 use PE\Component\Socket\ClientInterface as SocketClientInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
@@ -21,6 +22,7 @@ final class Connection implements ConnectionInterface
     private SocketClientInterface $client;
     private DecoderInterface $decoder;
     private EncoderInterface $encoder;
+    private ValidatorInterface $validator;
     private LoggerInterface $logger;
 
     /**
@@ -40,6 +42,7 @@ final class Connection implements ConnectionInterface
         SocketClientInterface $client,
         DecoderInterface $decoder,
         EncoderInterface $encoder,
+        ValidatorInterface $validator,
         LoggerInterface $logger = null
     ) {
         $this->client = $client;
@@ -54,9 +57,10 @@ final class Connection implements ConnectionInterface
 
         $this->client->setCloseHandler(fn(string $message = null) => $this->close($message));
 
-        $this->decoder = $decoder;
-        $this->encoder = $encoder;
-        $this->logger  = $logger ?: new NullLogger();
+        $this->decoder   = $decoder;
+        $this->encoder   = $encoder;
+        $this->validator = $validator;
+        $this->logger    = $logger ?: new NullLogger();
 
         $this->onInput = fn() => null;
         $this->onError = fn() => null;
@@ -79,6 +83,7 @@ final class Connection implements ConnectionInterface
 
                 $this->logger->log(LogLevel::DEBUG, 'I: ' . $pdu->toLogger());
 
+                $this->validator->validate($pdu);
                 call_user_func($this->onInput, $pdu);
                 $this->updLastMessageTime();
             }// Else wait for more data
@@ -174,6 +179,7 @@ final class Connection implements ConnectionInterface
     {
         try {
             $this->logger->log(LogLevel::DEBUG, 'O: ' . $pdu->toLogger());
+            //$this->validator->validate($pdu);
             $this->client->write($this->encoder->encode($pdu), $close);
             $this->updLastMessageTime();
         } catch (ExceptionInterface $exception) {
