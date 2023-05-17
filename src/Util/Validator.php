@@ -51,8 +51,8 @@ final class Validator implements ValidatorInterface
                 $this->validateServiceType();
                 $this->validateSourceAddress(21, false);
                 $this->validateTargetAddress(21, true);
-                $this->validateESMEClass($pdu->get(PDU::KEY_ESM_CLASS));
-                $this->validatePriorityFlag($pdu->get(PDU::KEY_PRIORITY_FLAG));
+                $this->validateESMEClass();
+                $this->validatePriorityFlag();
                 $this->validateRegDeliveryFlag($pdu->get(PDU::KEY_REG_DELIVERY));
                 if (PDU::ID_SUBMIT_SM === $pdu->getID()) {
                     $this->validateScheduledAt($pdu->get(PDU::KEY_SCHEDULED_AT));
@@ -75,7 +75,7 @@ final class Validator implements ValidatorInterface
                 $this->validateServiceType();
                 $this->validateSourceAddress(21, true);
                 $this->validateTargetAddress(21, true);
-                $this->validateESMEClass($pdu->get(PDU::KEY_ESM_CLASS));
+                $this->validateESMEClass();
                 $this->validateRegDeliveryFlag($pdu->get(PDU::KEY_REG_DELIVERY));
                 $this->validateMessage(0, null, $pdu->get(TLV::TAG_MESSAGE_PAYLOAD));
                 break;
@@ -204,12 +204,9 @@ final class Validator implements ValidatorInterface
         }
     }
 
-    private function validateESMEClass($value): void
+    private function validateESMEClass(): void
     {
-        if (!is_int($value)) {
-            throw new ValidatorException('Invalid ESM_CLASS type', PDU::STATUS_INVALID_ESM_CLASS);
-        }
-
+        $value = (int) $this->pdu->get(PDU::KEY_ESM_CLASS);
         $allowed = [
             PDU::ESM_MSG_TYPE_DEFAULT,
             PDU::ESM_MSG_TYPE_HAS_DELIVERY_RECEIPT,
@@ -219,20 +216,17 @@ final class Validator implements ValidatorInterface
         ];
 
         if (!in_array($value & 0b00_11_11_00, $allowed)) {
-            throw new ValidatorException('Invalid ESM_CLASS value', PDU::STATUS_INVALID_ESM_CLASS);
+            $this->invalid(PDU::STATUS_INVALID_ESM_CLASS, PDU::KEY_ESM_CLASS . ' invalid');
         }
     }
 
-    private function validatePriorityFlag($value)
+    private function validatePriorityFlag()
     {
-        if (!is_int($value)) {
-            throw new ValidatorException('Invalid PRIORITY_FLAG type', PDU::STATUS_INVALID_PRIORITY_FLAG);
-        }
-
+        $value   = (int) $this->pdu->get(PDU::KEY_PRIORITY_FLAG);
         $allowed = [PDU::PRIORITY_DEFAULT, PDU::PRIORITY_HIGH, PDU::PRIORITY_URGENT, PDU::PRIORITY_EMERGENCY];
 
         if (!in_array($value, $allowed)) {
-            throw new ValidatorException('Invalid PRIORITY_FLAG value', PDU::STATUS_INVALID_PRIORITY_FLAG);
+            $this->invalid(PDU::STATUS_INVALID_PRIORITY_FLAG, PDU::KEY_PRIORITY_FLAG . ' invalid');
         }
     }
 
