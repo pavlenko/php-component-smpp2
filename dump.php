@@ -6,8 +6,6 @@ require_once __DIR__ . '/vendor/autoload.php';
 //TODO create new type classes and refactor existing code to use it
 interface Type
 {
-    //public static function decode(string $buffer, int &$pos = null): self;
-
     public function __toString(): string;
 }
 
@@ -41,5 +39,18 @@ class StringT implements Type
     }
 }
 
-$val = new Uint08T(3);
-dump($val, (int)(string) $val/*this only one way to cast to int*/, (string) $val, (string) $val > 2);
+class Params
+{
+    public Uint08T $a;
+    public StringT $b;
+
+    public function __construct()
+    {
+        $this->a = new Uint08T(2);
+        $this->b = new StringT('s');
+    }
+}
+
+$params = new Params();
+
+dump($params);
