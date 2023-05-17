@@ -39,7 +39,7 @@ final class Validator implements ValidatorInterface
                 $this->validatePassword();
                 $this->validateSystemType();
                 $this->validateInterfaceVer();
-                //TODO validate address
+                $this->validateAddress(PDU::KEY_ADDRESS, 41, false);
                 break;
             case PDU::ID_BIND_RECEIVER_RESP:
             case PDU::ID_BIND_TRANSMITTER_RESP:
@@ -49,7 +49,8 @@ final class Validator implements ValidatorInterface
             case PDU::ID_SUBMIT_SM:
             case PDU::ID_DELIVER_SM:
                 $this->validateServiceType();
-                $this->validateTargetAddress($pdu->get(PDU::KEY_DST_ADDRESS), true);
+                $this->validateSourceAddress(21, false);
+                $this->validateTargetAddress(21, true);
                 $this->validateESMEClass($pdu->get(PDU::KEY_ESM_CLASS));
                 $this->validatePriorityFlag($pdu->get(PDU::KEY_PRIORITY_FLAG));
                 $this->validateRegDeliveryFlag($pdu->get(PDU::KEY_REG_DELIVERY));
@@ -68,11 +69,12 @@ final class Validator implements ValidatorInterface
             case PDU::ID_DATA_SM_RESP:
             case PDU::ID_QUERY_SM:
                 $this->validateMessageID(true);
-                $this->validateSourceAddress($pdu->get(PDU::KEY_SRC_ADDRESS), false);
+                $this->validateSourceAddress(21, false);
                 break;
             case PDU::ID_DATA_SM:
                 $this->validateServiceType();
-                $this->validateTargetAddress($pdu->get(PDU::KEY_DST_ADDRESS), true);
+                $this->validateSourceAddress(21, true);
+                $this->validateTargetAddress(21, true);
                 $this->validateESMEClass($pdu->get(PDU::KEY_ESM_CLASS));
                 $this->validateRegDeliveryFlag($pdu->get(PDU::KEY_REG_DELIVERY));
                 $this->validateMessage(0, null, $pdu->get(TLV::TAG_MESSAGE_PAYLOAD));
@@ -84,12 +86,12 @@ final class Validator implements ValidatorInterface
             case PDU::ID_CANCEL_SM:
                 $this->validateServiceType();
                 $this->validateMessageID(false);
-                $this->validateSourceAddress($pdu->get(PDU::KEY_SRC_ADDRESS), true);
-                $this->validateTargetAddress($pdu->get(PDU::KEY_DST_ADDRESS), empty($pdu->get(PDU::KEY_MESSAGE_ID)));
+                $this->validateSourceAddress(21, true);
+                $this->validateTargetAddress(21, empty($pdu->get(PDU::KEY_MESSAGE_ID)));
                 break;
             case PDU::ID_REPLACE_SM:
                 $this->validateMessageID(true);
-                $this->validateSourceAddress($pdu->get(PDU::KEY_SRC_ADDRESS), true);
+                $this->validateSourceAddress(21, true);
                 $this->validateRegDeliveryFlag($pdu->get(PDU::KEY_REG_DELIVERY));
                 $this->validateScheduledAt($pdu->get(PDU::KEY_SCHEDULED_AT));
                 $this->validateExpiredAt($pdu->get(PDU::KEY_VALIDITY_PERIOD), $pdu->get(PDU::KEY_SCHEDULED_AT));
@@ -100,8 +102,8 @@ final class Validator implements ValidatorInterface
                 );
                 break;
             case PDU::ID_ALERT_NOTIFICATION:
-                $this->validateSourceAddress($pdu->get(PDU::KEY_SRC_ADDRESS), true);
-                $this->validateAddress(PDU::KEY_ESME_ADDRESS, true);//TODO max length
+                $this->validateSourceAddress(65, true);
+                $this->validateAddress(PDU::KEY_ESME_ADDRESS, 65, true);
         }
 
         foreach ($pdu->getParams() as $key => $val) {
@@ -111,10 +113,17 @@ final class Validator implements ValidatorInterface
         }
     }
 
-    private function validateTON(string $key, int $value, int $errorCode = PDU::STATUS_UNKNOWN_ERROR): void
+    private function validateString(string $key, string $value, int $max, int $code = PDU::STATUS_UNKNOWN_ERROR): void
+    {
+        if (strlen($value) >= $max) {
+            $this->invalid($code, $key . ' too long');
+        }
+    }
+
+    private function validateTON(string $key, int $value, int $code = PDU::STATUS_UNKNOWN_ERROR): void
     {
         if (!array_key_exists($value, Address::TON())) {
-            $this->invalid($errorCode, $key . ' invalid TON');
+            $this->invalid($code, $key . ' invalid TON');
         }
     }
 
@@ -125,16 +134,14 @@ final class Validator implements ValidatorInterface
         }
     }
 
-    private function validateAddress(string $key, bool $required, int $errorCode = PDU::STATUS_UNKNOWN_ERROR): void
+    private function validateAddress(string $key, int $max, bool $required): void
     {
         $value = $this->pdu->get($key);
-        if (empty($value) && $required) {
-            $this->invalid($errorCode, $key . ' required');
+        if ($required && (!$value instanceof Address || empty($value->getValue()))) {
+            $this->invalid(PDU::STATUS_UNKNOWN_ERROR, $key . ' required');
         }
-        if (!empty($value)) {
-            if (!$value instanceof Address || empty($value->getValue())) {
-                $this->invalid($errorCode, $key . ' invalid value');
-            }
+        if ($value instanceof Address) {
+            $this->validateString($key, $value->getValue(), $max);
             $this->validateTON($key, $value->getTON());
             $this->validateNPI($key, $value->getNPI());
         }
@@ -281,37 +288,29 @@ final class Validator implements ValidatorInterface
         }
     }
 
-    private function validateSourceAddress($address, bool $required)
+    private function validateSourceAddress(int $max, bool $required)
     {
-        if (null !== $address) {
-            if (!$address instanceof Address || empty($address->getValue())) {
-                throw new ValidatorException('Invalid value', PDU::STATUS_INVALID_SRC_ADDRESS);
-            }
-            if (!array_key_exists($address->getTON(), Address::TON())) {
-                throw new ValidatorException('Invalid TON', PDU::STATUS_INVALID_SRC_TON);
-            }
-            if (!array_key_exists($address->getNPI(), Address::NPI())) {
-                throw new ValidatorException('Invalid NPI', PDU::STATUS_INVALID_SRC_NPI);
-            }
-        } elseif ($required) {
-            throw new ValidatorException('Required', PDU::STATUS_INVALID_SRC_ADDRESS);
+        $value = $this->pdu->get(PDU::KEY_SRC_ADDRESS);
+        if ($required && (!$value instanceof Address || empty($value->getValue()))) {
+            $this->invalid(PDU::STATUS_INVALID_SRC_ADDRESS, PDU::KEY_SRC_ADDRESS . ' required');
+        }
+        if ($value instanceof Address) {
+            $this->validateString(PDU::KEY_SRC_ADDRESS, $value->getValue(), $max, PDU::STATUS_INVALID_SRC_ADDRESS);
+            $this->validateTON(PDU::KEY_SRC_ADDRESS, $value->getTON(), PDU::STATUS_INVALID_SRC_TON);
+            $this->validateNPI(PDU::KEY_SRC_ADDRESS, $value->getNPI(), PDU::STATUS_INVALID_SRC_NPI);
         }
     }
 
-    private function validateTargetAddress($address, bool $required)
+    private function validateTargetAddress(int $max, bool $required)
     {
-        if (null !== $address) {
-            if (!$address instanceof Address || empty($address->getValue())) {
-                throw new ValidatorException('Invalid value', PDU::STATUS_INVALID_DST_ADDRESS);
-            }
-            if (!array_key_exists($address->getTON(), Address::TON())) {
-                throw new ValidatorException('Invalid TON', PDU::STATUS_INVALID_DST_TON);
-            }
-            if (!array_key_exists($address->getNPI(), Address::NPI())) {
-                throw new ValidatorException('Invalid NPI', PDU::STATUS_INVALID_DST_NPI);
-            }
-        } elseif ($required) {
-            throw new ValidatorException('Required', PDU::STATUS_INVALID_DST_ADDRESS);
+        $value = $this->pdu->get(PDU::KEY_DST_ADDRESS);
+        if ($required && (!$value instanceof Address || empty($value->getValue()))) {
+            $this->invalid(PDU::STATUS_INVALID_DST_ADDRESS, PDU::KEY_DST_ADDRESS . ' required');
+        }
+        if ($value instanceof Address) {
+            $this->validateString(PDU::KEY_DST_ADDRESS, $value->getValue(), $max, PDU::STATUS_INVALID_DST_ADDRESS);
+            $this->validateTON(PDU::KEY_DST_ADDRESS, $value->getTON(), PDU::STATUS_INVALID_DST_TON);
+            $this->validateNPI(PDU::KEY_DST_ADDRESS, $value->getNPI(), PDU::STATUS_INVALID_DST_NPI);
         }
     }
 
