@@ -5,6 +5,7 @@ namespace PE\Component\SMPP\Util;
 use PE\Component\SMPP\ConnectionInterface;
 use PE\Component\SMPP\DTO\Address;
 use PE\Component\SMPP\DTO\DateTime;
+use PE\Component\SMPP\DTO\Message;
 use PE\Component\SMPP\DTO\PDU;
 use PE\Component\SMPP\DTO\TLV;
 use PE\Component\SMPP\Exception\ValidatorException;
@@ -77,9 +78,7 @@ final class Validator implements ValidatorInterface
                 break;
             case PDU::ID_QUERY_SM_RESP:
                 $this->validateMessageID(true);
-                if (empty($pdu->get(PDU::KEY_MESSAGE_STATE))) {
-                    throw new ValidatorException('MESSAGE_STATE required', PDU::STATUS_UNKNOWN_ERROR);
-                }
+                $this->validateMessageStatus();
                 break;
             case PDU::ID_CANCEL_SM:
                 $this->validateServiceType();
@@ -219,7 +218,7 @@ final class Validator implements ValidatorInterface
         }
     }
 
-    private function validateMessageID(bool $required)
+    private function validateMessageID(bool $required): void
     {
         $value = $this->pdu->get(PDU::KEY_MESSAGE_ID);
         if (empty($value) && $required) {
@@ -227,6 +226,30 @@ final class Validator implements ValidatorInterface
         }
         if (!empty($value) && strlen($value) >= 65) {
             $this->invalid(PDU::STATUS_INVALID_MESSAGE_ID, PDU::KEY_MESSAGE_ID . ' invalid');
+        }
+    }
+
+    private function validateMessageStatus(): void
+    {
+        $value = $this->pdu->get(PDU::KEY_MESSAGE_STATE);
+        if (!is_int($value)) {
+            $this->invalid(PDU::STATUS_UNKNOWN_ERROR, PDU::KEY_MESSAGE_STATE . ' invalid type');
+        }
+
+        $allowed = [
+            Message::STATUS_PENDING,
+            Message::STATUS_ENROUTE,
+            Message::STATUS_DELIVERED,
+            Message::STATUS_EXPIRED,
+            Message::STATUS_DELETED,
+            Message::STATUS_UNDELIVERABLE,
+            Message::STATUS_ACCEPTED,
+            Message::STATUS_UNKNOWN,
+            Message::STATUS_REJECTED,
+        ];
+
+        if (!in_array($value, $allowed)) {
+            $this->invalid(PDU::STATUS_UNKNOWN_ERROR, PDU::KEY_MESSAGE_STATE . ' invalid value');
         }
     }
 
