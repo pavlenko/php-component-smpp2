@@ -328,6 +328,12 @@ final class Validator implements ValidatorInterface
 
     private function validateMessage($length, $message, $payload)
     {
+        $message = $this->pdu->get(PDU::KEY_SHORT_MESSAGE);
+        $length  = $this->pdu->get(PDU::KEY_SM_LENGTH);
+        $payload = $this->pdu->get(TLV::TAG_MESSAGE_PAYLOAD);
+
+        //TODO
+
         if (!empty($message)) {
             if (0 === $length || strlen($message) !== $length) {
                 throw new ValidatorException('Invalid SM_LENGTH value', PDU::STATUS_INVALID_MESSAGE_LENGTH);
