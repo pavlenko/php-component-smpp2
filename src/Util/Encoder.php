@@ -293,12 +293,12 @@ final class Encoder implements EncoderInterface
         }
 
         switch ($value->getTag()) {
-            case TLV::TAG_DEST_ADDR_SUBUNIT:
-            case TLV::TAG_DEST_NETWORK_TYPE:
-            case TLV::TAG_DEST_BEARER_TYPE:
-            case TLV::TAG_SOURCE_ADDR_SUBUNIT:
-            case TLV::TAG_SOURCE_NETWORK_TYPE:
-            case TLV::TAG_SOURCE_BEARER_TYPE:
+            case TLV::TAG_DST_ADDRESS_SUBUNIT:
+            case TLV::TAG_DST_NETWORK_TYPE:
+            case TLV::TAG_DST_BEARER_TYPE:
+            case TLV::TAG_SRC_ADDR_SUBUNIT:
+            case TLV::TAG_SRC_NETWORK_TYPE:
+            case TLV::TAG_SRC_BEARER_TYPE:
             case TLV::TAG_PAYLOAD_TYPE:
             case TLV::TAG_MS_MSG_WAIT_FACILITIES:
             case TLV::TAG_MS_AVAILABILITY_STATUS:
@@ -307,7 +307,7 @@ final class Encoder implements EncoderInterface
             case TLV::TAG_USER_RESPONSE_CODE:
             case TLV::TAG_LANGUAGE_INDICATOR:
             case TLV::TAG_SAR_TOTAL_SEGMENTS:
-            case TLV::TAG_SAR_SEGMENT_SEQNUM:
+            case TLV::TAG_SAR_SEGMENT_SEQUENCE_NUM:
             case TLV::TAG_SC_INTERFACE_VERSION:
             case TLV::TAG_CALLBACK_NUM_PRES_IND:
             case TLV::TAG_NUMBER_OF_MESSAGES:
@@ -315,17 +315,17 @@ final class Encoder implements EncoderInterface
             case TLV::TAG_SET_DPF:
             case TLV::TAG_DELIVERY_FAILURE_REASON:
             case TLV::TAG_MORE_MESSAGES_TO_SEND:
-            case TLV::TAG_MESSAGE_STATE:
-            case TLV::TAG_USSD_SERVICE_OP:
+            case TLV::TAG_MESSAGE_STATUS:
+            case TLV::TAG_USSD_SERVICE_OPERATION:
             case TLV::TAG_DISPLAY_TIME:
             case TLV::TAG_ITS_REPLY_TYPE:
                 $buffer = $this->encodeUint08(false, $value->getValue());
                 $length = 1;
                 break;
             case TLV::TAG_DESTINATION_PORT:
-            case TLV::TAG_DEST_TELEMATICS_ID:
+            case TLV::TAG_DST_TELEMATICS_ID:
             case TLV::TAG_SOURCE_PORT:
-            case TLV::TAG_SOURCE_TELEMATICS_ID:
+            case TLV::TAG_SRC_TELEMATICS_ID:
             case TLV::TAG_USER_MESSAGE_REFERENCE:
             case TLV::TAG_SAR_MSG_REF_NUM:
             case TLV::TAG_SMS_SIGNAL:
@@ -337,8 +337,8 @@ final class Encoder implements EncoderInterface
                 $buffer = $this->encodeUint32(false, $value->getValue());
                 $length = 4;
                 break;
-            case TLV::TAG_SOURCE_SUBADDRESS:
-            case TLV::TAG_DEST_SUBADDRESS:
+            case TLV::TAG_SRC_SUB_ADDRESS:
+            case TLV::TAG_DST_SUB_ADDRESS:
                 $buffer = $this->encodeString(true, 2, 23, $value->getValue());
                 $length = strlen($value->getValue());
                 break;

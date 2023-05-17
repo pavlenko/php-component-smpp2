@@ -363,12 +363,12 @@ final class Validator implements ValidatorInterface
             }
 
             switch ($tag) {
-                case TLV::TAG_DEST_ADDR_SUBUNIT:
-                case TLV::TAG_DEST_NETWORK_TYPE:
-                case TLV::TAG_DEST_BEARER_TYPE:
-                case TLV::TAG_SOURCE_ADDR_SUBUNIT:
-                case TLV::TAG_SOURCE_NETWORK_TYPE:
-                case TLV::TAG_SOURCE_BEARER_TYPE:
+                case TLV::TAG_DST_ADDRESS_SUBUNIT:
+                case TLV::TAG_DST_NETWORK_TYPE:
+                case TLV::TAG_DST_BEARER_TYPE:
+                case TLV::TAG_SRC_ADDR_SUBUNIT:
+                case TLV::TAG_SRC_NETWORK_TYPE:
+                case TLV::TAG_SRC_BEARER_TYPE:
                 case TLV::TAG_PAYLOAD_TYPE:
                 case TLV::TAG_MS_MSG_WAIT_FACILITIES:
                 case TLV::TAG_MS_AVAILABILITY_STATUS:
@@ -377,7 +377,7 @@ final class Validator implements ValidatorInterface
                 case TLV::TAG_USER_RESPONSE_CODE:
                 case TLV::TAG_LANGUAGE_INDICATOR:
                 case TLV::TAG_SAR_TOTAL_SEGMENTS:
-                case TLV::TAG_SAR_SEGMENT_SEQNUM:
+                case TLV::TAG_SAR_SEGMENT_SEQUENCE_NUM:
                 case TLV::TAG_SC_INTERFACE_VERSION:
                 case TLV::TAG_CALLBACK_NUM_PRES_IND:
                 case TLV::TAG_NUMBER_OF_MESSAGES:
@@ -385,8 +385,8 @@ final class Validator implements ValidatorInterface
                 case TLV::TAG_SET_DPF:
                 case TLV::TAG_DELIVERY_FAILURE_REASON:
                 case TLV::TAG_MORE_MESSAGES_TO_SEND:
-                case TLV::TAG_MESSAGE_STATE:
-                case TLV::TAG_USSD_SERVICE_OP:
+                case TLV::TAG_MESSAGE_STATUS:
+                case TLV::TAG_USSD_SERVICE_OPERATION:
                 case TLV::TAG_DISPLAY_TIME:
                 case TLV::TAG_ITS_REPLY_TYPE:
                     if (0 > $tlv->getValue() || $tlv->getValue() > 0xFF) {
@@ -394,9 +394,9 @@ final class Validator implements ValidatorInterface
                     }
                     break;
                 case TLV::TAG_DESTINATION_PORT:
-                case TLV::TAG_DEST_TELEMATICS_ID:
+                case TLV::TAG_DST_TELEMATICS_ID:
                 case TLV::TAG_SOURCE_PORT:
-                case TLV::TAG_SOURCE_TELEMATICS_ID:
+                case TLV::TAG_SRC_TELEMATICS_ID:
                 case TLV::TAG_USER_MESSAGE_REFERENCE:
                 case TLV::TAG_SAR_MSG_REF_NUM:
                 case TLV::TAG_SMS_SIGNAL:
@@ -410,8 +410,8 @@ final class Validator implements ValidatorInterface
                         $this->error(PDU::STATUS_INVALID_OPTIONAL_PARAM_VALUE, TLV::TAG()[$tag] . ' invalid UINT32');
                     }
                     break;
-                case TLV::TAG_SOURCE_SUBADDRESS:
-                case TLV::TAG_DEST_SUBADDRESS:
+                case TLV::TAG_SRC_SUB_ADDRESS:
+                case TLV::TAG_DST_SUB_ADDRESS:
                     $this->validateString(TLV::TAG()[$tag], $tlv->getValue(), 1, 23, PDU::STATUS_INVALID_PARAM_LENGTH);
                     break;
                 case TLV::TAG_RECEIPTED_MESSAGE_ID:
