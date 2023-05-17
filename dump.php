@@ -13,7 +13,7 @@ class Uint08T implements Type
 {
     public int $value;
 
-    public function __construct(int $value = null)
+    public function __construct($value = null)
     {
         $this->value = (int) $value;
     }
@@ -28,7 +28,7 @@ class StringT implements Type
 {
     public string $value;
 
-    public function __construct(string $value = null)
+    public function __construct($value = null)
     {
         $this->value = (string) $value;
     }
@@ -60,8 +60,30 @@ class Params80
     ) {
 
     }
+
+    /**
+     * @template T
+     *
+     * @param string $key
+     * @param T|class-string $type
+     * @return T
+     */
+    public function get(string $key, string $type)
+    {
+        return new $type($this->{$key} ?? null);
+    }
+
+    /**
+     * @template T
+     *
+     * @param string $key
+     * @param T|class-string $type
+     * @param $value
+     */
+    public function set(string $key, string $type, $value)
+    {}
 }
 
 $params = new Params80();
-
-dump($params);
+$params->set('b', StringT::class, 'b');
+dump($params->get('a', Uint08T::class)->value, $params->get('b', Uint08T::class)->value);
