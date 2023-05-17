@@ -264,8 +264,6 @@ final class Decoder implements DecoderInterface
 
     private function decodeTLV(string $buffer, int &$pos): TLV
     {
-        //dump(substr($buffer, $pos));
-        //TODO here all string values may be not null terminated, so use limit
         if ((strlen($buffer) - $pos) < 4) {
             throw new DecoderException('Malformed TLV header');
         }
