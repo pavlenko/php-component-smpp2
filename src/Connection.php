@@ -81,7 +81,7 @@ final class Connection implements ConnectionInterface
 
                 $pdu = $this->decoder->decode($buffer);
 
-                $this->logger->log(LogLevel::DEBUG, 'I: ' . $pdu->toLogger());
+                $this->logger->log(LogLevel::DEBUG, 'I: ' . $pdu->dump());
 
                 $this->validator->validate($pdu);
                 call_user_func($this->onInput, $pdu);
@@ -178,7 +178,7 @@ final class Connection implements ConnectionInterface
     public function send(PDU $pdu, bool $close = false): void
     {
         try {
-            $this->logger->log(LogLevel::DEBUG, 'O: ' . $pdu->toLogger());
+            $this->logger->log(LogLevel::DEBUG, 'O: ' . $pdu->dump());
             //$this->validator->validate($pdu);
             $this->client->write($this->encoder->encode($pdu), $close);
             $this->updLastMessageTime();

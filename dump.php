@@ -1,37 +1,45 @@
 <?php
+// phpcs:ignoreFile
 
 require_once __DIR__ . '/vendor/autoload.php';
 
-$buffer = "HELLO";
-$pos = 0;
-
-function decodeString(string $buffer, int &$pos, ?int $min, ?int $max): string
+//TODO create new type classes and refactor existing code to use it
+interface Type
 {
-    $data = '';
-    while (strlen($buffer) > $pos) {
-        $data .= $buffer[$pos++];
-        if ("\n" === $buffer[$pos - 1]) {
-            dump('stop by NUL');
-            break;
-        }
-        // Check max chars for read, usable for TLV with no NUL terminated strings
-        if (strlen($data) === $max) {
-            dump('stop by max');
-            break;
-        }
-    }
-    $pos++;
-    if (null === $max && "\0" !== substr($data, -1)) {
-        dump('not null terminated');//TODO to validator, malformed
-    }
-    if (null !== $min && strlen($data) < $min) {
-        dump('too short');//TODO to validator, invalid???
-    }
-    if ($data === $buffer) {
-        dump('stop by EOF');//just info
-    }
-    return $data;
+    //public static function decode(string $buffer, int &$pos = null): self;
+
+    public function __toString(): string;
 }
 
-$str = decodeString($buffer, $pos, null, null);
-dump($str, strlen($str), $pos - 1);
+class Uint08T implements Type
+{
+    public int $value;
+
+    public function __construct(int $value)
+    {
+        $this->value = $value;
+    }
+
+    public function __toString(): string
+    {
+        return $this->value;
+    }
+}
+
+class StringT implements Type
+{
+    public string $value;
+
+    public function __construct(string $value)
+    {
+        $this->value = $value;
+    }
+
+    public function __toString(): string
+    {
+        return $this->value;
+    }
+}
+
+$val = new Uint08T(3);
+dump($val, (int)(string) $val/*this only one way to cast to int*/, (string) $val, (string) $val > 2);
