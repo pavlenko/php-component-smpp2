@@ -2,6 +2,7 @@
 
 namespace PE\Component\SMPP\Util;
 
+use PE\Component\SMPP\ConnectionInterface;
 use PE\Component\SMPP\DTO\Address;
 use PE\Component\SMPP\DTO\DateTime;
 use PE\Component\SMPP\DTO\PDU;
@@ -17,15 +18,18 @@ final class Validator implements ValidatorInterface
      */
     private ?PDU $pdu = null;
 
-    private array $systemTypes = [];
-
     private function invalid(int $status, string $message): void
     {
-        throw new ValidatorException($this->pdu->getID(), $message, $status);
+        throw new ValidatorException($this->pdu->getID(), $status, $message);
     }
 
     public function validate(PDU $pdu): void
     {
+        if ($pdu->getStatus() !== PDU::STATUS_NO_ERROR) {
+            //TODO maybe validate???
+            return;
+        }
+        $this->pdu = $pdu;
         switch ($pdu->getID()) {
             case PDU::ID_BIND_RECEIVER:
             case PDU::ID_BIND_TRANSMITTER:
@@ -33,9 +37,7 @@ final class Validator implements ValidatorInterface
                 $this->validateSystemID();
                 $this->validatePassword();
                 $this->validateSystemType();
-                if (empty($pdu->get(PDU::KEY_INTERFACE_VERSION))) {
-                    throw new ValidatorException('INTERFACE_VERSION required', PDU::STATUS_UNKNOWN_ERROR);
-                }
+                $this->validateInterfaceVer();
                 break;
             case PDU::ID_BIND_RECEIVER_RESP:
             case PDU::ID_BIND_TRANSMITTER_RESP:
@@ -135,6 +137,17 @@ final class Validator implements ValidatorInterface
         $value = $this->pdu->get(PDU::KEY_SYSTEM_TYPE);
         if (!empty($value) && strlen($value) >= 13) {
             $this->invalid(PDU::STATUS_INVALID_SYSTEM_TYPE, PDU::KEY_SYSTEM_TYPE . ' too long');
+        }
+    }
+
+    private function validateInterfaceVer(): void
+    {
+        $value = $this->pdu->get(PDU::KEY_INTERFACE_VERSION);
+        if (empty($value)) {
+            $this->invalid(PDU::STATUS_UNKNOWN_ERROR, PDU::KEY_INTERFACE_VERSION . ' required');
+        }
+        if ($value > ConnectionInterface::INTERFACE_VER) {
+            $this->invalid(PDU::STATUS_UNKNOWN_ERROR, PDU::KEY_INTERFACE_VERSION . ' invalid');
         }
     }
 
