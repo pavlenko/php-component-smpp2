@@ -13,8 +13,6 @@ interface EncoderInterface
      *
      * @param PDU $pdu
      * @return string
-     * @throws InvalidPDUException If some param required but not passed
-     * @throws UnknownPDUException If unknown command ID received
      */
     public function encode(PDU $pdu): string;
 }
