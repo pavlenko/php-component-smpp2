@@ -27,7 +27,6 @@ final class Validator implements ValidatorInterface
     public function validate(PDU $pdu): void
     {
         if ($pdu->getStatus() !== PDU::STATUS_NO_ERROR) {
-            //TODO maybe validate???
             return;
         }
         $this->pdu = $pdu;
@@ -109,9 +108,16 @@ final class Validator implements ValidatorInterface
         $this->validateOptionalParams();
     }
 
-    //TODO min
-    private function validateString(string $key, string $value, int $max, int $code = PDU::STATUS_UNKNOWN_ERROR): void
-    {
+    private function validateString(
+        string $key,
+        string $value,
+        int $min,
+        int $max,
+        int $code = PDU::STATUS_UNKNOWN_ERROR
+    ): void {
+        if (strlen($value) < $min) {
+            $this->invalid($code, $key . ' too short');
+        }
         if (strlen($value) >= $max) {
             $this->invalid($code, $key . ' too long');
         }
@@ -138,7 +144,7 @@ final class Validator implements ValidatorInterface
             $this->invalid(PDU::STATUS_UNKNOWN_ERROR, $key . ' required');
         }
         if ($value instanceof Address) {
-            $this->validateString($key, $value->getValue(), $max);
+            $this->validateString($key, $value->getValue(), 0, $max);
             $this->validateTON($key, $value->getTON());
             $this->validateNPI($key, $value->getNPI());
         }
@@ -296,7 +302,7 @@ final class Validator implements ValidatorInterface
             $this->invalid(PDU::STATUS_INVALID_SRC_ADDRESS, PDU::KEY_SRC_ADDRESS . ' required');
         }
         if ($value instanceof Address) {
-            $this->validateString(PDU::KEY_SRC_ADDRESS, $value->getValue(), $max, PDU::STATUS_INVALID_SRC_ADDRESS);
+            $this->validateString(PDU::KEY_SRC_ADDRESS, $value->getValue(), 0, $max, PDU::STATUS_INVALID_SRC_ADDRESS);
             $this->validateTON(PDU::KEY_SRC_ADDRESS, $value->getTON(), PDU::STATUS_INVALID_SRC_TON);
             $this->validateNPI(PDU::KEY_SRC_ADDRESS, $value->getNPI(), PDU::STATUS_INVALID_SRC_NPI);
         }
@@ -309,7 +315,7 @@ final class Validator implements ValidatorInterface
             $this->invalid(PDU::STATUS_INVALID_DST_ADDRESS, PDU::KEY_DST_ADDRESS . ' required');
         }
         if ($value instanceof Address) {
-            $this->validateString(PDU::KEY_DST_ADDRESS, $value->getValue(), $max, PDU::STATUS_INVALID_DST_ADDRESS);
+            $this->validateString(PDU::KEY_DST_ADDRESS, $value->getValue(), 0, $max, PDU::STATUS_INVALID_DST_ADDRESS);
             $this->validateTON(PDU::KEY_DST_ADDRESS, $value->getTON(), PDU::STATUS_INVALID_DST_TON);
             $this->validateNPI(PDU::KEY_DST_ADDRESS, $value->getNPI(), PDU::STATUS_INVALID_DST_NPI);
         }
@@ -406,23 +412,23 @@ final class Validator implements ValidatorInterface
                     break;
                 case TLV::TAG_SOURCE_SUBADDRESS:
                 case TLV::TAG_DEST_SUBADDRESS:
-                    $this->validateString(TLV::TAG()[$tag], $val->getValue(), 23);
+                    $this->validateString(TLV::TAG()[$tag], $val->getValue(), 1, 23);
                     break;
                 case TLV::TAG_RECEIPTED_MESSAGE_ID:
                 case TLV::TAG_CALLBACK_NUM_ATAG:
-                    $this->validateString(TLV::TAG()[$tag], $val->getValue(), 65);
+                    $this->validateString(TLV::TAG()[$tag], $val->getValue(), 1, 65);
                     break;
                 case TLV::TAG_ADDITIONAL_STATUS_INFO_TEXT:
-                    $this->validateString(TLV::TAG()[$tag], $val->getValue(), 256);
+                    $this->validateString(TLV::TAG()[$tag], $val->getValue(), 1, 256);
                     break;
                 case TLV::TAG_CALLBACK_NUM:
-                    $this->validateString(TLV::TAG()[$tag], $val->getValue(), 19);
+                    $this->validateString(TLV::TAG()[$tag], $val->getValue(), 1, 19);
                     break;
                 case TLV::TAG_NETWORK_ERROR_CODE:
-                    $this->validateString(TLV::TAG()[$tag], $val->getValue(), 3);
+                    $this->validateString(TLV::TAG()[$tag], $val->getValue(), 3, 3);
                     break;
                 case TLV::TAG_MESSAGE_PAYLOAD:
-                    $this->validateString(TLV::TAG()[$tag], $val->getValue(), 65535);
+                    $this->validateString(TLV::TAG()[$tag], $val->getValue(), 1, 65535);
                     break;
             }
         }
