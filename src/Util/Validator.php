@@ -10,12 +10,24 @@ use PE\Component\SMPP\Exception\ValidatorException;
 
 final class Validator implements ValidatorInterface
 {
+    /**
+     * Validation context object
+     *
+     * @var PDU|null
+     */
+    private ?PDU $pdu = null;
+
     private ?string $password;
     private array $systemTypes = [];
 
     public function __construct(string $password = null)
     {
         $this->password = $password;
+    }
+
+    //TODO helper method to throw validation exception
+    public function invalid(int $status, string $message): void
+    {
     }
 
     //TODO maybe split to required/optional params validation
