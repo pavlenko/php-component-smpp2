@@ -6,6 +6,7 @@ use PE\Component\SMPP\DTO\Address;
 use PE\Component\SMPP\DTO\DateTime;
 use PE\Component\SMPP\DTO\PDU;
 use PE\Component\SMPP\DTO\TLV;
+use PE\Component\SMPP\Exception\ValidatorException;
 
 final class Validator implements ValidatorInterface
 {

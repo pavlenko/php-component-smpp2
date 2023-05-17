@@ -11,7 +11,7 @@ use PE\Component\SMPP\DTO\PDU;
 use PE\Component\SMPP\Exception\DecoderException;
 use PE\Component\SMPP\Exception\ExceptionInterface;
 use PE\Component\SMPP\Exception\UnknownPDUException;
-use PE\Component\SMPP\Util\ValidatorException;
+use PE\Component\SMPP\Exception\ValidatorException;
 use PE\Component\Socket\ClientInterface as SocketClientInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;

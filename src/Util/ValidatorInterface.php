@@ -3,6 +3,7 @@
 namespace PE\Component\SMPP\Util;
 
 use PE\Component\SMPP\DTO\PDU;
+use PE\Component\SMPP\Exception\ValidatorException;
 
 interface ValidatorInterface
 {
