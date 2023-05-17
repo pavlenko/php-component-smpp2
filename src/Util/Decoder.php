@@ -345,25 +345,4 @@ final class Decoder implements DecoderInterface
         $pos += $length;
         return new TLV($tag, $value);
     }
-
-    private function toPrintable(string $value): string
-    {
-        return preg_replace_callback('/[\x00-\x1F\x7F]+/', function ($c) {
-            $map = [
-                "\t" => '\t',
-                "\n" => '\n',
-                "\v" => '\v',
-                "\f" => '\f',
-                "\r" => '\r',
-            ];
-
-            $c = $c[$i = 0];
-            $s = '';
-            do {
-                $s .= $map[$c[$i]] ?? sprintf('\x%02X', \ord($c[$i]));
-            } while (isset($c[++$i]));
-
-            return $s;
-        }, $value);
-    }
 }
