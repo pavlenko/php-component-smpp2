@@ -22,7 +22,7 @@ $server = new Server(
     new Session('SERVER'),
     new StorageMemory(),
     $emitter = new Emitter(),
-    new Factory($select = new Select(), new SocketFactory($select), null, null, $logger),
+    new Factory($select = new Select(), new SocketFactory($select), null, null, null, $logger),
     $logger
 );
 $emitter->attach(PDU::ID_SUBMIT_SM, function ($_, $pdu) {

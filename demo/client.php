@@ -23,7 +23,7 @@ $client = new Client(
     new Session('ID', null, new Address(Address::TON_INTERNATIONAL, Address::NPI_ISDN, '10001112244')),
     new StorageMemory(),
     new Emitter(),
-    new Factory($select = new Select(), new SocketFactory($select), null, null, $logger),
+    new Factory($select = new Select(), new SocketFactory($select), null, null, null, $logger),
     $logger
 );
 $client->bind('127.0.0.1:2775', PDU::ID_BIND_RECEIVER);
