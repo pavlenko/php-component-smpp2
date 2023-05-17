@@ -62,11 +62,7 @@ final class Validator implements ValidatorInterface
                         PDU::STATUS_INVALID_EXPIRED_AT
                     );
                 }
-                $this->validateMessage(
-                    $pdu->get(PDU::KEY_SM_LENGTH),
-                    $pdu->get(PDU::KEY_SHORT_MESSAGE),
-                    $pdu->get(TLV::TAG_MESSAGE_PAYLOAD)
-                );
+                $this->validateMessage();
                 break;
             case PDU::ID_SUBMIT_SM_RESP:
             case PDU::ID_DELIVER_SM_RESP:
@@ -81,7 +77,7 @@ final class Validator implements ValidatorInterface
                 $this->validateTargetAddress(21, true);
                 $this->validateESMEClass();
                 $this->validateRegDeliveryFlag();
-                $this->validateMessage(0, null, $pdu->get(TLV::TAG_MESSAGE_PAYLOAD));
+                $this->validateMessage();
                 break;
             case PDU::ID_QUERY_SM_RESP:
                 $this->validateMessageID(true);
@@ -103,24 +99,17 @@ final class Validator implements ValidatorInterface
                     $pdu->get(PDU::KEY_SCHEDULED_AT),
                     PDU::STATUS_INVALID_EXPIRED_AT
                 );
-                $this->validateMessage(
-                    $pdu->get(PDU::KEY_SM_LENGTH),
-                    $pdu->get(PDU::KEY_SHORT_MESSAGE),
-                    $pdu->get(TLV::TAG_MESSAGE_PAYLOAD)
-                );
+                $this->validateMessage();
                 break;
             case PDU::ID_ALERT_NOTIFICATION:
                 $this->validateSourceAddress(65, true);
                 $this->validateAddress(PDU::KEY_ESME_ADDRESS, 65, true);
         }
 
-        foreach ($pdu->getParams() as $key => $val) {
-            if (is_numeric($key)) {
-                $this->checkTLV($pdu->getID(), $key, $val);
-            }
-        }
+        $this->validateOptionalParams();
     }
 
+    //TODO min
     private function validateString(string $key, string $value, int $max, int $code = PDU::STATUS_UNKNOWN_ERROR): void
     {
         if (strlen($value) >= $max) {
@@ -326,47 +315,116 @@ final class Validator implements ValidatorInterface
         }
     }
 
-    private function validateMessage($length, $message, $payload)
+    private function validateMessage()
     {
         $message = $this->pdu->get(PDU::KEY_SHORT_MESSAGE);
         $length  = $this->pdu->get(PDU::KEY_SM_LENGTH);
         $payload = $this->pdu->get(TLV::TAG_MESSAGE_PAYLOAD);
 
-        //TODO
-
-        if (!empty($message)) {
-            if (0 === $length || strlen($message) !== $length) {
-                throw new ValidatorException('Invalid SM_LENGTH value', PDU::STATUS_INVALID_MESSAGE_LENGTH);
+        if ($length > 0) {
+            if ($length > 254) {
+                $this->invalid(PDU::STATUS_INVALID_MESSAGE_LENGTH, ' sm_length invalid');
             }
-        } elseif (0 !== $length) {
-            throw new ValidatorException('Invalid SM_LENGTH value', PDU::STATUS_INVALID_MESSAGE_LENGTH);
-        } elseif (empty($payload)) {
-            throw new ValidatorException(
-                'Required SHORT_MESSAGE param or MESSAGE_PAYLOAD TLV',
-                PDU::STATUS_INVALID_DEFINED_MESSAGE
-            );
+            if (strlen($message) !== $length) {
+                $this->invalid(PDU::STATUS_INVALID_MESSAGE_LENGTH, ' short_message length not match sm_length');
+            }
+        } elseif (!$payload instanceof TLV) {
+            $this->invalid(PDU::STATUS_INVALID_DEFINED_MESSAGE, 'Required short_message param or message_payload TLV');
         }
     }
 
-    private function checkTLV(int $id, int $key, $val)
+    private function validateOptionalParams(): void
     {
-        if (!array_key_exists($id, PDU::ALLOWED_TLV_BY_ID) || !in_array($key, PDU::ALLOWED_TLV_BY_ID[$id])) {
-            throw new ValidatorException(
-                sprintf(
-                    'Param %s not allowed for PDU %s',
-                    TLV::TAG()[$key] ?? sprintf('0x%02X', $key),
-                    PDU::getIdentifiers()[$id] ?? sprintf('0x%04X', $id)
-                ),
-                PDU::STATUS_OPTIONAL_PARAM_NOT_ALLOWED
-            );
-        }
+        foreach ($this->pdu->getParams() as $tag => $val) {
+            if (!is_numeric($tag)) {
+                continue;
+            }
 
-        if (!$val instanceof TLV) {
-            //TODO check value type
-            throw new ValidatorException(
-                sprintf('Invalid param %s', TLV::TAG()[$key] ?? sprintf('0x%02X', $key)),
-                PDU::STATUS_INVALID_OPTIONAL_PARAM_VALUE
-            );
+            if (!array_key_exists($this->pdu->getID(), PDU::ALLOWED_TLV_BY_ID)
+                || !in_array($tag, PDU::ALLOWED_TLV_BY_ID[$this->pdu->getID()])) {
+                $this->invalid(PDU::STATUS_OPTIONAL_PARAM_NOT_ALLOWED, sprintf(
+                    'Param %s not allowed for PDU %s',
+                    TLV::TAG()[$tag] ?? sprintf('0x%02X', $tag),
+                    PDU::getIdentifiers()[$this->pdu->getID()] ?? sprintf('0x%04X', $this->pdu->getID())
+                ));
+            }
+
+            if (!$val instanceof TLV) {
+                $this->invalid(PDU::STATUS_INVALID_OPTIONAL_PARAM_VALUE, sprintf(
+                    'Param %s has invalid type',
+                    TLV::TAG()[$tag] ?? sprintf('0x%02X', $tag)
+                ));
+            }
+
+            switch ($tag) {
+                case TLV::TAG_DEST_ADDR_SUBUNIT:
+                case TLV::TAG_DEST_NETWORK_TYPE:
+                case TLV::TAG_DEST_BEARER_TYPE:
+                case TLV::TAG_SOURCE_ADDR_SUBUNIT:
+                case TLV::TAG_SOURCE_NETWORK_TYPE:
+                case TLV::TAG_SOURCE_BEARER_TYPE:
+                case TLV::TAG_PAYLOAD_TYPE:
+                case TLV::TAG_MS_MSG_WAIT_FACILITIES:
+                case TLV::TAG_MS_AVAILABILITY_STATUS:
+                case TLV::TAG_MS_VALIDITY:
+                case TLV::TAG_PRIVACY_INDICATOR:
+                case TLV::TAG_USER_RESPONSE_CODE:
+                case TLV::TAG_LANGUAGE_INDICATOR:
+                case TLV::TAG_SAR_TOTAL_SEGMENTS:
+                case TLV::TAG_SAR_SEGMENT_SEQNUM:
+                case TLV::TAG_SC_INTERFACE_VERSION:
+                case TLV::TAG_CALLBACK_NUM_PRES_IND:
+                case TLV::TAG_NUMBER_OF_MESSAGES:
+                case TLV::TAG_DPF_RESULT:
+                case TLV::TAG_SET_DPF:
+                case TLV::TAG_DELIVERY_FAILURE_REASON:
+                case TLV::TAG_MORE_MESSAGES_TO_SEND:
+                case TLV::TAG_MESSAGE_STATE:
+                case TLV::TAG_USSD_SERVICE_OP:
+                case TLV::TAG_DISPLAY_TIME:
+                case TLV::TAG_ITS_REPLY_TYPE:
+                    if (0 > $val->getValue() || $val->getValue() > 0xFF) {
+                        $this->invalid(PDU::STATUS_INVALID_OPTIONAL_PARAM_VALUE, TLV::TAG()[$tag] . ' invalid UINT08');
+                    }
+                    break;
+                case TLV::TAG_DESTINATION_PORT:
+                case TLV::TAG_DEST_TELEMATICS_ID:
+                case TLV::TAG_SOURCE_PORT:
+                case TLV::TAG_SOURCE_TELEMATICS_ID:
+                case TLV::TAG_USER_MESSAGE_REFERENCE:
+                case TLV::TAG_SAR_MSG_REF_NUM:
+                case TLV::TAG_SMS_SIGNAL:
+                case TLV::TAG_ITS_SESSION_INFO:
+                    if (0 > $val->getValue() || $val->getValue() > 0xFF_FF) {
+                        $this->invalid(PDU::STATUS_INVALID_OPTIONAL_PARAM_VALUE, TLV::TAG()[$tag] . ' invalid UINT16');
+                    }
+                    break;
+                case TLV::TAG_QOS_TIME_TO_LIVE:
+                    if (0 > $val->getValue() || $val->getValue() > 0xFF_FF_FF_FF) {
+                        $this->invalid(PDU::STATUS_INVALID_OPTIONAL_PARAM_VALUE, TLV::TAG()[$tag] . ' invalid UINT32');
+                    }
+                    break;
+                case TLV::TAG_SOURCE_SUBADDRESS:
+                case TLV::TAG_DEST_SUBADDRESS:
+                    $this->validateString(TLV::TAG()[$tag], $val->getValue(), 23);
+                    break;
+                case TLV::TAG_RECEIPTED_MESSAGE_ID:
+                case TLV::TAG_CALLBACK_NUM_ATAG:
+                    $this->validateString(TLV::TAG()[$tag], $val->getValue(), 65);
+                    break;
+                case TLV::TAG_ADDITIONAL_STATUS_INFO_TEXT:
+                    $this->validateString(TLV::TAG()[$tag], $val->getValue(), 256);
+                    break;
+                case TLV::TAG_CALLBACK_NUM:
+                    $this->validateString(TLV::TAG()[$tag], $val->getValue(), 19);
+                    break;
+                case TLV::TAG_NETWORK_ERROR_CODE:
+                    $this->validateString(TLV::TAG()[$tag], $val->getValue(), 3);
+                    break;
+                case TLV::TAG_MESSAGE_PAYLOAD:
+                    $this->validateString(TLV::TAG()[$tag], $val->getValue(), 65535);
+                    break;
+            }
         }
     }
 }
