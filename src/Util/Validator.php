@@ -55,8 +55,12 @@ final class Validator implements ValidatorInterface
                 $this->validatePriorityFlag();
                 $this->validateRegDeliveryFlag();
                 if (PDU::ID_SUBMIT_SM === $pdu->getID()) {
-                    $this->validateScheduledAt($pdu->get(PDU::KEY_SCHEDULED_AT));
-                    $this->validateExpiredAt($pdu->get(PDU::KEY_VALIDITY_PERIOD), $pdu->get(PDU::KEY_SCHEDULED_AT));
+                    $this->validateDateTime(PDU::KEY_SCHEDULED_AT, null, PDU::STATUS_INVALID_SCHEDULED_AT);
+                    $this->validateDateTime(
+                        PDU::KEY_VALIDITY_PERIOD,
+                        $pdu->get(PDU::KEY_SCHEDULED_AT),
+                        PDU::STATUS_INVALID_EXPIRED_AT
+                    );
                 }
                 $this->validateMessage(
                     $pdu->get(PDU::KEY_SM_LENGTH),
@@ -93,8 +97,12 @@ final class Validator implements ValidatorInterface
                 $this->validateMessageID(true);
                 $this->validateSourceAddress(21, true);
                 $this->validateRegDeliveryFlag();
-                $this->validateScheduledAt($pdu->get(PDU::KEY_SCHEDULED_AT));
-                $this->validateExpiredAt($pdu->get(PDU::KEY_VALIDITY_PERIOD), $pdu->get(PDU::KEY_SCHEDULED_AT));
+                $this->validateDateTime(PDU::KEY_SCHEDULED_AT, null, PDU::STATUS_INVALID_SCHEDULED_AT);
+                $this->validateDateTime(
+                    PDU::KEY_VALIDITY_PERIOD,
+                    $pdu->get(PDU::KEY_SCHEDULED_AT),
+                    PDU::STATUS_INVALID_EXPIRED_AT
+                );
                 $this->validateMessage(
                     $pdu->get(PDU::KEY_SM_LENGTH),
                     $pdu->get(PDU::KEY_SHORT_MESSAGE),
@@ -144,6 +152,19 @@ final class Validator implements ValidatorInterface
             $this->validateString($key, $value->getValue(), $max);
             $this->validateTON($key, $value->getTON());
             $this->validateNPI($key, $value->getNPI());
+        }
+    }
+
+    private function validateDateTime(string $key, $relativeTo, int $code): void
+    {
+        $value = $this->pdu->get($key);
+        if (!empty($value)) {
+            if (!$value instanceof DateTime) {
+                $this->invalid($code, $key . ' invalid type');
+            }
+            if ($value < $relativeTo) {
+                $this->invalid($code, $key . ' invalid value');
+            }
         }
     }
 
@@ -302,31 +323,6 @@ final class Validator implements ValidatorInterface
             $this->validateString(PDU::KEY_DST_ADDRESS, $value->getValue(), $max, PDU::STATUS_INVALID_DST_ADDRESS);
             $this->validateTON(PDU::KEY_DST_ADDRESS, $value->getTON(), PDU::STATUS_INVALID_DST_TON);
             $this->validateNPI(PDU::KEY_DST_ADDRESS, $value->getNPI(), PDU::STATUS_INVALID_DST_NPI);
-        }
-    }
-
-    private function validateScheduledAt($value)
-    {
-        if (!empty($value)) {
-            if (!$value instanceof DateTime) {
-                throw new ValidatorException('Invalid SCHEDULE_TIME type', PDU::STATUS_INVALID_SCHEDULED_AT);
-            }
-            if ($value < new DateTime()) {
-                throw new ValidatorException('Invalid SCHEDULE_TIME value', PDU::STATUS_INVALID_SCHEDULED_AT);
-            }
-        }
-    }
-
-    private function validateExpiredAt($value, $scheduledAt)
-    {
-        if (!empty($value)) {
-            if (!$value instanceof DateTime) {
-                throw new ValidatorException('Invalid EXPIRY_TIME type', PDU::STATUS_INVALID_EXPIRED_AT);
-            }
-            if ($value < new DateTime()
-                || (!empty($scheduledAt) && $scheduledAt instanceof DateTime && $value < $scheduledAt)) {
-                throw new ValidatorException('Invalid EXPIRY_TIME value', PDU::STATUS_INVALID_EXPIRED_AT);
-            }
         }
     }
 
