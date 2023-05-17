@@ -112,12 +112,15 @@ final class Client implements ClientInterface
             $connection->send(new PDU(PDU::ID_GENERIC_NACK, PDU::STATUS_INVALID_COMMAND_ID, 0), true);
         }
         if ($exception instanceof DecoderException) {
-            $status = PDU::STATUS_INVALID_COMMAND_LENGTH;
-            if ($exception->getPrevious() instanceof ValidatorException) {
-                $status = $exception->getPrevious()->getCode();
-            }
-            $connection->error('Error [' . PDU::getStatuses()[$status] . ']');
-            $connection->send(new PDU(PDU::ID_GENERIC_NACK | $exception->getCommandID(), $status, 0), true);
+            $connection->error('Error [' . PDU::getStatuses()[PDU::STATUS_INVALID_COMMAND_LENGTH] . ']');
+            $connection->send(new PDU(PDU::ID_GENERIC_NACK, PDU::STATUS_INVALID_COMMAND_LENGTH, 0), true);
+        }
+        if ($exception instanceof ValidatorException) {
+            $connection->error('Error [' . PDU::getStatuses()[$exception->getErrorCode()] . ']');
+            $connection->send(
+                new PDU(PDU::ID_GENERIC_NACK | $exception->getCommandID(), $exception->getErrorCode(), 0),
+                true
+            );
         }
     }
 
