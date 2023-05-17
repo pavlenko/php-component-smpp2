@@ -35,7 +35,6 @@ final class Decoder implements DecoderInterface
 
     private function decodeRequiredParams(int $id, string $buffer, int &$pos): array
     {
-        //TODO check string limits, or remove all here and check in validator
         switch ($id) {
             case PDU::ID_GENERIC_NACK:
             case PDU::ID_UNBIND:
