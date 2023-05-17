@@ -19,9 +19,9 @@ final class Validator implements ValidatorInterface
      */
     private ?PDU $pdu = null;
 
-    private function invalid(int $status, string $message): void
+    private function error(int $errorCode, string $message): void
     {
-        throw new ValidatorException($this->pdu->getID(), $status, $message);
+        throw new ValidatorException($this->pdu->getID(), $errorCode, $message);
     }
 
     public function validate(PDU $pdu): void
@@ -116,24 +116,24 @@ final class Validator implements ValidatorInterface
         int $code = PDU::STATUS_UNKNOWN_ERROR
     ): void {
         if (strlen($value) < $min) {
-            $this->invalid($code, $key . ' too short');
+            $this->error($code, $key . ' too short');
         }
         if (strlen($value) >= $max) {
-            $this->invalid($code, $key . ' too long');
+            $this->error($code, $key . ' too long');
         }
     }
 
     private function validateTON(string $key, int $value, int $code = PDU::STATUS_UNKNOWN_ERROR): void
     {
         if (!array_key_exists($value, Address::TON())) {
-            $this->invalid($code, $key . ' invalid TON');
+            $this->error($code, $key . ' invalid TON');
         }
     }
 
     private function validateNPI(string $key, int $value, int $errorCode = PDU::STATUS_UNKNOWN_ERROR): void
     {
         if (!array_key_exists($value, Address::NPI())) {
-            $this->invalid($errorCode, $key . ' invalid NPI');
+            $this->error($errorCode, $key . ' invalid NPI');
         }
     }
 
@@ -141,7 +141,7 @@ final class Validator implements ValidatorInterface
     {
         $value = $this->pdu->get($key);
         if ($required && (!$value instanceof Address || empty($value->getValue()))) {
-            $this->invalid(PDU::STATUS_UNKNOWN_ERROR, $key . ' required');
+            $this->error(PDU::STATUS_UNKNOWN_ERROR, $key . ' required');
         }
         if ($value instanceof Address) {
             $this->validateString($key, $value->getValue(), 0, $max);
@@ -155,10 +155,10 @@ final class Validator implements ValidatorInterface
         $value = $this->pdu->get($key);
         if (!empty($value)) {
             if (!$value instanceof DateTime) {
-                $this->invalid($code, $key . ' invalid type');
+                $this->error($code, $key . ' invalid type');
             }
             if ($value < $relativeTo) {
-                $this->invalid($code, $key . ' invalid value');
+                $this->error($code, $key . ' invalid value');
             }
         }
     }
@@ -167,10 +167,10 @@ final class Validator implements ValidatorInterface
     {
         $value = $this->pdu->get(PDU::KEY_SYSTEM_ID);
         if (empty($value)) {
-            $this->invalid(PDU::STATUS_INVALID_SYSTEM_ID, PDU::KEY_SYSTEM_ID . ' required');
+            $this->error(PDU::STATUS_INVALID_SYSTEM_ID, PDU::KEY_SYSTEM_ID . ' required');
         }
         if (strlen($value) >= 16) {
-            $this->invalid(PDU::STATUS_INVALID_SYSTEM_ID, PDU::KEY_SYSTEM_ID . ' too long');
+            $this->error(PDU::STATUS_INVALID_SYSTEM_ID, PDU::KEY_SYSTEM_ID . ' too long');
         }
     }
 
@@ -178,7 +178,7 @@ final class Validator implements ValidatorInterface
     {
         $value = $this->pdu->get(PDU::KEY_PASSWORD);
         if (!empty($value) && strlen($value) >= 9) {
-            $this->invalid(PDU::STATUS_INVALID_PASSWORD, PDU::KEY_PASSWORD . ' too long');
+            $this->error(PDU::STATUS_INVALID_PASSWORD, PDU::KEY_PASSWORD . ' too long');
         }
     }
 
@@ -186,7 +186,7 @@ final class Validator implements ValidatorInterface
     {
         $value = $this->pdu->get(PDU::KEY_SYSTEM_TYPE);
         if (!empty($value) && strlen($value) >= 13) {
-            $this->invalid(PDU::STATUS_INVALID_SYSTEM_TYPE, PDU::KEY_SYSTEM_TYPE . ' too long');
+            $this->error(PDU::STATUS_INVALID_SYSTEM_TYPE, PDU::KEY_SYSTEM_TYPE . ' too long');
         }
     }
 
@@ -194,10 +194,10 @@ final class Validator implements ValidatorInterface
     {
         $value = $this->pdu->get(PDU::KEY_INTERFACE_VERSION);
         if (empty($value)) {
-            $this->invalid(PDU::STATUS_UNKNOWN_ERROR, PDU::KEY_INTERFACE_VERSION . ' required');
+            $this->error(PDU::STATUS_UNKNOWN_ERROR, PDU::KEY_INTERFACE_VERSION . ' required');
         }
         if ($value > ConnectionInterface::INTERFACE_VER) {
-            $this->invalid(PDU::STATUS_UNKNOWN_ERROR, PDU::KEY_INTERFACE_VERSION . ' invalid');
+            $this->error(PDU::STATUS_UNKNOWN_ERROR, PDU::KEY_INTERFACE_VERSION . ' invalid');
         }
     }
 
@@ -216,7 +216,7 @@ final class Validator implements ValidatorInterface
         ];
 
         if (!in_array($value, $allowed)) {
-            $this->invalid(PDU::STATUS_INVALID_SERVICE_TYPE, PDU::KEY_SERVICE_TYPE . ' invalid');
+            $this->error(PDU::STATUS_INVALID_SERVICE_TYPE, PDU::KEY_SERVICE_TYPE . ' invalid');
         }
     }
 
@@ -232,7 +232,7 @@ final class Validator implements ValidatorInterface
         ];
 
         if (!in_array($value & 0b00_11_11_00, $allowed)) {
-            $this->invalid(PDU::STATUS_INVALID_ESM_CLASS, PDU::KEY_ESM_CLASS . ' invalid');
+            $this->error(PDU::STATUS_INVALID_ESM_CLASS, PDU::KEY_ESM_CLASS . ' invalid');
         }
     }
 
@@ -242,7 +242,7 @@ final class Validator implements ValidatorInterface
         $allowed = [PDU::PRIORITY_DEFAULT, PDU::PRIORITY_HIGH, PDU::PRIORITY_URGENT, PDU::PRIORITY_EMERGENCY];
 
         if (!in_array($value, $allowed)) {
-            $this->invalid(PDU::STATUS_INVALID_PRIORITY_FLAG, PDU::KEY_PRIORITY_FLAG . ' invalid');
+            $this->error(PDU::STATUS_INVALID_PRIORITY_FLAG, PDU::KEY_PRIORITY_FLAG . ' invalid');
         }
     }
 
@@ -256,7 +256,7 @@ final class Validator implements ValidatorInterface
         ];
 
         if (!in_array($value & 0b11_10_00_11, $allowed)) {
-            $this->invalid(PDU::STATUS_INVALID_REG_DELIVERY_FLAG, PDU::KEY_REG_DELIVERY . ' invalid');
+            $this->error(PDU::STATUS_INVALID_REG_DELIVERY_FLAG, PDU::KEY_REG_DELIVERY . ' invalid');
         }
     }
 
@@ -264,10 +264,10 @@ final class Validator implements ValidatorInterface
     {
         $value = $this->pdu->get(PDU::KEY_MESSAGE_ID);
         if (empty($value) && $required) {
-            $this->invalid(PDU::STATUS_INVALID_MESSAGE_ID, PDU::KEY_MESSAGE_ID . ' required');
+            $this->error(PDU::STATUS_INVALID_MESSAGE_ID, PDU::KEY_MESSAGE_ID . ' required');
         }
         if (!empty($value) && strlen($value) >= 65) {
-            $this->invalid(PDU::STATUS_INVALID_MESSAGE_ID, PDU::KEY_MESSAGE_ID . ' invalid');
+            $this->error(PDU::STATUS_INVALID_MESSAGE_ID, PDU::KEY_MESSAGE_ID . ' invalid');
         }
     }
 
@@ -275,7 +275,7 @@ final class Validator implements ValidatorInterface
     {
         $value = $this->pdu->get(PDU::KEY_MESSAGE_STATE);
         if (!is_int($value)) {
-            $this->invalid(PDU::STATUS_UNKNOWN_ERROR, PDU::KEY_MESSAGE_STATE . ' invalid type');
+            $this->error(PDU::STATUS_UNKNOWN_ERROR, PDU::KEY_MESSAGE_STATE . ' invalid type');
         }
 
         $allowed = [
@@ -291,7 +291,7 @@ final class Validator implements ValidatorInterface
         ];
 
         if (!in_array($value, $allowed)) {
-            $this->invalid(PDU::STATUS_UNKNOWN_ERROR, PDU::KEY_MESSAGE_STATE . ' invalid value');
+            $this->error(PDU::STATUS_UNKNOWN_ERROR, PDU::KEY_MESSAGE_STATE . ' invalid value');
         }
     }
 
@@ -299,7 +299,7 @@ final class Validator implements ValidatorInterface
     {
         $value = $this->pdu->get(PDU::KEY_SRC_ADDRESS);
         if ($required && (!$value instanceof Address || empty($value->getValue()))) {
-            $this->invalid(PDU::STATUS_INVALID_SRC_ADDRESS, PDU::KEY_SRC_ADDRESS . ' required');
+            $this->error(PDU::STATUS_INVALID_SRC_ADDRESS, PDU::KEY_SRC_ADDRESS . ' required');
         }
         if ($value instanceof Address) {
             $this->validateString(PDU::KEY_SRC_ADDRESS, $value->getValue(), 0, $max, PDU::STATUS_INVALID_SRC_ADDRESS);
@@ -312,7 +312,7 @@ final class Validator implements ValidatorInterface
     {
         $value = $this->pdu->get(PDU::KEY_DST_ADDRESS);
         if ($required && (!$value instanceof Address || empty($value->getValue()))) {
-            $this->invalid(PDU::STATUS_INVALID_DST_ADDRESS, PDU::KEY_DST_ADDRESS . ' required');
+            $this->error(PDU::STATUS_INVALID_DST_ADDRESS, PDU::KEY_DST_ADDRESS . ' required');
         }
         if ($value instanceof Address) {
             $this->validateString(PDU::KEY_DST_ADDRESS, $value->getValue(), 0, $max, PDU::STATUS_INVALID_DST_ADDRESS);
@@ -329,13 +329,13 @@ final class Validator implements ValidatorInterface
 
         if ($length > 0) {
             if ($length > 254) {
-                $this->invalid(PDU::STATUS_INVALID_MESSAGE_LENGTH, ' sm_length invalid');
+                $this->error(PDU::STATUS_INVALID_MESSAGE_LENGTH, ' sm_length invalid');
             }
             if (strlen($message) !== $length) {
-                $this->invalid(PDU::STATUS_INVALID_MESSAGE_LENGTH, ' short_message length not match sm_length');
+                $this->error(PDU::STATUS_INVALID_MESSAGE_LENGTH, ' short_message length not match sm_length');
             }
         } elseif (!$payload instanceof TLV) {
-            $this->invalid(PDU::STATUS_INVALID_DEFINED_MESSAGE, 'Required short_message param or message_payload TLV');
+            $this->error(PDU::STATUS_INVALID_DEFINED_MESSAGE, 'Required short_message param or message_payload TLV');
         }
     }
 
@@ -348,7 +348,7 @@ final class Validator implements ValidatorInterface
 
             if (!array_key_exists($this->pdu->getID(), PDU::ALLOWED_TLV_BY_ID)
                 || !in_array($tag, PDU::ALLOWED_TLV_BY_ID[$this->pdu->getID()])) {
-                $this->invalid(PDU::STATUS_OPTIONAL_PARAM_NOT_ALLOWED, sprintf(
+                $this->error(PDU::STATUS_OPTIONAL_PARAM_NOT_ALLOWED, sprintf(
                     'Param %s not allowed for PDU %s',
                     TLV::TAG()[$tag] ?? sprintf('0x%02X', $tag),
                     PDU::getIdentifiers()[$this->pdu->getID()] ?? sprintf('0x%04X', $this->pdu->getID())
@@ -356,7 +356,7 @@ final class Validator implements ValidatorInterface
             }
 
             if (!$val instanceof TLV) {
-                $this->invalid(PDU::STATUS_INVALID_OPTIONAL_PARAM_VALUE, sprintf(
+                $this->error(PDU::STATUS_INVALID_OPTIONAL_PARAM_VALUE, sprintf(
                     'Param %s has invalid type',
                     TLV::TAG()[$tag] ?? sprintf('0x%02X', $tag)
                 ));
@@ -390,7 +390,7 @@ final class Validator implements ValidatorInterface
                 case TLV::TAG_DISPLAY_TIME:
                 case TLV::TAG_ITS_REPLY_TYPE:
                     if (0 > $val->getValue() || $val->getValue() > 0xFF) {
-                        $this->invalid(PDU::STATUS_INVALID_OPTIONAL_PARAM_VALUE, TLV::TAG()[$tag] . ' invalid UINT08');
+                        $this->error(PDU::STATUS_INVALID_OPTIONAL_PARAM_VALUE, TLV::TAG()[$tag] . ' invalid UINT08');
                     }
                     break;
                 case TLV::TAG_DESTINATION_PORT:
@@ -402,12 +402,12 @@ final class Validator implements ValidatorInterface
                 case TLV::TAG_SMS_SIGNAL:
                 case TLV::TAG_ITS_SESSION_INFO:
                     if (0 > $val->getValue() || $val->getValue() > 0xFF_FF) {
-                        $this->invalid(PDU::STATUS_INVALID_OPTIONAL_PARAM_VALUE, TLV::TAG()[$tag] . ' invalid UINT16');
+                        $this->error(PDU::STATUS_INVALID_OPTIONAL_PARAM_VALUE, TLV::TAG()[$tag] . ' invalid UINT16');
                     }
                     break;
                 case TLV::TAG_QOS_TIME_TO_LIVE:
                     if (0 > $val->getValue() || $val->getValue() > 0xFF_FF_FF_FF) {
-                        $this->invalid(PDU::STATUS_INVALID_OPTIONAL_PARAM_VALUE, TLV::TAG()[$tag] . ' invalid UINT32');
+                        $this->error(PDU::STATUS_INVALID_OPTIONAL_PARAM_VALUE, TLV::TAG()[$tag] . ' invalid UINT32');
                     }
                     break;
                 case TLV::TAG_SOURCE_SUBADDRESS:
