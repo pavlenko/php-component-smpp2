@@ -13,9 +13,9 @@ class Uint08T implements Type
 {
     public int $value;
 
-    public function __construct(int $value)
+    public function __construct(int $value = null)
     {
-        $this->value = $value;
+        $this->value = (int) $value;
     }
 
     public function __toString(): string
@@ -28,9 +28,9 @@ class StringT implements Type
 {
     public string $value;
 
-    public function __construct(string $value)
+    public function __construct(string $value = null)
     {
-        $this->value = $value;
+        $this->value = (string) $value;
     }
 
     public function __toString(): string
@@ -39,7 +39,7 @@ class StringT implements Type
     }
 }
 
-class Params
+class Params74
 {
     public Uint08T $a;
     public StringT $b;
@@ -51,6 +51,17 @@ class Params
     }
 }
 
-$params = new Params();
+//TODO maybe change min version to php 8.0
+class Params80
+{
+    public function __construct(
+        public Uint08T $a = new Uint08T(),
+        public StringT $b = new StringT(),
+    ) {
+
+    }
+}
+
+$params = new Params80();
 
 dump($params);
