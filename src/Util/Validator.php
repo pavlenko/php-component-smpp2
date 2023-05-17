@@ -39,6 +39,7 @@ final class Validator implements ValidatorInterface
                 $this->validatePassword();
                 $this->validateSystemType();
                 $this->validateInterfaceVer();
+                //TODO validate address
                 break;
             case PDU::ID_BIND_RECEIVER_RESP:
             case PDU::ID_BIND_TRANSMITTER_RESP:
@@ -100,15 +101,42 @@ final class Validator implements ValidatorInterface
                 break;
             case PDU::ID_ALERT_NOTIFICATION:
                 $this->validateSourceAddress($pdu->get(PDU::KEY_SRC_ADDRESS), true);
-                if (empty($pdu->get(PDU::KEY_ESME_ADDRESS))) {
-                    throw new ValidatorException('ESME_ADDRESS required', PDU::STATUS_UNKNOWN_ERROR);
-                }
+                $this->validateAddress(PDU::KEY_ESME_ADDRESS, true);//TODO max length
         }
 
         foreach ($pdu->getParams() as $key => $val) {
             if (is_numeric($key)) {
                 $this->checkTLV($pdu->getID(), $key, $val);
             }
+        }
+    }
+
+    private function validateTON(string $key, int $value, int $errorCode = PDU::STATUS_UNKNOWN_ERROR): void
+    {
+        if (!array_key_exists($value, Address::TON())) {
+            $this->invalid($errorCode, $key . ' invalid TON');
+        }
+    }
+
+    private function validateNPI(string $key, int $value, int $errorCode = PDU::STATUS_UNKNOWN_ERROR): void
+    {
+        if (!array_key_exists($value, Address::NPI())) {
+            $this->invalid($errorCode, $key . ' invalid NPI');
+        }
+    }
+
+    private function validateAddress(string $key, bool $required, int $errorCode = PDU::STATUS_UNKNOWN_ERROR): void
+    {
+        $value = $this->pdu->get($key);
+        if (empty($value) && $required) {
+            $this->invalid($errorCode, $key . ' required');
+        }
+        if (!empty($value)) {
+            if (!$value instanceof Address || empty($value->getValue())) {
+                $this->invalid($errorCode, $key . ' invalid value');
+            }
+            $this->validateTON($key, $value->getTON());
+            $this->validateNPI($key, $value->getNPI());
         }
     }
 
