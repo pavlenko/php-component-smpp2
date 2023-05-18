@@ -55,11 +55,12 @@ final class Deferred
         return $this;
     }
 
-    public function success(...$arguments): void
+    public function success(PDU $pdu): void
     {
-        call_user_func($this->resolvedHandler, ...$arguments);
+        call_user_func($this->resolvedHandler, $pdu);
     }
 
+    //TODO fixed interface
     public function failure(...$arguments): void
     {
         call_user_func($this->rejectedHandler, ...$arguments);
