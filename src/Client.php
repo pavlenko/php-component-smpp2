@@ -41,8 +41,8 @@ final class Client implements ClientInterface
         $this->logger  = $logger ?: new NullLogger();
 
         $this->loop = $factory->createDispatcher(function () {
-            $this->processTimeout($this->connection);
-            $this->processEnquire($this->connection);
+//            $this->processTimeout($this->connection);
+//            $this->processEnquire($this->connection);
             $this->processPending($this->connection);
         });
     }
@@ -130,20 +130,21 @@ final class Client implements ClientInterface
         $deferred = $connection->dequeuePacket($pdu->getSeqNum(), $pdu->getID()) ?: new Deferred(0, 0);
 
         // Check errored response
-        if (PDU::STATUS_NO_ERROR !== $pdu->getStatus()) {
+        if (PDU::STATUS_NO_ERROR !== $pdu->getStatus()) {//TODO to connection
             //TODO try recover error instead of close
             $connection->close('Error [' . (PDU::getStatuses()[$pdu->getStatus()] ?? $pdu->getStatus()) . ']');
             $deferred->failure($pdu);
             return;
         }
 
-        if (array_key_exists($pdu->getID(), ConnectionInterface::BOUND_MAP)) {
+        if (array_key_exists($pdu->getID(), ConnectionInterface::BOUND_MAP)) {//TODO to main id switch
             $this->logger->log(LogLevel::DEBUG, "Connecting to {$connection->getRemoteAddress()} OK");
             $this->connection->setStatus(ConnectionInterface::BOUND_MAP[$pdu->getID()]);
             $deferred->success($pdu);
             return;
         }
 
+        //TODO to connection
         if (array_key_exists($pdu->getID(), ConnectionInterface::ALLOWED_ID_BY_BOUND)
             && !in_array($connection->getStatus(), ConnectionInterface::ALLOWED_ID_BY_BOUND[$pdu->getID()])) {
             $connection->send(
@@ -172,27 +173,27 @@ final class Client implements ClientInterface
         $this->emitter->dispatch(new Event(PDU::getIdentifiers()[$pdu->getID()], $connection, $pdu));
     }
 
-    private function processTimeout(ConnectionInterface $connection): void
-    {
-        $deferredList = $connection->getWaitQueue();
-        foreach ($deferredList as $deferred) {
-            if ($deferred->getExpiredAt() < time()) {
-                $deferred->failure(null);
-                $connection->close('Timed out');
-            }
-        }
-    }
-
-    private function processEnquire(ConnectionInterface $connection): void
-    {
-        $overdue = time() - $connection->getLastMessageTime() > $this->session->getInactiveTimeout();
-        if ($overdue) {
-            $sequenceNum = $this->session->newSequenceNum();
-
-            $connection->send(new PDU(PDU::ID_ENQUIRE_LINK, 0, $sequenceNum));
-            $connection->wait($this->session->getResponseTimeout(), $sequenceNum, PDU::ID_ENQUIRE_LINK_RESP);
-        }
-    }
+//    private function processTimeout(ConnectionInterface $connection): void
+//    {
+//        $deferredList = $connection->getWaitQueue();
+//        foreach ($deferredList as $deferred) {
+//            if ($deferred->getExpiredAt() < time()) {
+//                $deferred->failure(null);
+//                $connection->close('Timed out');
+//            }
+//        }
+//    }
+//
+//    private function processEnquire(ConnectionInterface $connection): void
+//    {
+//        $overdue = time() - $connection->getLastMessageTime() > $this->session->getInactiveTimeout();
+//        if ($overdue) {
+//            $sequenceNum = $this->session->newSequenceNum();
+//
+//            $connection->send(new PDU(PDU::ID_ENQUIRE_LINK, 0, $sequenceNum));
+//            $connection->wait($this->session->getResponseTimeout(), $sequenceNum, PDU::ID_ENQUIRE_LINK_RESP);
+//        }
+//    }
 
     private function processPending(ConnectionInterface $connection): void
     {

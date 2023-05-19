@@ -5,6 +5,7 @@ namespace PE\Component\SMPP;
 use PE\Component\SMPP\DTO\Deferred;
 use PE\Component\SMPP\DTO\PDU;
 use PE\Component\SMPP\Exception\ExceptionInterface;
+use PE\Component\SMPP\Exception\TimeoutException;
 use PE\Component\SMPP\Util\DecoderInterface;
 use PE\Component\SMPP\Util\EncoderInterface;
 use PE\Component\SMPP\Util\ValidatorInterface;
@@ -141,12 +142,12 @@ final class Connection implements ConnectionInterface
         $this->session = $session;
     }
 
-    public function getWaitQueue(): array
+    public function getWaitQueue(): array//TODO private
     {
         return $this->waitQueue;
     }
 
-    public function dequeuePacket(int $seqNum, int $id): ?Deferred
+    public function dequeuePacket(int $seqNum, int $id): ?Deferred//TODO private
     {
         foreach ($this->waitQueue as $index => $expect) {
             if ($expect->isExpectPDU($seqNum, $id)) {
@@ -158,14 +159,35 @@ final class Connection implements ConnectionInterface
         return null;
     }
 
-    public function getLastMessageTime(): int
+    public function getLastMessageTime(): int//TODO private, enquire only
     {
         return $this->lastMessageTime;
     }
 
-    public function updLastMessageTime(): void
+    public function updLastMessageTime(): void//TODO private, enquire only
     {
         $this->lastMessageTime = time();
+    }
+
+    //TODO call in dispatch process
+    public function tick(): void
+    {
+        // Handle timeout
+        foreach ($this->waitQueue as $deferred) {
+            if ($deferred->getExpiredAt() < time()) {
+                $deferred->failure($exception = new TimeoutException());
+                call_user_func($this->onError, $exception);
+                $this->close();
+                return;
+            }
+        }
+
+        // Handle enquire
+        $overdue = time() - $this->lastMessageTime > $this->session->getInactiveTimeout();
+        if ($overdue) {
+            $this->send(new PDU(PDU::ID_ENQUIRE_LINK, 0, $sequenceNum = $this->session->newSequenceNum()));
+            $this->wait($this->session->getResponseTimeout(), $sequenceNum, PDU::ID_ENQUIRE_LINK_RESP);
+        }
     }
 
     public function wait(int $timeout, int $seqNum = 0, int ...$expectPDU): Deferred
